@@ -198,7 +198,7 @@ export default function Settings() {
       {/* App Info */}
       <div className={styles.appInfo}>
         <span className={styles.appName}>BelowYourMeans v1.0</span>
-        <span className={styles.appTagline}>Personal expense tracking made simple</span>
+        <span className={styles.appTagline}>Made by Ammar</span>
       </div>
 
       {/* Bottom Navigation */}

@@ -162,7 +162,7 @@ export default function Dashboard() {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>BelowYourMeans</h1>
-          <button className={styles.menuBtn} onClick={() => router.push('/settings')}>
+          <button className={styles.menuBtn} onClick={() => router.push('/analytics')}>
             <span></span>
             <span></span>
             <span></span>
