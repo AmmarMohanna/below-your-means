@@ -1,0 +1,28 @@
+# Development Dockerfile with hot reload
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies for better-sqlite3
+RUN apk add --no-cache python3 make g++ git
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm ci
+
+# Copy the rest of the application
+COPY . .
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Initialize database on first run
+RUN node scripts/init-db.js || true
+
+EXPOSE 3000
+
+# Use next dev for hot reloading
+CMD ["npm", "run", "dev"]
+

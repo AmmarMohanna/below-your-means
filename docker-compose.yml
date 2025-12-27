@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: belowyourmeans
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - APP_PASSWORD=${APP_PASSWORD:?Set APP_PASSWORD in .env}
+      - SESSION_SECRET=${SESSION_SECRET:?Set SESSION_SECRET in .env}
+      - DATABASE_PATH=/app/data/belowyourmeans.db
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/auth/check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

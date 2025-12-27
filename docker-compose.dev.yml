@@ -1,0 +1,25 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: belowyourmeans-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - APP_PASSWORD=${APP_PASSWORD:-changeme123}
+      - SESSION_SECRET=${SESSION_SECRET:-dev-secret-change-in-production}
+      - DATABASE_PATH=/app/data/belowyourmeans.db
+      - WATCHPACK_POLLING=true
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src
+      - ./public:/app/public
+      # Mount data directory for persistent database
+      - ./data:/app/data
+      # Exclude node_modules (use container's version)
+      - /app/node_modules
+      - /app/.next
+    stdin_open: true
+    tty: true
