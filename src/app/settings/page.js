@@ -10,6 +10,8 @@ const DEFAULT_CATEGORIES = [
   { id: 'shopping', name: 'Shopping', icon: '🛍️' },
   { id: 'utilities', name: 'Utilities', icon: '💡' },
   { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
+  { id: 'charity', name: 'Charity', icon: '❤️' },
+  { id: 'unexpected', name: 'Unexpected', icon: '⚡' },
   { id: 'income', name: 'Income', icon: '💰' },
   { id: 'other', name: 'Other', icon: '📝' },
 ]
