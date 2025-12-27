@@ -14,17 +14,13 @@ export function verifyPassword(password) {
   return password === correctPassword;
 }
 
-// Get the valid session token (stored in env or generated once)
-function getValidSessionToken() {
-  // In production, we use the session token from the cookie and verify it
-  // For simplicity, we'll just check if a session cookie exists
-  return process.env.SESSION_SECRET || 'default-session-secret';
-}
-
-// Create session cookie value (HMAC of session secret)
+// Create session cookie value (HMAC of secret + password)
+// When password changes, all sessions become invalid
 export function createSessionValue() {
-  const secret = getValidSessionToken();
-  return crypto.createHmac('sha256', secret).update('authenticated').digest('hex');
+  const secret = process.env.SESSION_SECRET || 'default-session-secret';
+  const password = process.env.APP_PASSWORD || '';
+  // Include password in hash so changing password invalidates all sessions
+  return crypto.createHmac('sha256', secret).update('authenticated:' + password).digest('hex');
 }
 
 // Verify session cookie

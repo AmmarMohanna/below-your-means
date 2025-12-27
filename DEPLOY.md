@@ -166,6 +166,8 @@ Save (`Ctrl+X`, then `Y`, then `Enter`) and restart:
 docker compose restart
 ```
 
+**Note**: Changing the password automatically logs out all existing sessions.
+
 ---
 
 ## Troubleshooting
