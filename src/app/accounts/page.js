@@ -6,6 +6,7 @@ import styles from "./accounts.module.css"
 
 const TABS = [
   { id: 'current', name: 'Current Money', icon: '💵', color: '#10b981' },
+  { id: 'metals', name: 'Metals', icon: '🪙', color: '#eab308' },
   { id: 'expected', name: 'Expected', icon: '📥', color: '#3b82f6' },
   { id: 'payables', name: 'To Pay', icon: '📤', color: '#ef4444' },
   { id: 'recurring', name: 'Monthly', icon: '🔄', color: '#8b5cf6' },
@@ -23,6 +24,13 @@ export default function Accounts() {
     recurring: [],
     heldMoney: [],
   })
+  const [metals, setMetals] = useState({
+    holdings: { gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 },
+    prices: { gold_24k_per_gram: 0, gold_21k_per_gram: 0, silver_per_kg: 0 },
+    values: { gold_24k: 0, gold_21k: 0, silver: 0, total: 0 }
+  })
+  const [metalsEditing, setMetalsEditing] = useState(false)
+  const [metalsForm, setMetalsForm] = useState({ gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 })
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -50,9 +58,23 @@ export default function Accounts() {
     }
   }, [router])
 
+  const fetchMetals = useCallback(async () => {
+    try {
+      const response = await fetch("/api/metals")
+      if (response.ok) {
+        const result = await response.json()
+        setMetals(result)
+        setMetalsForm(result.holdings)
+      }
+    } catch (error) {
+      console.error("Error fetching metals:", error)
+    }
+  }, [])
+
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+    fetchMetals()
+  }, [fetchData, fetchMetals])
 
   const getTableName = (tabId) => {
     switch (tabId) {
@@ -152,6 +174,22 @@ export default function Accounts() {
     if (!dateStr) return ''
     const date = new Date(dateStr + 'T12:00:00')
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const handleMetalsUpdate = async () => {
+    try {
+      const response = await fetch("/api/metals", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metalsForm),
+      })
+      if (response.ok) {
+        setMetalsEditing(false)
+        fetchMetals()
+      }
+    } catch (error) {
+      console.error("Error updating metals:", error)
+    }
   }
 
   const calculateTotal = (items) => {
@@ -644,9 +682,122 @@ export default function Accounts() {
     )
   }
 
+  const renderMetalsTable = () => {
+    const { holdings, prices, values } = metals
+    return (
+      <div className={styles.metalsContainer}>
+        <div className={styles.metalsHeader}>
+          <span className={styles.metalsTitle}>Precious Metals Holdings</span>
+          {!metalsEditing ? (
+            <button onClick={() => setMetalsEditing(true)} className={styles.editMetalsBtn}>
+              ✏️ Edit
+            </button>
+          ) : (
+            <div className={styles.editActions}>
+              <button onClick={handleMetalsUpdate} className={styles.saveBtn}>✓</button>
+              <button onClick={() => { setMetalsEditing(false); setMetalsForm(holdings); }} className={styles.cancelBtn}>×</button>
+            </div>
+          )}
+        </div>
+
+        {prices.source === 'fallback' && (
+          <div className={styles.priceWarning}>
+            ⚠️ Using estimated prices - live data unavailable
+          </div>
+        )}
+
+        <div className={styles.metalRows}>
+          {/* Gold 24K */}
+          <div className={styles.metalRow}>
+            <div className={styles.metalInfo}>
+              <span className={styles.metalIcon}>🥇</span>
+              <div className={styles.metalDetails}>
+                <span className={styles.metalName}>Gold 24K</span>
+                <span className={styles.metalPrice}>${prices.gold_24k_per_gram?.toFixed(2)}/gram</span>
+              </div>
+            </div>
+            {metalsEditing ? (
+              <input
+                type="number"
+                value={metalsForm.gold_24k_grams || ''}
+                onChange={(e) => setMetalsForm({ ...metalsForm, gold_24k_grams: parseFloat(e.target.value) || 0 })}
+                placeholder="0"
+                className={styles.metalInput}
+                step="0.01"
+              />
+            ) : (
+              <span className={styles.metalGrams}>{holdings.gold_24k_grams?.toFixed(2)}g</span>
+            )}
+            <span className={styles.metalValue}>${values.gold_24k?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+          </div>
+
+          {/* Gold 21K */}
+          <div className={styles.metalRow}>
+            <div className={styles.metalInfo}>
+              <span className={styles.metalIcon}>🏅</span>
+              <div className={styles.metalDetails}>
+                <span className={styles.metalName}>Gold 21K</span>
+                <span className={styles.metalPrice}>${prices.gold_21k_per_gram?.toFixed(2)}/gram</span>
+              </div>
+            </div>
+            {metalsEditing ? (
+              <input
+                type="number"
+                value={metalsForm.gold_21k_grams || ''}
+                onChange={(e) => setMetalsForm({ ...metalsForm, gold_21k_grams: parseFloat(e.target.value) || 0 })}
+                placeholder="0"
+                className={styles.metalInput}
+                step="0.01"
+              />
+            ) : (
+              <span className={styles.metalGrams}>{holdings.gold_21k_grams?.toFixed(2)}g</span>
+            )}
+            <span className={styles.metalValue}>${values.gold_21k?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+          </div>
+
+          {/* Silver */}
+          <div className={styles.metalRow}>
+            <div className={styles.metalInfo}>
+              <span className={styles.metalIcon}>🥈</span>
+              <div className={styles.metalDetails}>
+                <span className={styles.metalName}>Silver</span>
+                <span className={styles.metalPrice}>${prices.silver_per_kg?.toFixed(2)}/kg</span>
+              </div>
+            </div>
+            {metalsEditing ? (
+              <input
+                type="number"
+                value={metalsForm.silver_kg || ''}
+                onChange={(e) => setMetalsForm({ ...metalsForm, silver_kg: parseFloat(e.target.value) || 0 })}
+                placeholder="0"
+                className={styles.metalInput}
+                step="0.01"
+              />
+            ) : (
+              <span className={styles.metalGrams}>{holdings.silver_kg?.toFixed(2)}kg</span>
+            )}
+            <span className={styles.metalValue}>${values.silver?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+          </div>
+        </div>
+
+        <div className={styles.metalsTotalRow}>
+          <span className={styles.metalsTotalLabel}>Total Metal Value</span>
+          <span className={styles.metalsTotalValue}>${values.total?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+        </div>
+
+        {prices.last_updated && (
+          <div className={styles.pricesUpdated}>
+            Prices from {prices.source} • Updated {new Date(prices.last_updated).toLocaleTimeString()}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const renderActiveTable = () => {
     switch (activeTab) {
       case 'current': return renderCurrentMoneyTable()
+      case 'metals': return renderMetalsTable()
       case 'expected': return renderExpectedMoneyTable()
       case 'payables': return renderPayablesTable()
       case 'recurring': return renderRecurringTable()
@@ -679,9 +830,16 @@ export default function Accounts() {
         </div>
         <div className={styles.summary}>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Have</span>
+            <span className={styles.summaryLabel}>Cash</span>
             <span className={styles.summaryValue} style={{ color: '#10b981' }}>
               ${calculateTotal(data.currentMoney).toLocaleString()}
+            </span>
+          </div>
+          <div className={styles.summaryDivider}>|</div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Metals</span>
+            <span className={styles.summaryValue} style={{ color: '#d97706' }}>
+              ${(metals.values?.total || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
           </div>
           <div className={styles.summaryDivider}>|</div>
@@ -689,13 +847,6 @@ export default function Accounts() {
             <span className={styles.summaryLabel}>Owe</span>
             <span className={styles.summaryValue} style={{ color: '#ef4444' }}>
               ${calculateTotal(data.payables).toLocaleString()}
-            </span>
-          </div>
-          <div className={styles.summaryDivider}>|</div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Net</span>
-            <span className={styles.summaryValue} style={{ color: '#0d9488' }}>
-              ${(calculateTotal(data.currentMoney) - calculateTotal(data.payables)).toLocaleString()}
             </span>
           </div>
         </div>

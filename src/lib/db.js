@@ -86,6 +86,18 @@ function initializeSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Precious metals holdings
+    CREATE TABLE IF NOT EXISTS metals (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      gold_24k_grams REAL DEFAULT 0,
+      gold_21k_grams REAL DEFAULT 0,
+      silver_kg REAL DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    -- Insert default row if not exists
+    INSERT OR IGNORE INTO metals (id, gold_24k_grams, gold_21k_grams, silver_kg) VALUES (1, 0, 0, 0);
+
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
     CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
@@ -224,5 +236,19 @@ export function updateHeldMoney(id, { person, amount, notes }) {
 
 export function deleteHeldMoney(id) {
   return getDb().prepare('DELETE FROM held_money WHERE id = ?').run(id);
+}
+
+// Metals operations
+export function getMetals() {
+  return getDb().prepare('SELECT * FROM metals WHERE id = 1').get();
+}
+
+export function updateMetals({ gold_24k_grams, gold_21k_grams, silver_kg }) {
+  const stmt = getDb().prepare(`
+    UPDATE metals 
+    SET gold_24k_grams = ?, gold_21k_grams = ?, silver_kg = ?, updated_at = CURRENT_TIMESTAMP 
+    WHERE id = 1
+  `);
+  return stmt.run(gold_24k_grams, gold_21k_grams, silver_kg);
 }
 

@@ -372,6 +372,158 @@
   font-size: 0.9rem;
 }
 
+/* Metals Section */
+.metalsContainer {
+  background: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.metalsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.metalsTitle {
+  font-weight: 700;
+  color: #92400e;
+  font-size: 1rem;
+}
+
+.editMetalsBtn {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #d97706;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #92400e;
+  transition: all 0.2s;
+}
+
+.editMetalsBtn:hover {
+  background: #fffbeb;
+}
+
+.priceWarning {
+  padding: 10px 16px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.8rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.metalRows {
+  padding: 0;
+}
+
+.metalRow {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+
+.metalRow:last-child {
+  border-bottom: none;
+}
+
+.metalInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.metalIcon {
+  font-size: 1.5rem;
+}
+
+.metalDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.metalName {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.metalPrice {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.metalGrams {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  min-width: 70px;
+  text-align: right;
+}
+
+.metalInput {
+  width: 80px;
+  padding: 8px 10px;
+  border: 2px solid #d97706;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  background: #fffbeb;
+}
+
+.metalInput:focus {
+  outline: none;
+  border-color: #b45309;
+}
+
+.metalValue {
+  font-weight: 700;
+  color: #b45309;
+  font-size: 1rem;
+  min-width: 90px;
+  text-align: right;
+}
+
+.metalsTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-top: 2px solid #d97706;
+}
+
+.metalsTotalLabel {
+  font-weight: 700;
+  color: #92400e;
+  font-size: 1rem;
+}
+
+.metalsTotalValue {
+  font-weight: 800;
+  color: #92400e;
+  font-size: 1.25rem;
+}
+
+.pricesUpdated {
+  padding: 10px 16px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
 .totalRow {
   display: flex;
   justify-content: space-between;
