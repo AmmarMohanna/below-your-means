@@ -877,7 +877,9 @@ export default function Accounts() {
         <div className={styles.tableTitle}>
           <span style={{ color: activeTabData?.color }}>{activeTabData?.icon}</span>
           <span>{activeTabData?.name}</span>
-          <button onClick={startAdd} className={styles.addButton}>+ Add</button>
+          {activeTab !== 'metals' && (
+            <button onClick={startAdd} className={styles.addButton}>+ Add</button>
+          )}
         </div>
         {renderActiveTable()}
       </section>
