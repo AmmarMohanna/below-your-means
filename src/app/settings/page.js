@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import * as XLSX from "xlsx"
 import styles from "./settings.module.css"
 
 const DEFAULT_CATEGORIES = [
@@ -24,21 +25,97 @@ export default function Settings() {
   const handleExportData = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/transactions")
-      if (!response.ok) throw new Error("Failed to fetch")
+      // Fetch all data
+      const [transactionsRes, accountsRes, metalsRes] = await Promise.all([
+        fetch("/api/transactions"),
+        fetch("/api/accounts"),
+        fetch("/api/metals")
+      ])
       
-      const transactions = await response.json()
+      if (!transactionsRes.ok) throw new Error("Failed to fetch transactions")
       
-      const csv = [
+      const transactions = await transactionsRes.json()
+      const accounts = accountsRes.ok ? await accountsRes.json() : {}
+      const metals = metalsRes.ok ? await metalsRes.json() : {}
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new()
+      
+      // Sheet 1: Transactions (Expenses & Income)
+      const transactionsData = [
         ["Date", "Category", "Type", "Amount", "Notes"],
         ...transactions.map(t => [t.date, t.category, t.type, t.amount, t.notes || ""])
-      ].map(row => row.join(",")).join("\n")
+      ]
+      const wsTransactions = XLSX.utils.aoa_to_sheet(transactionsData)
+      XLSX.utils.book_append_sheet(wb, wsTransactions, "Transactions")
       
-      const blob = new Blob([csv], { type: "text/csv" })
-      const link = document.createElement("a")
-      link.href = URL.createObjectURL(blob)
-      link.download = `belowyourmeans-export-${new Date().toISOString().split('T')[0]}.csv`
-      link.click()
+      // Sheet 2: Current Money
+      if (accounts.currentMoney?.length > 0) {
+        const currentMoneyData = [
+          ["Location", "Amount", "Notes"],
+          ...accounts.currentMoney.map(m => [m.location, m.amount, m.notes || ""])
+        ]
+        const wsCurrent = XLSX.utils.aoa_to_sheet(currentMoneyData)
+        XLSX.utils.book_append_sheet(wb, wsCurrent, "Current Money")
+      }
+      
+      // Sheet 3: Expected Money
+      if (accounts.expectedMoney?.length > 0) {
+        const expectedData = [
+          ["Source", "Expected Date", "Amount", "Notes"],
+          ...accounts.expectedMoney.map(m => [m.source, m.expected_date, m.amount, m.notes || ""])
+        ]
+        const wsExpected = XLSX.utils.aoa_to_sheet(expectedData)
+        XLSX.utils.book_append_sheet(wb, wsExpected, "Expected Money")
+      }
+      
+      // Sheet 4: Payables
+      if (accounts.payables?.length > 0) {
+        const payablesData = [
+          ["Pay To", "Due Date", "Amount", "Notes"],
+          ...accounts.payables.map(p => [p.source, p.pay_date, p.amount, p.notes || ""])
+        ]
+        const wsPayables = XLSX.utils.aoa_to_sheet(payablesData)
+        XLSX.utils.book_append_sheet(wb, wsPayables, "Payables")
+      }
+      
+      // Sheet 5: Recurring
+      if (accounts.recurring?.length > 0) {
+        const recurringData = [
+          ["Target", "Type", "Amount"],
+          ...accounts.recurring.map(r => [r.target, r.type, r.amount])
+        ]
+        const wsRecurring = XLSX.utils.aoa_to_sheet(recurringData)
+        XLSX.utils.book_append_sheet(wb, wsRecurring, "Recurring Monthly")
+      }
+      
+      // Sheet 6: Held Money
+      if (accounts.heldMoney?.length > 0) {
+        const heldData = [
+          ["For Person", "Amount", "Notes"],
+          ...accounts.heldMoney.map(h => [h.person, h.amount, h.notes || ""])
+        ]
+        const wsHeld = XLSX.utils.aoa_to_sheet(heldData)
+        XLSX.utils.book_append_sheet(wb, wsHeld, "Held Money")
+      }
+      
+      // Sheet 7: Metals
+      if (metals.holdings) {
+        const metalsData = [
+          ["Metal", "Quantity", "Unit", "Price Per Unit", "Total Value"],
+          ["Gold 24K", metals.holdings.gold_24k_grams, "grams", `$${metals.prices?.gold_24k_per_gram?.toFixed(2) || 0}`, `$${metals.values?.gold_24k?.toFixed(2) || 0}`],
+          ["Gold 21K", metals.holdings.gold_21k_grams, "grams", `$${metals.prices?.gold_21k_per_gram?.toFixed(2) || 0}`, `$${metals.values?.gold_21k?.toFixed(2) || 0}`],
+          ["Silver", metals.holdings.silver_kg, "kg", `$${metals.prices?.silver_per_kg?.toFixed(2) || 0}`, `$${metals.values?.silver?.toFixed(2) || 0}`],
+          [],
+          ["Total Metal Value", "", "", "", `$${metals.values?.total?.toFixed(2) || 0}`]
+        ]
+        const wsMetals = XLSX.utils.aoa_to_sheet(metalsData)
+        XLSX.utils.book_append_sheet(wb, wsMetals, "Metals")
+      }
+      
+      // Download the file
+      XLSX.writeFile(wb, `belowyourmeans-export-${new Date().toISOString().split('T')[0]}.xlsx`)
+      
     } catch (error) {
       console.error("Export error:", error)
     } finally {
@@ -91,7 +168,7 @@ export default function Settings() {
             <span className={styles.menuIcon}>📥</span>
             <div className={styles.menuInfo}>
               <span className={styles.menuTitle}>Export Data</span>
-              <span className={styles.menuSubtitle}>Download as CSV</span>
+              <span className={styles.menuSubtitle}>Download as Excel</span>
             </div>
             <span className={styles.menuArrow}>›</span>
           </button>
