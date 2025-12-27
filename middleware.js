@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+// Force Node.js runtime (Edge runtime doesn't support Node crypto)
+export const runtime = 'nodejs';
+
 // Verify session value matches current password
 // When password changes, old sessions become invalid
 function isValidSession(sessionValue) {
