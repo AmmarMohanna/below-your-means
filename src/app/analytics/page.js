@@ -42,6 +42,8 @@ export default function Analytics() {
 
   const handlePeriodChange = (newPeriod) => {
     setPeriod(newPeriod)
+    if (newPeriod === 'custom') return // Don't change dates for custom
+    
     const now = new Date()
     let start, end
 
@@ -65,6 +67,18 @@ export default function Analytics() {
         end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     }
     setDateRange({ start, end })
+  }
+
+  const handleStartDateChange = (e) => {
+    const newStart = new Date(e.target.value + 'T00:00:00')
+    setDateRange(prev => ({ ...prev, start: newStart }))
+    setPeriod('custom')
+  }
+
+  const handleEndDateChange = (e) => {
+    const newEnd = new Date(e.target.value + 'T23:59:59')
+    setDateRange(prev => ({ ...prev, end: newEnd }))
+    setPeriod('custom')
   }
 
   const formatDate = (date) => date.toISOString().split('T')[0]
@@ -129,19 +143,6 @@ export default function Analytics() {
         </button>
       </header>
 
-      {/* Date Range */}
-      <div className={styles.dateRange}>
-        <div className={styles.dateDisplay}>
-          <span className={styles.dateLabel}>From</span>
-          <span className={styles.dateValue}>{formatDisplayDate(dateRange.start)}</span>
-        </div>
-        <span className={styles.dateArrow}>→</span>
-        <div className={styles.dateDisplay}>
-          <span className={styles.dateLabel}>To</span>
-          <span className={styles.dateValue}>{formatDisplayDate(dateRange.end)}</span>
-        </div>
-      </div>
-
       {/* Period Selector */}
       <div className={styles.periodSelector}>
         <select 
@@ -152,7 +153,31 @@ export default function Analytics() {
           <option value="week">This Week</option>
           <option value="month">This Month</option>
           <option value="year">This Year</option>
+          <option value="custom">Custom Range</option>
         </select>
+      </div>
+
+      {/* Date Range Picker */}
+      <div className={styles.dateRange}>
+        <div className={styles.datePickerGroup}>
+          <label className={styles.dateLabel}>From</label>
+          <input
+            type="date"
+            value={formatDate(dateRange.start)}
+            onChange={handleStartDateChange}
+            className={styles.datePicker}
+          />
+        </div>
+        <span className={styles.dateArrow}>→</span>
+        <div className={styles.datePickerGroup}>
+          <label className={styles.dateLabel}>To</label>
+          <input
+            type="date"
+            value={formatDate(dateRange.end)}
+            onChange={handleEndDateChange}
+            className={styles.datePicker}
+          />
+        </div>
       </div>
 
       {/* Summary Cards */}

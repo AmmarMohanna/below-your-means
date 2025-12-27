@@ -59,38 +59,6 @@
   border-radius: 1px;
 }
 
-/* Date Range */
-.dateRange {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin: 0 16px;
-  padding: 16px;
-  background: var(--card-bg);
-  border-radius: 16px;
-}
-
-.dateDisplay {
-  text-align: center;
-}
-
-.dateLabel {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.dateValue {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.dateArrow {
-  color: var(--text-muted);
-}
-
 /* Period Selector */
 .periodSelector {
   margin: 12px 16px;
@@ -98,17 +66,73 @@
 
 .periodSelect {
   width: 100%;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
+  padding: 16px 18px;
+  border: 2px solid var(--border);
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--text-primary);
   background: var(--card-bg);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230d9488' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
+}
+
+/* Date Range Picker */
+.dateRange {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 16px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 2px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.datePickerGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.dateLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.datePicker {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg);
+  cursor: pointer;
+  text-align: center;
+}
+
+.datePicker:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.dateArrow {
+  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding-top: 20px;
 }
 
 /* Summary */
