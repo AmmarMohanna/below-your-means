@@ -55,12 +55,14 @@ cd below-your-means
 cat > .env << 'EOF'
 APP_PASSWORD=your-secure-password-here
 SESSION_SECRET=your-random-secret-string-minimum-32-chars
+SECURE_COOKIES=false
 EOF
 ```
 
 **⚠️ Important**: Change both values!
 - `APP_PASSWORD`: The password you'll use to log in
 - `SESSION_SECRET`: Run `openssl rand -hex 32` to generate a random string
+- `SECURE_COOKIES`: Set to `false` for HTTP. Set to `true` (or remove line) if using HTTPS
 
 ### Step 6: Set Up Database Directory
 
