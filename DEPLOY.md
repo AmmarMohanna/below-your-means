@@ -106,6 +106,7 @@ docker compose up -d --build
 
 ```bash
 cd ~/below-your-means && git pull && docker compose up -d --build
+docker compose restart
 ```
 
 ### What Happens During Update

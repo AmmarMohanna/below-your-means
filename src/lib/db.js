@@ -39,10 +39,60 @@ function initializeSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Current money (what I have now)
+    CREATE TABLE IF NOT EXISTS current_money (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      location TEXT NOT NULL,
+      amount REAL NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Expected money (money coming in)
+    CREATE TABLE IF NOT EXISTS expected_money (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source TEXT NOT NULL,
+      expected_date TEXT NOT NULL,
+      amount REAL NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Payables (money to pay)
+    CREATE TABLE IF NOT EXISTS payables (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source TEXT NOT NULL,
+      pay_date TEXT NOT NULL,
+      amount REAL NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Recurring monthly payments
+    CREATE TABLE IF NOT EXISTS recurring (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      target TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal')),
+      amount REAL NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Money held for others
+    CREATE TABLE IF NOT EXISTS held_money (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      person TEXT NOT NULL,
+      amount REAL NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
     CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
     CREATE INDEX IF NOT EXISTS idx_budgets_category ON budgets(category);
+    CREATE INDEX IF NOT EXISTS idx_expected_money_date ON expected_money(expected_date);
+    CREATE INDEX IF NOT EXISTS idx_payables_date ON payables(pay_date);
+    CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
   `);
 }
 
@@ -79,5 +129,100 @@ export function getAllCategories() {
 export function addCategory(name) {
   const stmt = getDb().prepare('INSERT OR IGNORE INTO categories (name) VALUES (?)');
   return stmt.run(name);
+}
+
+// Current Money operations
+export function getAllCurrentMoney() {
+  return getDb().prepare('SELECT * FROM current_money ORDER BY created_at DESC').all();
+}
+
+export function addCurrentMoney({ location, amount, notes }) {
+  const stmt = getDb().prepare('INSERT INTO current_money (location, amount, notes) VALUES (?, ?, ?)');
+  return stmt.run(location, amount, notes);
+}
+
+export function updateCurrentMoney(id, { location, amount, notes }) {
+  const stmt = getDb().prepare('UPDATE current_money SET location = ?, amount = ?, notes = ? WHERE id = ?');
+  return stmt.run(location, amount, notes, id);
+}
+
+export function deleteCurrentMoney(id) {
+  return getDb().prepare('DELETE FROM current_money WHERE id = ?').run(id);
+}
+
+// Expected Money operations
+export function getAllExpectedMoney() {
+  return getDb().prepare('SELECT * FROM expected_money ORDER BY expected_date ASC').all();
+}
+
+export function addExpectedMoney({ source, expected_date, amount, notes }) {
+  const stmt = getDb().prepare('INSERT INTO expected_money (source, expected_date, amount, notes) VALUES (?, ?, ?, ?)');
+  return stmt.run(source, expected_date, amount, notes);
+}
+
+export function updateExpectedMoney(id, { source, expected_date, amount, notes }) {
+  const stmt = getDb().prepare('UPDATE expected_money SET source = ?, expected_date = ?, amount = ?, notes = ? WHERE id = ?');
+  return stmt.run(source, expected_date, amount, notes, id);
+}
+
+export function deleteExpectedMoney(id) {
+  return getDb().prepare('DELETE FROM expected_money WHERE id = ?').run(id);
+}
+
+// Payables operations
+export function getAllPayables() {
+  return getDb().prepare('SELECT * FROM payables ORDER BY pay_date ASC').all();
+}
+
+export function addPayable({ source, pay_date, amount, notes }) {
+  const stmt = getDb().prepare('INSERT INTO payables (source, pay_date, amount, notes) VALUES (?, ?, ?, ?)');
+  return stmt.run(source, pay_date, amount, notes);
+}
+
+export function updatePayable(id, { source, pay_date, amount, notes }) {
+  const stmt = getDb().prepare('UPDATE payables SET source = ?, pay_date = ?, amount = ?, notes = ? WHERE id = ?');
+  return stmt.run(source, pay_date, amount, notes, id);
+}
+
+export function deletePayable(id) {
+  return getDb().prepare('DELETE FROM payables WHERE id = ?').run(id);
+}
+
+// Recurring payments operations
+export function getAllRecurring() {
+  return getDb().prepare('SELECT * FROM recurring ORDER BY type, target').all();
+}
+
+export function addRecurring({ target, type, amount }) {
+  const stmt = getDb().prepare('INSERT INTO recurring (target, type, amount) VALUES (?, ?, ?)');
+  return stmt.run(target, type, amount);
+}
+
+export function updateRecurring(id, { target, type, amount }) {
+  const stmt = getDb().prepare('UPDATE recurring SET target = ?, type = ?, amount = ? WHERE id = ?');
+  return stmt.run(target, type, amount, id);
+}
+
+export function deleteRecurring(id) {
+  return getDb().prepare('DELETE FROM recurring WHERE id = ?').run(id);
+}
+
+// Held money operations (money held for others)
+export function getAllHeldMoney() {
+  return getDb().prepare('SELECT * FROM held_money ORDER BY created_at DESC').all();
+}
+
+export function addHeldMoney({ person, amount, notes }) {
+  const stmt = getDb().prepare('INSERT INTO held_money (person, amount, notes) VALUES (?, ?, ?)');
+  return stmt.run(person, amount, notes);
+}
+
+export function updateHeldMoney(id, { person, amount, notes }) {
+  const stmt = getDb().prepare('UPDATE held_money SET person = ?, amount = ?, notes = ? WHERE id = ?');
+  return stmt.run(person, amount, notes, id);
+}
+
+export function deleteHeldMoney(id) {
+  return getDb().prepare('DELETE FROM held_money WHERE id = ?').run(id);
 }
 

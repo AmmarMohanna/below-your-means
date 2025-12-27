@@ -7,6 +7,7 @@ import styles from "./dashboard.module.css"
 const CATEGORIES = [
   { id: 'food', name: 'Food & Coffee', icon: '☕' },
   { id: 'livelihood', name: 'Livelihood Monthly', icon: '🏠' },
+  { id: 'family', name: 'Family', icon: '👨‍👩‍👧‍👦' },
   { id: 'shopping', name: 'Shopping', icon: '🛍️' },
   { id: 'utilities', name: 'Utilities', icon: '💡' },
   { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
@@ -163,7 +164,7 @@ export default function Dashboard() {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>BelowYourMeans</h1>
-          <button className={styles.menuBtn} onClick={() => router.push('/analytics')}>
+          <button className={styles.menuBtn} onClick={() => router.push('/accounts')}>
             <span></span>
             <span></span>
             <span></span>
@@ -289,6 +290,10 @@ export default function Dashboard() {
         <button className={`${styles.navItem} ${styles.active}`}>
           <span className={styles.navIcon}>🏠</span>
           <span>Home</span>
+        </button>
+        <button className={styles.navItem} onClick={() => router.push('/accounts')}>
+          <span className={styles.navIcon}>💰</span>
+          <span>Accounts</span>
         </button>
         <button className={styles.navItem} onClick={() => router.push('/analytics')}>
           <span className={styles.navIcon}>📊</span>

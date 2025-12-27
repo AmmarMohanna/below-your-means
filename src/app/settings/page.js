@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./settings.module.css"
 
 const DEFAULT_CATEGORIES = [
   { id: 'food', name: 'Food & Coffee', icon: '☕' },
   { id: 'livelihood', name: 'Livelihood Monthly', icon: '🏠' },
+  { id: 'family', name: 'Family', icon: '👨‍👩‍👧‍👦' },
   { id: 'shopping', name: 'Shopping', icon: '🛍️' },
   { id: 'utilities', name: 'Utilities', icon: '💡' },
   { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
@@ -18,46 +19,7 @@ const DEFAULT_CATEGORIES = [
 
 export default function Settings() {
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState([])
-  const [newCategory, setNewCategory] = useState('')
-  const [showAddCategory, setShowAddCategory] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("/api/categories")
-      if (response.ok) {
-        const data = await response.json()
-        setCategories(data)
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error)
-    }
-  }
-
-  const handleAddCategory = async () => {
-    if (!newCategory.trim()) return
-    
-    try {
-      const response = await fetch("/api/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCategory.trim() }),
-      })
-      
-      if (response.ok) {
-        setNewCategory('')
-        setShowAddCategory(false)
-        fetchCategories()
-      }
-    } catch (error) {
-      console.error("Error adding category:", error)
-    }
-  }
 
   const handleExportData = async () => {
     setLoading(true)
@@ -108,15 +70,7 @@ export default function Settings() {
 
       {/* Categories Section */}
       <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>CATEGORIES</span>
-          <button 
-            className={styles.addLink}
-            onClick={() => setShowAddCategory(true)}
-          >
-            Add New
-          </button>
-        </div>
+        <span className={styles.sectionLabel}>CATEGORIES</span>
         
         <div className={styles.card}>
           {DEFAULT_CATEGORIES.map(cat => (
@@ -125,44 +79,7 @@ export default function Settings() {
               <span className={styles.categoryName}>{cat.name}</span>
             </div>
           ))}
-          
-          {categories.map(cat => (
-            <div key={cat.id} className={styles.categoryItem}>
-              <span className={styles.categoryIcon}>📁</span>
-              <span className={styles.categoryName}>{cat.name}</span>
-            </div>
-          ))}
         </div>
-
-        {showAddCategory && (
-          <div className={styles.addCategoryForm}>
-            <input
-              type="text"
-              placeholder="Category name"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              className={styles.input}
-              autoFocus
-            />
-            <div className={styles.formButtons}>
-              <button 
-                className={styles.cancelBtn}
-                onClick={() => {
-                  setShowAddCategory(false)
-                  setNewCategory('')
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                className={styles.saveBtn}
-                onClick={handleAddCategory}
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        )}
       </section>
 
       {/* Data Section */}
@@ -207,6 +124,10 @@ export default function Settings() {
         <button className={styles.navItem} onClick={() => router.push('/dashboard')}>
           <span className={styles.navIcon}>🏠</span>
           <span>Home</span>
+        </button>
+        <button className={styles.navItem} onClick={() => router.push('/accounts')}>
+          <span className={styles.navIcon}>💰</span>
+          <span>Accounts</span>
         </button>
         <button className={styles.navItem} onClick={() => router.push('/analytics')}>
           <span className={styles.navIcon}>📊</span>

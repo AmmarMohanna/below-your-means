@@ -268,7 +268,7 @@
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: center;
-  gap: 48px;
+  gap: 24px;
   padding: 12px 0;
   padding-bottom: max(12px, env(safe-area-inset-bottom));
   max-width: 500px;
@@ -286,7 +286,7 @@
   color: var(--text-muted);
   font-size: 0.7rem;
   font-weight: 500;
-  padding: 4px 16px;
+  padding: 4px 12px;
   transition: color 0.2s;
 }
 
