@@ -156,7 +156,7 @@
 }
 
 .saveBtn:hover {
-  background: #158a6d;
+  background: var(--primary-dark);
 }
 
 /* Menu Items */

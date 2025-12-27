@@ -197,7 +197,7 @@
 }
 
 .addBtn:hover:not(:disabled) {
-  background: #a8876e;
+  background: var(--primary-dark);
   transform: scale(1.02);
 }
 

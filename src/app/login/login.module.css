@@ -77,7 +77,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background: #158a6d;
+  background: var(--primary-dark);
 }
 
 .button:disabled {

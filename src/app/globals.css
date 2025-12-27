@@ -4,18 +4,20 @@
 @import '@fontsource/raleway/700.css';
 
 :root {
-  --primary: #1a7f64;
-  --primary-light: #e8f5f1;
-  --danger: #dc3545;
+  /* Ammar Mohanna theme - Teal & White with high contrast */
+  --primary: #2ec4b6;
+  --primary-dark: #25a89c;
+  --primary-light: #e6f9f7;
+  --danger: #e63946;
   --danger-light: #fdeaea;
-  --bg: #f5f7f6;
-  --card-bg: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --accent: #b8977e;
-  --accent-light: #f5f0eb;
+  --bg: #ffffff;
+  --card-bg: #f8fffe;
+  --text-primary: #000000;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --border: #d1e3e0;
+  --accent: #2ec4b6;
+  --accent-light: #e6f9f7;
 }
 
 * {
