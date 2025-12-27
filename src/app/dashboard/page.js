@@ -265,8 +265,8 @@ export default function Dashboard() {
               <div key={t.id} className={styles.transaction}>
                 <span className={styles.transactionIcon}>{getCategoryIcon(t.category)}</span>
                 <div className={styles.transactionInfo}>
+                  <span className={styles.transactionNote}>{t.notes || t.category}</span>
                   <span className={styles.transactionCategory}>{t.category}</span>
-                  {t.notes && <span className={styles.transactionNotes}>{t.notes}</span>}
                 </div>
                 <span className={`${styles.transactionAmount} ${t.type === 'income' ? styles.income : styles.expense}`}>
                   {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
