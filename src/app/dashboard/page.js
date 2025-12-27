@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation"
 import styles from "./dashboard.module.css"
 
 const CATEGORIES = [
-  { id: 'food', name: 'Food & Dining', icon: '🍽️' },
-  { id: 'transport', name: 'Transportation', icon: '🚗' },
+  { id: 'food', name: 'Food & Coffee', icon: '☕' },
+  { id: 'livelihood', name: 'Livelihood Monthly', icon: '🏠' },
   { id: 'shopping', name: 'Shopping', icon: '🛍️' },
-  { id: 'entertainment', name: 'Entertainment', icon: '🎬' },
   { id: 'utilities', name: 'Utilities', icon: '💡' },
   { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
   { id: 'income', name: 'Income', icon: '💰' },
