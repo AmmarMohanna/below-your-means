@@ -200,21 +200,17 @@ export default function Dashboard() {
         />
 
         <div className={styles.amountRow}>
-          <button 
-            type="button" 
-            className={styles.dateBtn}
-            onClick={() => {
-              const input = document.createElement('input')
-              input.type = 'date'
-              input.value = formatDate(selectedDate)
-              input.max = formatDate(new Date()) // No future dates
-              input.onchange = (e) => setSelectedDate(new Date(e.target.value + 'T12:00:00'))
-              input.click()
-            }}
-          >
+          <label className={styles.dateBtn}>
             <span className={styles.dateBtnLabel}>Date</span>
             <span className={styles.dateBtnValue}>{isToday(selectedDate) ? 'Today' : selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-          </button>
+            <input
+              type="date"
+              value={formatDate(selectedDate)}
+              max={formatDate(new Date())}
+              onChange={(e) => setSelectedDate(new Date(e.target.value + 'T12:00:00'))}
+              className={styles.hiddenDateInput}
+            />
+          </label>
 
           <input
             type="number"
