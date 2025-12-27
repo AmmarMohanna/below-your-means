@@ -1,167 +1,129 @@
 # 💰 BelowYourMeans
 
-A personal expense tracker designed for self-hosting. Track your expenses, set budgets, and manage your finances - all on your own server.
+A personal expense tracker designed for self-hosting. Track your expenses and manage your finances — all on your own server.
 
-**🐳 Docker-first: No local Node.js installation required!**
+**🐳 Docker-first • 📱 PWA Ready • 🔒 Self-hosted**
+
+---
 
 ## ✨ Features
 
-- **📊 Dashboard** - Overview of income, expenses, and balance with charts
-- **➕ Add Transactions** - Log income and expenses with categories and notes
-- **📜 Transaction History** - View, filter, search, and delete transactions
-- **💵 Budget Setting** - Set monthly budgets per category and track spending
-- **📈 Monthly Summary** - Detailed monthly reports with CSV export
-- **📱 PWA Support** - Install on your phone for app-like experience
-- **🔒 Password Protection** - Simple password-based access
-- **🗄️ SQLite Database** - All data stored locally, no external dependencies
+- **📊 Dashboard** — Daily expense tracking with quick-add form
+- **📈 Analytics** — Custom date range reports with category breakdown
+- **📥 Export** — Download your data as CSV anytime
+- **📱 PWA** — Install on your phone for app-like experience
+- **🔒 Password Protected** — Simple, secure access
+- **🗄️ SQLite** — All data stored locally, no external dependencies
 
-## 🚀 Quick Start (Docker Only)
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose (that's it!)
+- Docker & Docker Compose
 
-### Development
+### Run Locally
 
 ```bash
-# 1. Clone the repository
-git clone git@github.com:YOUR_USERNAME/BelowYourMeans.git
-cd BelowYourMeans
+# Clone
+git clone https://github.com/AmmarMohanna/below-your-means.git
+cd below-your-means
 
-# 2. Start development server (with hot reload)
-make dev-build
+# Start development server
+docker compose -f docker-compose.dev.yml up --build
 
-# Or without make:
-docker-compose -f docker-compose.dev.yml up --build
-
-# 3. Open http://localhost:3000
+# Open http://localhost:3000
 # Default password: changeme123
 ```
 
-### Available Commands
+---
+
+## 🖥️ Deploy to Production
+
+See **[DEPLOY.md](DEPLOY.md)** for complete step-by-step instructions:
+
+- First-time deployment to Hetzner/VPS
+- Updating your app
+- Adding HTTPS with Caddy
+- Backup & restore
+
+**Quick deploy:**
 
 ```bash
-make help          # Show all commands
-make dev           # Start dev server
-make dev-build     # Rebuild and start dev server
-make dev-down      # Stop dev server
-make prod          # Start production server
-make prod-build    # Rebuild and start production
-make logs          # View logs
-make shell         # Open shell in container
-make db-backup     # Backup database
-make clean         # Remove containers and volumes
+# On your server
+git clone https://github.com/AmmarMohanna/below-your-means.git
+cd below-your-means
+
+# Create .env
+echo "APP_PASSWORD=your-password" > .env
+echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
+
+# Launch
+docker compose up -d --build
 ```
 
-## 🖥️ Deploy to Hetzner (or any VPS)
-
-```bash
-# 1. SSH into your server
-ssh root@your-server-ip
-
-# 2. Install Docker
-curl -fsSL https://get.docker.com | sh
-
-# 3. Clone your repo
-git clone git@github.com:YOUR_USERNAME/BelowYourMeans.git
-cd BelowYourMeans
-
-# 4. Create .env file
-cat > .env << EOF
-APP_PASSWORD=your-secure-password-here
-SESSION_SECRET=$(openssl rand -hex 32)
-EOF
-
-# 5. Build and run production
-docker-compose up -d --build
-
-# 6. Access at http://your-server-ip:3000
-```
-
-### Add HTTPS with Caddy (Recommended)
-
-```bash
-# Install Caddy
-apt install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt update && apt install caddy
-
-# Configure Caddy
-cat > /etc/caddy/Caddyfile << EOF
-expenses.yourdomain.com {
-    reverse_proxy localhost:3000
-}
-EOF
-
-# Start Caddy
-systemctl enable caddy
-systemctl start caddy
-```
-
-## 📱 Install as PWA on iPhone
-
-1. Open `https://expenses.yourdomain.com` in Safari
-2. Tap **Share** → **Add to Home Screen**
-3. The app works like a native app!
+---
 
 ## 🔧 Configuration
-
-Create a `.env` file (or set environment variables):
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `APP_PASSWORD` | Yes | Password to access the app |
 | `SESSION_SECRET` | Yes | Secret for session encryption |
 
-For development, defaults are provided. For production, you MUST set these.
+---
 
 ## 📁 Project Structure
 
 ```
-BelowYourMeans/
+below-your-means/
 ├── src/                    # Next.js source code
-├── public/                 # Static assets & PWA manifest
+│   ├── app/               # Pages (dashboard, analytics, settings, login)
+│   ├── lib/               # Database & auth utilities
+├── public/                 # PWA manifest & icons
 ├── data/                   # SQLite database (gitignored)
 ├── Dockerfile              # Production build
-├── Dockerfile.dev          # Development build with hot reload
 ├── docker-compose.yml      # Production config
-├── docker-compose.dev.yml  # Development config
-└── Makefile                # Easy commands
+└── DEPLOY.md              # Deployment guide
 ```
 
-## 📝 Backup Your Data
+---
+
+## 📝 Backup
 
 ```bash
-# Using make
-make db-backup
+# Create backup
+cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
 
-# Manual
-cp data/belowyourmeans.db backups/backup-$(date +%Y%m%d).db
-
-# From production container
-docker cp belowyourmeans:/app/data/belowyourmeans.db ./backup.db
+# Export via app
+# Settings → Export Data → Downloads CSV
 ```
+
+---
 
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **UI**: Material UI + Recharts
 - **Database**: SQLite (better-sqlite3)
-- **Auth**: Simple password + session cookies
+- **Styling**: CSS Modules
+- **Auth**: Password + session cookies
 - **Deployment**: Docker
-
-## 🔐 Security Notes
-
-- Always use HTTPS in production (use Caddy reverse proxy)
-- Choose a strong password
-- Keep your SESSION_SECRET secure
-- The app is designed for personal/trusted use
-
-## 📄 License
-
-MIT License - Feel free to modify and use as you like!
 
 ---
 
-Made with ❤️ for personal finance management
+## 📱 Install as PWA
+
+1. Open your app URL in Safari/Chrome
+2. Tap **Share** → **Add to Home Screen**
+3. Enjoy native app experience!
+
+---
+
+## 📄 License
+
+MIT License — Feel free to modify and use as you like!
+
+---
+
+Made by **Ammar** • [ammarmohanna.ai](https://ammarmohanna.ai)
