@@ -207,6 +207,7 @@ export default function Dashboard() {
               const input = document.createElement('input')
               input.type = 'date'
               input.value = formatDate(selectedDate)
+              input.max = formatDate(new Date()) // No future dates
               input.onchange = (e) => setSelectedDate(new Date(e.target.value + 'T12:00:00'))
               input.click()
             }}
