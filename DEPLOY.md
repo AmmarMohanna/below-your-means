@@ -9,7 +9,8 @@ Complete guide for deploying BelowYourMeans to a Hetzner VPS (or any Linux serve
 1. [First-Time Deployment](#first-time-deployment)
 2. [Updating Your App](#updating-your-app)
 3. [Backup & Restore](#backup--restore)
-4. [Troubleshooting](#troubleshooting)
+4. [Change Password](#change-password)
+5. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -131,7 +132,7 @@ cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
 
 ```bash
 # From your Mac
-scp root@YOUR_SERVER_IP:~/backup-*.db ~/Desktop/
+scp root@37.27.31.181:~/backup-\*.db ~/Desktop/
 ```
 
 ### Restore from Backup
@@ -141,6 +142,28 @@ cd ~/below-your-means
 docker compose down
 cp ~/backup-20241227.db data/belowyourmeans.db
 docker compose up -d
+```
+
+---
+
+## Change Password
+
+To change your login password:
+
+```bash
+cd ~/below-your-means
+nano .env
+```
+
+Edit the `APP_PASSWORD` line:
+```
+APP_PASSWORD=your-new-password-here
+```
+
+Save (`Ctrl+X`, then `Y`, then `Enter`) and restart:
+
+```bash
+docker compose restart
 ```
 
 ---
