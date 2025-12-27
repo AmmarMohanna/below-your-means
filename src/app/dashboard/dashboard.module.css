@@ -141,6 +141,8 @@
   border-radius: 12px;
   cursor: pointer;
   min-width: 80px;
+  position: relative;
+  overflow: hidden;
 }
 
 .dateBtnLabel {
@@ -156,12 +158,28 @@
   color: var(--text-primary);
 }
 
-.hiddenDateInput {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
+.dateInput {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  text-align: center;
+  width: 100%;
+  max-width: 100px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+}
+
+.dateInput::-webkit-date-and-time-value {
+  text-align: center;
 }
 
 .amountInput {

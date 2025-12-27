@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./dashboard.module.css"
 
@@ -29,7 +29,6 @@ export default function Dashboard() {
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const dateInputRef = useRef(null)
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -201,26 +200,20 @@ export default function Dashboard() {
         />
 
         <div className={styles.amountRow}>
-          <button 
-            type="button"
-            className={styles.dateBtn}
-            onClick={() => dateInputRef.current?.showPicker?.() || dateInputRef.current?.click()}
-          >
+          <div className={styles.dateBtn}>
             <span className={styles.dateBtnLabel}>Date</span>
-            <span className={styles.dateBtnValue}>{isToday(selectedDate) ? 'Today' : selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            value={formatDate(selectedDate)}
-            max={formatDate(new Date())}
-            onChange={(e) => {
-              if (e.target.value) {
-                setSelectedDate(new Date(e.target.value + 'T12:00:00'))
-              }
-            }}
-            className={styles.hiddenDateInput}
-          />
+            <input
+              type="date"
+              value={formatDate(selectedDate)}
+              max={formatDate(new Date())}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setSelectedDate(new Date(e.target.value + 'T12:00:00'))
+                }
+              }}
+              className={styles.dateInput}
+            />
+          </div>
 
           <input
             type="number"

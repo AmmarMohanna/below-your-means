@@ -8,9 +8,8 @@ Complete guide for deploying BelowYourMeans to a Hetzner VPS (or any Linux serve
 
 1. [First-Time Deployment](#first-time-deployment)
 2. [Updating Your App](#updating-your-app)
-3. [Adding HTTPS](#adding-https-with-caddy)
-4. [Backup & Restore](#backup--restore)
-5. [Troubleshooting](#troubleshooting)
+3. [Backup & Restore](#backup--restore)
+4. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -52,7 +51,6 @@ cd below-your-means
 ### Step 5: Configure Environment
 
 ```bash
-# Create .env file with your settings
 cat > .env << 'EOF'
 APP_PASSWORD=your-secure-password-here
 SESSION_SECRET=your-random-secret-string-minimum-32-chars
@@ -61,9 +59,16 @@ EOF
 
 **⚠️ Important**: Change both values!
 - `APP_PASSWORD`: The password you'll use to log in
-- `SESSION_SECRET`: A random string (run `openssl rand -hex 32` to generate)
+- `SESSION_SECRET`: Run `openssl rand -hex 32` to generate a random string
 
-### Step 6: Launch
+### Step 6: Set Up Database Directory
+
+```bash
+mkdir -p data
+chown -R 1001:1001 data
+```
+
+### Step 7: Launch
 
 ```bash
 docker compose up -d --build
@@ -71,7 +76,7 @@ docker compose up -d --build
 
 Wait 1-2 minutes for the build to complete.
 
-### Step 7: Verify
+### Step 8: Verify
 
 Open in browser:
 ```
@@ -86,7 +91,7 @@ http://YOUR_SERVER_IP:3000
 
 When you push new code to GitHub, update your server:
 
-### Quick Update (SSH into server)
+### SSH into server and run:
 
 ```bash
 cd ~/below-your-means
@@ -113,60 +118,11 @@ cd ~/below-your-means && git pull && docker compose up -d --build
 
 ---
 
-## Adding HTTPS with Caddy
-
-### Step 1: Point Domain to Server
-
-In your domain's DNS settings, add an A record:
-```
-expenses.yourdomain.com → YOUR_SERVER_IP
-```
-
-Wait 5-10 minutes for DNS propagation.
-
-### Step 2: Install Caddy
-
-```bash
-apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt update && apt install caddy
-```
-
-### Step 3: Configure Caddy
-
-```bash
-cat > /etc/caddy/Caddyfile << 'EOF'
-expenses.yourdomain.com {
-    reverse_proxy localhost:3000
-}
-EOF
-```
-
-### Step 4: Start Caddy
-
-```bash
-systemctl enable caddy
-systemctl restart caddy
-```
-
-### Step 5: Done!
-
-Visit: `https://expenses.yourdomain.com` 🔒
-
-Caddy automatically:
-- Obtains SSL certificate from Let's Encrypt
-- Renews certificates automatically
-- Redirects HTTP → HTTPS
-
----
-
 ## Backup & Restore
 
 ### Create Backup
 
 ```bash
-# On server
 cd ~/below-your-means
 cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
 ```
@@ -181,21 +137,10 @@ scp root@YOUR_SERVER_IP:~/backup-*.db ~/Desktop/
 ### Restore from Backup
 
 ```bash
-# On server
 cd ~/below-your-means
 docker compose down
 cp ~/backup-20241227.db data/belowyourmeans.db
 docker compose up -d
-```
-
-### Automated Daily Backup (Optional)
-
-```bash
-# Add to crontab
-crontab -e
-
-# Add this line (runs daily at 2 AM)
-0 2 * * * cp ~/below-your-means/data/belowyourmeans.db ~/backups/backup-$(date +\%Y\%m\%d).db
 ```
 
 ---
@@ -207,6 +152,17 @@ crontab -e
 ```bash
 cd ~/below-your-means
 docker compose logs -f
+```
+
+### Database Permission Error
+
+If you see `SQLITE_CANTOPEN` error:
+
+```bash
+cd ~/below-your-means
+mkdir -p data
+chown -R 1001:1001 data
+docker compose restart
 ```
 
 ### Restart App
@@ -234,16 +190,6 @@ docker compose up -d --build
 df -h
 ```
 
-### Database Issues
-
-```bash
-# Check if database exists
-ls -la data/
-
-# Check database size
-du -h data/belowyourmeans.db
-```
-
 ---
 
 ## Quick Reference
@@ -256,7 +202,6 @@ du -h data/belowyourmeans.db
 | Restart | `docker compose restart` |
 | Update | `git pull && docker compose up -d --build` |
 | Backup | `cp data/belowyourmeans.db ~/backup.db` |
-| Shell into container | `docker compose exec app sh` |
 
 ---
 
@@ -270,4 +215,3 @@ du -h data/belowyourmeans.db
 ---
 
 Made by Ammar • [ammarmohanna.ai](https://ammarmohanna.ai)
-
