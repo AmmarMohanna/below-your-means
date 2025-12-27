@@ -14,11 +14,6 @@ export function verifyPassword(password) {
   return password === correctPassword;
 }
 
-// Generate a session token
-export function generateSessionToken() {
-  return crypto.randomBytes(32).toString('hex');
-}
-
 // Get the valid session token (stored in env or generated once)
 function getValidSessionToken() {
   // In production, we use the session token from the cookie and verify it
@@ -33,7 +28,7 @@ export function createSessionValue() {
 }
 
 // Verify session cookie
-export function verifySession(sessionValue) {
+function verifySession(sessionValue) {
   const expectedValue = createSessionValue();
   return sessionValue === expectedValue;
 }

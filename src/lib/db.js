@@ -81,26 +81,3 @@ export function addCategory(name) {
   return stmt.run(name);
 }
 
-export function deleteCategory(id) {
-  return getDb().prepare('DELETE FROM categories WHERE id = ?').run(id);
-}
-
-// Budget operations
-export function getAllBudgets() {
-  return getDb().prepare('SELECT * FROM budgets ORDER BY created_at DESC').all();
-}
-
-export function setBudget({ category, amount }) {
-  // Upsert: update if exists, insert if not
-  const existing = getDb().prepare('SELECT id FROM budgets WHERE category = ?').get(category);
-  if (existing) {
-    return getDb().prepare('UPDATE budgets SET amount = ?, created_at = CURRENT_TIMESTAMP WHERE category = ?').run(amount, category);
-  } else {
-    return getDb().prepare('INSERT INTO budgets (category, amount) VALUES (?, ?)').run(category, amount);
-  }
-}
-
-export function deleteBudget(id) {
-  return getDb().prepare('DELETE FROM budgets WHERE id = ?').run(id);
-}
-
