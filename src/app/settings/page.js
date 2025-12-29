@@ -253,10 +253,6 @@ export default function Settings() {
           <span className={styles.navIcon}>📊</span>
           <span>Analytics</span>
         </button>
-        <button className={`${styles.navItem} ${styles.active}`}>
-          <span className={styles.navIcon}>⚙️</span>
-          <span>Settings</span>
-        </button>
       </nav>
     </div>
   )

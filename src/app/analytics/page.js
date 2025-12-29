@@ -283,10 +283,6 @@ export default function Analytics() {
           <span className={styles.navIcon}>📊</span>
           <span>Analytics</span>
         </button>
-        <button className={styles.navItem} onClick={() => router.push('/settings')}>
-          <span className={styles.navIcon}>⚙️</span>
-          <span>Settings</span>
-        </button>
       </nav>
     </div>
   )
