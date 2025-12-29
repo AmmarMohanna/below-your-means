@@ -295,6 +295,10 @@ export default function Dashboard() {
           <span className={styles.navIcon}>💰</span>
           <span>Accounts</span>
         </button>
+        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
+          <span className={styles.navIcon}>🌙</span>
+          <span>Lifestyle</span>
+        </button>
         <button className={styles.navItem} onClick={() => router.push('/analytics')}>
           <span className={styles.navIcon}>📊</span>
           <span>Analytics</span>

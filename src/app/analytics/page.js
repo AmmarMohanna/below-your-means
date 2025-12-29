@@ -275,6 +275,10 @@ export default function Analytics() {
           <span className={styles.navIcon}>💰</span>
           <span>Accounts</span>
         </button>
+        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
+          <span className={styles.navIcon}>🌙</span>
+          <span>Lifestyle</span>
+        </button>
         <button className={`${styles.navItem} ${styles.active}`}>
           <span className={styles.navIcon}>📊</span>
           <span>Analytics</span>

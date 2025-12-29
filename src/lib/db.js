@@ -98,6 +98,38 @@ function initializeSchema() {
     -- Insert default row if not exists
     INSERT OR IGNORE INTO metals (id, gold_24k_grams, gold_21k_grams, silver_kg) VALUES (1, 0, 0, 0);
 
+    -- Prayer tracker (missed prayers count)
+    CREATE TABLE IF NOT EXISTS prayers (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      soboh INTEGER DEFAULT 0,
+      dohor INTEGER DEFAULT 0,
+      aaser INTEGER DEFAULT 0,
+      maghreb INTEGER DEFAULT 0,
+      ishaa INTEGER DEFAULT 0,
+      ayaat INTEGER DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    -- Insert default row for prayers
+    INSERT OR IGNORE INTO prayers (id, soboh, dohor, aaser, maghreb, ishaa, ayaat) VALUES (1, 0, 0, 0, 0, 0, 0);
+
+    -- Gym payments (when you paid for sessions)
+    CREATE TABLE IF NOT EXISTS gym_payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      sessions INTEGER NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Gym sessions (when you exercised)
+    CREATE TABLE IF NOT EXISTS gym_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
     CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
@@ -250,5 +282,60 @@ export function updateMetals({ gold_24k_grams, gold_21k_grams, silver_kg }) {
     WHERE id = 1
   `);
   return stmt.run(gold_24k_grams, gold_21k_grams, silver_kg);
+}
+
+// Prayer operations
+export function getPrayers() {
+  return getDb().prepare('SELECT * FROM prayers WHERE id = 1').get();
+}
+
+export function updatePrayer(prayer, delta) {
+  const validPrayers = ['soboh', 'dohor', 'aaser', 'maghreb', 'ishaa', 'ayaat'];
+  if (!validPrayers.includes(prayer)) {
+    throw new Error('Invalid prayer name');
+  }
+  const stmt = getDb().prepare(`
+    UPDATE prayers 
+    SET ${prayer} = MAX(0, ${prayer} + ?), updated_at = CURRENT_TIMESTAMP 
+    WHERE id = 1
+  `);
+  return stmt.run(delta);
+}
+
+export function setPrayers(prayers) {
+  const stmt = getDb().prepare(`
+    UPDATE prayers 
+    SET soboh = ?, dohor = ?, aaser = ?, maghreb = ?, ishaa = ?, ayaat = ?, updated_at = CURRENT_TIMESTAMP 
+    WHERE id = 1
+  `);
+  return stmt.run(prayers.soboh, prayers.dohor, prayers.aaser, prayers.maghreb, prayers.ishaa, prayers.ayaat);
+}
+
+// Gym payment operations
+export function getAllGymPayments() {
+  return getDb().prepare('SELECT * FROM gym_payments ORDER BY date DESC').all();
+}
+
+export function addGymPayment({ date, sessions, notes }) {
+  const stmt = getDb().prepare('INSERT INTO gym_payments (date, sessions, notes) VALUES (?, ?, ?)');
+  return stmt.run(date, sessions, notes);
+}
+
+export function deleteGymPayment(id) {
+  return getDb().prepare('DELETE FROM gym_payments WHERE id = ?').run(id);
+}
+
+// Gym session operations
+export function getAllGymSessions() {
+  return getDb().prepare('SELECT * FROM gym_sessions ORDER BY date DESC').all();
+}
+
+export function addGymSession({ date, notes }) {
+  const stmt = getDb().prepare('INSERT INTO gym_sessions (date, notes) VALUES (?, ?)');
+  return stmt.run(date, notes);
+}
+
+export function deleteGymSession(id) {
+  return getDb().prepare('DELETE FROM gym_sessions WHERE id = ?').run(id);
 }
 

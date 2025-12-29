@@ -26,10 +26,11 @@ export default function Settings() {
     setLoading(true)
     try {
       // Fetch all data
-      const [transactionsRes, accountsRes, metalsRes] = await Promise.all([
+      const [transactionsRes, accountsRes, metalsRes, lifestyleRes] = await Promise.all([
         fetch("/api/transactions"),
         fetch("/api/accounts"),
-        fetch("/api/metals")
+        fetch("/api/metals"),
+        fetch("/api/lifestyle")
       ])
       
       if (!transactionsRes.ok) throw new Error("Failed to fetch transactions")
@@ -37,6 +38,7 @@ export default function Settings() {
       const transactions = await transactionsRes.json()
       const accounts = accountsRes.ok ? await accountsRes.json() : {}
       const metals = metalsRes.ok ? await metalsRes.json() : {}
+      const lifestyle = lifestyleRes.ok ? await lifestyleRes.json() : {}
       
       // Create workbook
       const wb = XLSX.utils.book_new()
@@ -111,6 +113,43 @@ export default function Settings() {
         ]
         const wsMetals = XLSX.utils.aoa_to_sheet(metalsData)
         XLSX.utils.book_append_sheet(wb, wsMetals, "Metals")
+      }
+      
+      // Sheet 8: Prayers
+      if (lifestyle.prayers) {
+        const prayersData = [
+          ["Prayer", "Missed Count"],
+          ["Soboh (صبح)", lifestyle.prayers.soboh || 0],
+          ["Dohor (ظهر)", lifestyle.prayers.dohor || 0],
+          ["Aaser (عصر)", lifestyle.prayers.aaser || 0],
+          ["Maghreb (مغرب)", lifestyle.prayers.maghreb || 0],
+          ["Ishaa (عشاء)", lifestyle.prayers.ishaa || 0],
+          ["Ayaat (آيات)", lifestyle.prayers.ayaat || 0],
+          [],
+          ["Total Missed", Object.values(lifestyle.prayers).reduce((a, b) => typeof b === 'number' ? a + b : a, 0)]
+        ]
+        const wsPrayers = XLSX.utils.aoa_to_sheet(prayersData)
+        XLSX.utils.book_append_sheet(wb, wsPrayers, "Prayers")
+      }
+      
+      // Sheet 9: Gym Payments
+      if (lifestyle.gymPayments?.length > 0) {
+        const gymPaymentsData = [
+          ["Date", "Sessions", "Notes"],
+          ...lifestyle.gymPayments.map(p => [p.date, p.sessions, p.notes || ""])
+        ]
+        const wsGymPayments = XLSX.utils.aoa_to_sheet(gymPaymentsData)
+        XLSX.utils.book_append_sheet(wb, wsGymPayments, "Gym Payments")
+      }
+      
+      // Sheet 10: Gym Sessions
+      if (lifestyle.gymSessions?.length > 0) {
+        const gymSessionsData = [
+          ["Date", "Notes"],
+          ...lifestyle.gymSessions.map(s => [s.date, s.notes || ""])
+        ]
+        const wsGymSessions = XLSX.utils.aoa_to_sheet(gymSessionsData)
+        XLSX.utils.book_append_sheet(wb, wsGymSessions, "Gym Sessions")
       }
       
       // Download the file
@@ -205,6 +244,10 @@ export default function Settings() {
         <button className={styles.navItem} onClick={() => router.push('/accounts')}>
           <span className={styles.navIcon}>💰</span>
           <span>Accounts</span>
+        </button>
+        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
+          <span className={styles.navIcon}>🌙</span>
+          <span>Lifestyle</span>
         </button>
         <button className={styles.navItem} onClick={() => router.push('/analytics')}>
           <span className={styles.navIcon}>📊</span>

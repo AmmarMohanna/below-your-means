@@ -822,7 +822,7 @@ export default function Accounts() {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>Accounts</h1>
-          <button className={styles.menuBtn} onClick={() => router.push('/analytics')}>
+          <button className={styles.menuBtn} onClick={() => router.push('/lifestyle')}>
             <span></span>
             <span></span>
             <span></span>
@@ -893,6 +893,10 @@ export default function Accounts() {
         <button className={`${styles.navItem} ${styles.active}`}>
           <span className={styles.navIcon}>💰</span>
           <span>Accounts</span>
+        </button>
+        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
+          <span className={styles.navIcon}>🌙</span>
+          <span>Lifestyle</span>
         </button>
         <button className={styles.navItem} onClick={() => router.push('/analytics')}>
           <span className={styles.navIcon}>📊</span>
