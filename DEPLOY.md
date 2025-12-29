@@ -142,7 +142,7 @@ PermitRootLogin prohibit-password
 
 Save and restart SSH:
 ```bash
-systemctl restart sshd
+systemctl restart ssh
 ```
 
 ### Step 5: Create Non-Root User (Optional but Recommended)
@@ -162,7 +162,7 @@ ufw status
 
 Check fail2ban status:
 ```bash
-fail2ban-client status sshd
+fail2ban-client status ssh
 ```
 
 ### Security Checklist
