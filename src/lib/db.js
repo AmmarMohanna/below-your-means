@@ -107,12 +107,11 @@ function initializeSchema() {
       maghreb INTEGER DEFAULT 0,
       ishaa INTEGER DEFAULT 0,
       ayaat INTEGER DEFAULT 0,
-      fasting INTEGER DEFAULT 0,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
-    -- Insert default row for prayers
-    INSERT OR IGNORE INTO prayers (id, soboh, dohor, aaser, maghreb, ishaa, ayaat, fasting) VALUES (1, 0, 0, 0, 0, 0, 0, 0);
+    -- Insert default row for prayers (without fasting - will be added by migration)
+    INSERT OR IGNORE INTO prayers (id, soboh, dohor, aaser, maghreb, ishaa, ayaat) VALUES (1, 0, 0, 0, 0, 0, 0);
 
     -- Gym payments (when you paid for sessions)
     CREATE TABLE IF NOT EXISTS gym_payments (
