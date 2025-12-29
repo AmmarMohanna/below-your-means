@@ -86,7 +86,7 @@ function initializeSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- Precious metals holdings (with manual prices - no external API calls)
+    -- Precious metals holdings (prices fetched from API once per hour)
     CREATE TABLE IF NOT EXISTS metals (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       gold_24k_grams REAL DEFAULT 0,
@@ -95,6 +95,7 @@ function initializeSchema() {
       gold_24k_price_per_gram REAL DEFAULT 85,
       gold_21k_price_per_gram REAL DEFAULT 74.4,
       silver_price_per_kg REAL DEFAULT 950,
+      prices_fetched_at DATETIME DEFAULT NULL,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
@@ -163,6 +164,11 @@ function initializeSchema() {
   }
   try {
     db.exec(`ALTER TABLE metals ADD COLUMN silver_price_per_kg REAL DEFAULT 950`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.exec(`ALTER TABLE metals ADD COLUMN prices_fetched_at DATETIME DEFAULT NULL`);
   } catch (e) {
     // Column already exists, ignore
   }
@@ -312,10 +318,14 @@ export function updateMetals({ gold_24k_grams, gold_21k_grams, silver_kg }) {
   return stmt.run(gold_24k_grams, gold_21k_grams, silver_kg);
 }
 
-export function updateMetalPrices({ gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg }) {
+export function updateMetalPrices({ gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg, fromApi = false }) {
   const stmt = getDb().prepare(`
     UPDATE metals 
-    SET gold_24k_price_per_gram = ?, gold_21k_price_per_gram = ?, silver_price_per_kg = ?, updated_at = CURRENT_TIMESTAMP 
+    SET gold_24k_price_per_gram = ?, 
+        gold_21k_price_per_gram = ?, 
+        silver_price_per_kg = ?, 
+        prices_fetched_at = ${fromApi ? 'CURRENT_TIMESTAMP' : 'prices_fetched_at'},
+        updated_at = CURRENT_TIMESTAMP 
     WHERE id = 1
   `);
   return stmt.run(gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg);

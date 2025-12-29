@@ -851,7 +851,7 @@ export default function Accounts() {
         <div className={styles.pricesFooter}>
           {!pricesEditing ? (
             <button onClick={() => setPricesEditing(true)} className={styles.editPricesBtn}>
-              💰 Update Prices
+              💰 Manual Prices
             </button>
           ) : (
             <div className={styles.priceEditActions}>
@@ -859,9 +859,16 @@ export default function Accounts() {
               <button onClick={() => { setPricesEditing(false); setPricesForm(prices); }} className={styles.cancelBtn}>× Cancel</button>
             </div>
           )}
-          {prices.last_updated && !pricesEditing && (
+          {!pricesEditing && (
             <span className={styles.pricesUpdatedText}>
-              Last updated: {new Date(prices.last_updated).toLocaleDateString()}
+              {prices.source === 'goldprice.org' && '🌐 '}
+              {prices.source === 'cached' && '💾 '}
+              {prices.source === 'default' && '📊 '}
+              {prices.last_updated 
+                ? `Updated: ${new Date(prices.last_updated).toLocaleString()}`
+                : 'Using default prices'
+              }
+              {prices.source === 'goldprice.org' && ' (live)'}
             </span>
           )}
         </div>
