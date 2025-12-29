@@ -139,6 +139,13 @@ function initializeSchema() {
     CREATE INDEX IF NOT EXISTS idx_payables_date ON payables(pay_date);
     CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
   `);
+
+  // Migration: Add fasting column to prayers table if it doesn't exist
+  try {
+    db.exec(`ALTER TABLE prayers ADD COLUMN fasting INTEGER DEFAULT 0`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
 }
 
 // Transaction operations
