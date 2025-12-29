@@ -86,17 +86,21 @@ function initializeSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- Precious metals holdings
+    -- Precious metals holdings (with manual prices - no external API calls)
     CREATE TABLE IF NOT EXISTS metals (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       gold_24k_grams REAL DEFAULT 0,
       gold_21k_grams REAL DEFAULT 0,
       silver_kg REAL DEFAULT 0,
+      gold_24k_price_per_gram REAL DEFAULT 85,
+      gold_21k_price_per_gram REAL DEFAULT 74.4,
+      silver_price_per_kg REAL DEFAULT 950,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
-    -- Insert default row if not exists
-    INSERT OR IGNORE INTO metals (id, gold_24k_grams, gold_21k_grams, silver_kg) VALUES (1, 0, 0, 0);
+    -- Insert default row if not exists (with default prices as of Jan 2025)
+    INSERT OR IGNORE INTO metals (id, gold_24k_grams, gold_21k_grams, silver_kg, gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg) 
+    VALUES (1, 0, 0, 0, 85, 74.4, 950);
 
     -- Prayer tracker (missed prayers count)
     CREATE TABLE IF NOT EXISTS prayers (
@@ -142,6 +146,23 @@ function initializeSchema() {
   // Migration: Add fasting column to prayers table if it doesn't exist
   try {
     db.exec(`ALTER TABLE prayers ADD COLUMN fasting INTEGER DEFAULT 0`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  // Migration: Add price columns to metals table if they don't exist
+  try {
+    db.exec(`ALTER TABLE metals ADD COLUMN gold_24k_price_per_gram REAL DEFAULT 85`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.exec(`ALTER TABLE metals ADD COLUMN gold_21k_price_per_gram REAL DEFAULT 74.4`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.exec(`ALTER TABLE metals ADD COLUMN silver_price_per_kg REAL DEFAULT 950`);
   } catch (e) {
     // Column already exists, ignore
   }
@@ -289,6 +310,15 @@ export function updateMetals({ gold_24k_grams, gold_21k_grams, silver_kg }) {
     WHERE id = 1
   `);
   return stmt.run(gold_24k_grams, gold_21k_grams, silver_kg);
+}
+
+export function updateMetalPrices({ gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg }) {
+  const stmt = getDb().prepare(`
+    UPDATE metals 
+    SET gold_24k_price_per_gram = ?, gold_21k_price_per_gram = ?, silver_price_per_kg = ?, updated_at = CURRENT_TIMESTAMP 
+    WHERE id = 1
+  `);
+  return stmt.run(gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg);
 }
 
 // Prayer operations

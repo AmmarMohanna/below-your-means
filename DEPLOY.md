@@ -7,10 +7,11 @@ Complete guide for deploying BelowYourMeans to a Hetzner VPS (or any Linux serve
 ## 📋 Table of Contents
 
 1. [First-Time Deployment](#first-time-deployment)
-2. [Updating Your App](#updating-your-app)
-3. [Backup & Restore](#backup--restore)
-4. [Change Password](#change-password)
-5. [Troubleshooting](#troubleshooting)
+2. [Server Security Setup](#server-security-setup)
+3. [Updating Your App](#updating-your-app)
+4. [Backup & Restore](#backup--restore)
+5. [Change Password](#change-password)
+6. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -68,7 +69,7 @@ EOF
 
 ```bash
 mkdir -p data
-chown -R 1001:1001 data
+chown -R 1000:1000 data
 ```
 
 ### Step 7: Launch
@@ -87,6 +88,93 @@ http://YOUR_SERVER_IP:3000
 ```
 
 **🎉 Your app is live!**
+
+---
+
+## Server Security Setup
+
+**⚠️ CRITICAL: Do this immediately after first deployment to prevent hacking!**
+
+Your server is exposed to the internet and bots constantly try to break in. Follow these steps:
+
+### Step 1: Update System
+
+```bash
+apt update && apt upgrade -y
+```
+
+### Step 2: Configure Firewall (UFW)
+
+Only allow SSH (22), HTTP (80), and your app port (3000):
+
+```bash
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 3000/tcp
+ufw enable
+```
+
+Type `y` when prompted.
+
+### Step 3: Install Fail2Ban (Blocks Brute Force Attacks)
+
+```bash
+apt install fail2ban -y
+systemctl enable fail2ban
+systemctl start fail2ban
+```
+
+### Step 4: Disable Password SSH Login (Use Keys Only)
+
+First, make sure you can login with SSH keys, then:
+
+```bash
+nano /etc/ssh/sshd_config
+```
+
+Find and change these lines:
+```
+PasswordAuthentication no
+PermitRootLogin prohibit-password
+```
+
+Save and restart SSH:
+```bash
+systemctl restart sshd
+```
+
+### Step 5: Create Non-Root User (Optional but Recommended)
+
+```bash
+adduser ammar
+usermod -aG sudo ammar
+usermod -aG docker ammar
+```
+
+### Verify Security
+
+Check firewall status:
+```bash
+ufw status
+```
+
+Check fail2ban status:
+```bash
+fail2ban-client status sshd
+```
+
+### Security Checklist
+
+| Security Measure | Status |
+|------------------|--------|
+| Firewall (UFW) enabled | ⬜ |
+| Only ports 22, 80, 3000 open | ⬜ |
+| Fail2ban installed | ⬜ |
+| SSH password login disabled | ⬜ |
+| SSH keys configured | ⬜ |
+| System updated | ⬜ |
 
 ---
 
@@ -189,7 +277,7 @@ If you see `SQLITE_CANTOPEN` error:
 ```bash
 cd ~/below-your-means
 mkdir -p data
-chown -R 1001:1001 data
+chown -R 1000:1000 data
 docker compose restart
 ```
 
