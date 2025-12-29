@@ -107,11 +107,12 @@ function initializeSchema() {
       maghreb INTEGER DEFAULT 0,
       ishaa INTEGER DEFAULT 0,
       ayaat INTEGER DEFAULT 0,
+      fasting INTEGER DEFAULT 0,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
     -- Insert default row for prayers
-    INSERT OR IGNORE INTO prayers (id, soboh, dohor, aaser, maghreb, ishaa, ayaat) VALUES (1, 0, 0, 0, 0, 0, 0);
+    INSERT OR IGNORE INTO prayers (id, soboh, dohor, aaser, maghreb, ishaa, ayaat, fasting) VALUES (1, 0, 0, 0, 0, 0, 0, 0);
 
     -- Gym payments (when you paid for sessions)
     CREATE TABLE IF NOT EXISTS gym_payments (
@@ -290,7 +291,7 @@ export function getPrayers() {
 }
 
 export function updatePrayer(prayer, delta) {
-  const validPrayers = ['soboh', 'dohor', 'aaser', 'maghreb', 'ishaa', 'ayaat'];
+  const validPrayers = ['soboh', 'dohor', 'aaser', 'maghreb', 'ishaa', 'ayaat', 'fasting'];
   if (!validPrayers.includes(prayer)) {
     throw new Error('Invalid prayer name');
   }
@@ -305,10 +306,10 @@ export function updatePrayer(prayer, delta) {
 export function setPrayers(prayers) {
   const stmt = getDb().prepare(`
     UPDATE prayers 
-    SET soboh = ?, dohor = ?, aaser = ?, maghreb = ?, ishaa = ?, ayaat = ?, updated_at = CURRENT_TIMESTAMP 
+    SET soboh = ?, dohor = ?, aaser = ?, maghreb = ?, ishaa = ?, ayaat = ?, fasting = ?, updated_at = CURRENT_TIMESTAMP 
     WHERE id = 1
   `);
-  return stmt.run(prayers.soboh, prayers.dohor, prayers.aaser, prayers.maghreb, prayers.ishaa, prayers.ayaat);
+  return stmt.run(prayers.soboh, prayers.dohor, prayers.aaser, prayers.maghreb, prayers.ishaa, prayers.ayaat, prayers.fasting || 0);
 }
 
 // Gym payment operations

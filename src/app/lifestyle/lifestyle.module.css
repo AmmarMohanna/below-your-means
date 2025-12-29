@@ -245,21 +245,64 @@
   text-align: center;
 }
 
-.totalMissed {
-  margin-top: 20px;
-  padding: 16px;
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  text-align: center;
-  font-size: 1rem;
-  color: var(--text-secondary);
+/* Fasting Section */
+.fastingSection {
+  margin-top: 24px;
 }
 
-.totalMissed span {
-  font-weight: 800;
-  color: var(--primary);
-  font-size: 1.25rem;
+.fastingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fastingLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.fastingNote {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.fastingCard {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.fastingCard:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+}
+
+.fastingInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fastingIcon {
+  font-size: 2rem;
+}
+
+.fastingName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Amiri', serif, system-ui;
 }
 
 /* Gym Section */

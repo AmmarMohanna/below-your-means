@@ -126,7 +126,7 @@ export default function Settings() {
           ["Ishaa (عشاء)", lifestyle.prayers.ishaa || 0],
           ["Ayaat (آيات)", lifestyle.prayers.ayaat || 0],
           [],
-          ["Total Missed", Object.values(lifestyle.prayers).reduce((a, b) => typeof b === 'number' ? a + b : a, 0)]
+          ["Fasting (صيام)", lifestyle.prayers.fasting || 0]
         ]
         const wsPrayers = XLSX.utils.aoa_to_sheet(prayersData)
         XLSX.utils.book_append_sheet(wb, wsPrayers, "Prayers")

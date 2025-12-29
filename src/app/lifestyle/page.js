@@ -16,7 +16,7 @@ const PRAYERS = [
 export default function Lifestyle() {
   const [activeTab, setActiveTab] = useState('prayers')
   const [prayers, setPrayers] = useState({
-    soboh: 0, dohor: 0, aaser: 0, maghreb: 0, ishaa: 0, ayaat: 0
+    soboh: 0, dohor: 0, aaser: 0, maghreb: 0, ishaa: 0, ayaat: 0, fasting: 0
   })
   const [gymPayments, setGymPayments] = useState([])
   const [gymSessions, setGymSessions] = useState([])
@@ -267,6 +267,38 @@ export default function Lifestyle() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Fasting Section */}
+          <div className={styles.fastingSection}>
+            <div className={styles.fastingHeader}>
+              <span className={styles.fastingLabel}>Missed Fasting</span>
+              <span className={styles.fastingNote}>60 days +</span>
+            </div>
+            <div className={styles.fastingCard}>
+              <div className={styles.fastingInfo}>
+                <span className={styles.fastingIcon}>🌙</span>
+                <span className={styles.fastingName}>صيام</span>
+              </div>
+              <div className={styles.prayerControls}>
+                <button
+                  className={styles.prayerBtn}
+                  onClick={() => handlePrayerChange('fasting', -1)}
+                  disabled={prayers.fasting === 0}
+                >
+                  −
+                </button>
+                <span className={styles.prayerCount}>
+                  {prayers.fasting}
+                </span>
+                <button
+                  className={styles.prayerBtn}
+                  onClick={() => handlePrayerChange('fasting', 1)}
+                >
+                  +
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       )}
