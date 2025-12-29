@@ -1,6 +1,6 @@
 # 💰 BelowYourMeans
 
-A personal expense tracker designed for self-hosting. Track your expenses and manage your finances — all on your own server.
+A personal life management app designed for self-hosting. Track expenses, manage finances, log prayers, and monitor fitness — all on your own server.
 
 **🐳 Docker-first • 📱 PWA Ready • 🔒 Self-hosted**
 
@@ -8,12 +8,38 @@ A personal expense tracker designed for self-hosting. Track your expenses and ma
 
 ## ✨ Features
 
-- **📊 Dashboard** — Daily expense tracking with quick-add form
-- **📈 Analytics** — Custom date range reports with category breakdown
-- **📥 Export** — Download your data as CSV anytime
-- **📱 PWA** — Install on your phone for app-like experience
-- **🔒 Password Protected** — Simple, secure access
-- **🗄️ SQLite** — All data stored locally, no external dependencies
+### 📊 Home — Daily Expense Tracking
+- Quick-add transactions with categories
+- Date picker for past entries
+- Daily and monthly spending totals
+
+### 💰 Accounts — Complete Financial Picture
+- **Current Money** — Where your money is (bank, cash, etc.)
+- **Expected Money** — Incoming payments with due dates
+- **Payables** — What you owe and when
+- **Recurring** — Monthly payments by type (Family, Home, Personal)
+- **Held Money** — Money you're holding for others
+- **Metals** — Gold (24K, 21K) and silver with live price fetching
+
+### 🌙 Lifestyle — Personal Habits
+- **Prayer Tracker** — Track missed prayers (Soboh, Dohor, Aaser, Maghreb, Ishaa, Ayaat) with +/- counters
+- **Gym Tracker** — Log payments and sessions, see remaining sessions, quick "I Worked Out Today" button
+- Daily reminders for Quran reading and Friday charity
+
+### 📈 Analytics — Insights
+- Custom date range reports
+- Spending by category breakdown
+- Largest expenses list
+- Daily averages
+
+### ⚙️ Settings & Data
+- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym) as multi-sheet Excel file
+- Password-protected access
+- Simple logout
+
+### 📱 PWA Support
+- Install on iPhone/Android for native app experience
+- Works offline for viewing
 
 ---
 
@@ -45,7 +71,7 @@ See **[DEPLOY.md](DEPLOY.md)** for complete step-by-step instructions:
 
 - First-time deployment to Hetzner/VPS
 - Updating your app
-- Adding HTTPS with Caddy
+- Changing password
 - Backup & restore
 
 **Quick deploy:**
@@ -55,9 +81,14 @@ See **[DEPLOY.md](DEPLOY.md)** for complete step-by-step instructions:
 git clone https://github.com/AmmarMohanna/below-your-means.git
 cd below-your-means
 
+# Set up data directory
+mkdir -p data
+chown -R 1001:1001 data
+
 # Create .env
-echo "APP_PASSWORD=your-password" > .env
+echo "APP_PASSWORD=your-secure-password" > .env
 echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
+echo "SECURE_COOKIES=false" >> .env
 
 # Launch
 docker compose up -d --build
@@ -71,6 +102,7 @@ docker compose up -d --build
 |----------|----------|-------------|
 | `APP_PASSWORD` | Yes | Password to access the app |
 | `SESSION_SECRET` | Yes | Secret for session encryption |
+| `SECURE_COOKIES` | No | Set to `false` for HTTP (default: true for HTTPS) |
 
 ---
 
@@ -78,14 +110,21 @@ docker compose up -d --build
 
 ```
 below-your-means/
-├── src/                    # Next.js source code
-│   ├── app/               # Pages (dashboard, analytics, settings, login)
-│   ├── lib/               # Database & auth utilities
+├── src/
+│   ├── app/
+│   │   ├── dashboard/      # Home - expense tracking
+│   │   ├── accounts/       # Financial accounts & metals
+│   │   ├── lifestyle/      # Prayers & gym tracking
+│   │   ├── analytics/      # Spending reports
+│   │   ├── settings/       # Export & logout
+│   │   ├── login/          # Authentication
+│   │   └── api/            # Backend routes
+│   └── lib/                # Database & auth utilities
 ├── public/                 # PWA manifest & icons
 ├── data/                   # SQLite database (gitignored)
 ├── Dockerfile              # Production build
 ├── docker-compose.yml      # Production config
-└── DEPLOY.md              # Deployment guide
+└── DEPLOY.md               # Deployment guide
 ```
 
 ---
@@ -93,11 +132,14 @@ below-your-means/
 ## 📝 Backup
 
 ```bash
-# Create backup
+# Create backup on server
 cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
 
+# Download to local machine
+scp root@YOUR_SERVER:~/backup-*.db ~/Desktop/
+
 # Export via app
-# Settings → Export Data → Downloads CSV
+# Settings → Export Data → Downloads Excel file with all data
 ```
 
 ---
@@ -107,7 +149,8 @@ cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
 - **Framework**: Next.js 15 (App Router)
 - **Database**: SQLite (better-sqlite3)
 - **Styling**: CSS Modules
-- **Auth**: Password + session cookies
+- **Auth**: Password + session cookies (HMAC-verified)
+- **Export**: xlsx library for Excel files
 - **Deployment**: Docker
 
 ---
