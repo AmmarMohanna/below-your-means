@@ -14,7 +14,7 @@ const PRAYERS = [
 ]
 
 export default function Lifestyle() {
-  const [activeTab, setActiveTab] = useState('prayers')
+  const [activeTab, setActiveTab] = useState('gym')
   const [prayers, setPrayers] = useState({
     soboh: 0, dohor: 0, aaser: 0, maghreb: 0, ishaa: 0, ayaat: 0, fasting: 0
   })
