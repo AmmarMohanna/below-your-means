@@ -586,6 +586,59 @@
   gap: 8px;
 }
 
+.priceEditorBox {
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid #d97706;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.priceInputRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.priceInputRow:last-of-type {
+  margin-bottom: 8px;
+}
+
+.priceInputRow label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.priceInputLarge {
+  width: 120px;
+  padding: 8px 12px;
+  border: 2px solid #d97706;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.priceInputLarge:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.priceCalcPreview {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(217, 119, 6, 0.3);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .totalRow {
   display: flex;
   justify-content: space-between;

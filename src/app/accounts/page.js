@@ -32,7 +32,7 @@ export default function Accounts() {
   const [metalsEditing, setMetalsEditing] = useState(false)
   const [pricesEditing, setPricesEditing] = useState(false)
   const [metalsForm, setMetalsForm] = useState({ gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 })
-  const [pricesForm, setPricesForm] = useState({ gold_24k_per_gram: 85, gold_21k_per_gram: 74.4, silver_per_kg: 950 })
+  const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 })
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -67,10 +67,11 @@ export default function Accounts() {
         const result = await response.json()
         setMetals(result)
         setMetalsForm(result.holdings)
+        // Convert stored per-gram price back to per-oz for display
+        const goldPerOz = (result.prices.gold_24k_per_gram || 85) * 31.1035
         setPricesForm({
-          gold_24k_per_gram: result.prices.gold_24k_per_gram,
-          gold_21k_per_gram: result.prices.gold_21k_per_gram,
-          silver_per_kg: result.prices.silver_per_kg
+          gold_per_oz: Math.round(goldPerOz),
+          silver_per_kg: result.prices.silver_per_kg || 950
         })
       }
     } catch (error) {
@@ -200,13 +201,18 @@ export default function Accounts() {
   }
 
   const handlePricesUpdate = async () => {
+    // Convert gold per oz to per gram prices
+    // 1 troy oz = 31.1035 grams
+    const gold24kPerGram = pricesForm.gold_per_oz / 31.1035
+    const gold21kPerGram = gold24kPerGram * (21 / 24) // 21k is 87.5% of 24k
+    
     try {
       const response = await fetch("/api/metals", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          gold_24k_price_per_gram: pricesForm.gold_24k_per_gram,
-          gold_21k_price_per_gram: pricesForm.gold_21k_per_gram,
+          gold_24k_price_per_gram: gold24kPerGram,
+          gold_21k_price_per_gram: gold21kPerGram,
           silver_price_per_kg: pricesForm.silver_per_kg
         }),
       })
@@ -727,6 +733,38 @@ export default function Accounts() {
           )}
         </div>
 
+        {/* Price Editor - shows when editing prices */}
+        {pricesEditing && (
+          <div className={styles.priceEditorBox}>
+            <div className={styles.priceInputRow}>
+              <label>Gold ($/oz)</label>
+              <input
+                type="number"
+                value={pricesForm.gold_per_oz || ''}
+                onChange={(e) => setPricesForm({ ...pricesForm, gold_per_oz: parseFloat(e.target.value) || 0 })}
+                className={styles.priceInputLarge}
+                step="1"
+                placeholder="2650"
+              />
+            </div>
+            <div className={styles.priceInputRow}>
+              <label>Silver ($/kg)</label>
+              <input
+                type="number"
+                value={pricesForm.silver_per_kg || ''}
+                onChange={(e) => setPricesForm({ ...pricesForm, silver_per_kg: parseFloat(e.target.value) || 0 })}
+                className={styles.priceInputLarge}
+                step="1"
+                placeholder="950"
+              />
+            </div>
+            <div className={styles.priceCalcPreview}>
+              <span>24K: ${(pricesForm.gold_per_oz / 31.1035).toFixed(2)}/g</span>
+              <span>21K: ${((pricesForm.gold_per_oz / 31.1035) * 0.875).toFixed(2)}/g</span>
+            </div>
+          </div>
+        )}
+
         <div className={styles.metalRows}>
           {/* Gold 24K */}
           <div className={styles.metalRow}>
@@ -734,21 +772,7 @@ export default function Accounts() {
               <span className={styles.metalIcon}>🥇</span>
               <div className={styles.metalDetails}>
                 <span className={styles.metalName}>Gold 24K</span>
-                {pricesEditing ? (
-                  <div className={styles.priceEditRow}>
-                    <span>$</span>
-                    <input
-                      type="number"
-                      value={pricesForm.gold_24k_per_gram || ''}
-                      onChange={(e) => setPricesForm({ ...pricesForm, gold_24k_per_gram: parseFloat(e.target.value) || 0 })}
-                      className={styles.priceInput}
-                      step="0.01"
-                    />
-                    <span>/g</span>
-                  </div>
-                ) : (
-                  <span className={styles.metalPrice}>${prices.gold_24k_per_gram?.toFixed(2)}/gram</span>
-                )}
+                <span className={styles.metalPrice}>${prices.gold_24k_per_gram?.toFixed(2)}/gram</span>
               </div>
             </div>
             {metalsEditing ? (
@@ -772,21 +796,7 @@ export default function Accounts() {
               <span className={styles.metalIcon}>🏅</span>
               <div className={styles.metalDetails}>
                 <span className={styles.metalName}>Gold 21K</span>
-                {pricesEditing ? (
-                  <div className={styles.priceEditRow}>
-                    <span>$</span>
-                    <input
-                      type="number"
-                      value={pricesForm.gold_21k_per_gram || ''}
-                      onChange={(e) => setPricesForm({ ...pricesForm, gold_21k_per_gram: parseFloat(e.target.value) || 0 })}
-                      className={styles.priceInput}
-                      step="0.01"
-                    />
-                    <span>/g</span>
-                  </div>
-                ) : (
-                  <span className={styles.metalPrice}>${prices.gold_21k_per_gram?.toFixed(2)}/gram</span>
-                )}
+                <span className={styles.metalPrice}>${prices.gold_21k_per_gram?.toFixed(2)}/gram</span>
               </div>
             </div>
             {metalsEditing ? (
@@ -810,21 +820,7 @@ export default function Accounts() {
               <span className={styles.metalIcon}>🥈</span>
               <div className={styles.metalDetails}>
                 <span className={styles.metalName}>Silver</span>
-                {pricesEditing ? (
-                  <div className={styles.priceEditRow}>
-                    <span>$</span>
-                    <input
-                      type="number"
-                      value={pricesForm.silver_per_kg || ''}
-                      onChange={(e) => setPricesForm({ ...pricesForm, silver_per_kg: parseFloat(e.target.value) || 0 })}
-                      className={styles.priceInput}
-                      step="0.01"
-                    />
-                    <span>/kg</span>
-                  </div>
-                ) : (
-                  <span className={styles.metalPrice}>${prices.silver_per_kg?.toFixed(2)}/kg</span>
-                )}
+                <span className={styles.metalPrice}>${prices.silver_per_kg?.toFixed(2)}/kg</span>
               </div>
             </div>
             {metalsEditing ? (
