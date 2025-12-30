@@ -23,8 +23,8 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime dependencies for better-sqlite3
-RUN apk add --no-cache python3 make g++
+# Install runtime dependencies for better-sqlite3 and curl for healthchecks
+RUN apk add --no-cache python3 make g++ curl
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

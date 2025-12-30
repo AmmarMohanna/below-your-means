@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { isAuthenticated } from "@/lib/auth";
 import {
   getPrayers,
   updatePrayer,
@@ -13,6 +15,11 @@ import {
 
 // GET - fetch all lifestyle data
 export async function GET() {
+  const cookieStore = await cookies();
+  if (!isAuthenticated(cookieStore)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const prayers = getPrayers();
     const gymPayments = getAllGymPayments();
@@ -40,6 +47,11 @@ export async function GET() {
 
 // POST - add new data
 export async function POST(request) {
+  const cookieStore = await cookies();
+  if (!isAuthenticated(cookieStore)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { type, ...data } = body;
@@ -67,6 +79,11 @@ export async function POST(request) {
 
 // PUT - update prayer count or set prayers
 export async function PUT(request) {
+  const cookieStore = await cookies();
+  if (!isAuthenticated(cookieStore)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { type, prayer, delta, prayers } = body;
@@ -91,6 +108,11 @@ export async function PUT(request) {
 
 // DELETE - remove data
 export async function DELETE(request) {
+  const cookieStore = await cookies();
+  if (!isAuthenticated(cookieStore)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
