@@ -34,10 +34,9 @@ services:
         reservations:
           cpus: '0.25'
           memory: 128M
-    # Security: Disable network if not needed (enable for app)
-    # network_mode: none
+    # Healthcheck using Node.js (no curl/wget needed)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/auth/check"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/auth/check').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
