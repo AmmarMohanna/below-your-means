@@ -321,6 +321,32 @@ df -h
 
 ---
 
+## Auto-Restart Watchdog
+
+Set up a cron job to automatically restart the container if it becomes unhealthy:
+
+```bash
+# Make the watchdog script executable
+chmod +x ~/below-your-means/scripts/watchdog.sh
+
+# Create log file
+sudo touch /var/log/belowyourmeans-watchdog.log
+sudo chown $USER /var/log/belowyourmeans-watchdog.log
+
+# Add cron job (runs every 10 minutes)
+(crontab -l 2>/dev/null; echo "*/10 * * * * /bin/bash $HOME/below-your-means/scripts/watchdog.sh") | crontab -
+
+# Verify cron is set
+crontab -l
+```
+
+Check watchdog logs:
+```bash
+tail -f /var/log/belowyourmeans-watchdog.log
+```
+
+---
+
 ## Server Costs
 
 | Provider | Plan | Cost |
