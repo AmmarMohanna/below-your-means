@@ -186,7 +186,7 @@ export default function Settings() {
 
       {/* Categories Section */}
       <section className={styles.section}>
-        <span className={styles.sectionLabel}>CATEGORIES</span>
+          <span className={styles.sectionLabel}>CATEGORIES</span>
         
         <div className={styles.card}>
           {DEFAULT_CATEGORIES.map(cat => (

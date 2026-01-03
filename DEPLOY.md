@@ -1,39 +1,73 @@
-# 🚀 Deployment Guide
+# 🚀 Secure Deployment Guide
 
-Complete guide for deploying BelowYourMeans to a Hetzner VPS (or any Linux server).
+Complete guide for deploying BelowYourMeans securely to a Hetzner VPS (or any Linux server).
+
+**⚠️ SECURITY NOTE**: This app has been hardened against attacks:
+- Container runs in an **isolated network with NO internet access**
+- No `curl`, `wget`, or other network tools in the container
+- NGINX reverse proxy handles external traffic
+- Rate limiting and connection limits enabled
 
 ---
 
 ## 📋 Table of Contents
 
-1. [First-Time Deployment](#first-time-deployment)
-2. [Server Security Setup](#server-security-setup)
-3. [Updating Your App](#updating-your-app)
-4. [Backup & Restore](#backup--restore)
-5. [Change Password](#change-password)
+1. [Quick Start (New Server)](#quick-start-new-server)
+2. [Security Hardening (CRITICAL)](#security-hardening-critical)
+3. [Importing Existing Data](#importing-existing-data)
+4. [Updating Your App](#updating-your-app)
+5. [Backup & Restore](#backup--restore)
 6. [Troubleshooting](#troubleshooting)
 
 ---
 
-## First-Time Deployment
+## Quick Start (New Server)
 
 ### Step 1: Create Hetzner Server
 
 1. Go to [console.hetzner.cloud](https://console.hetzner.cloud)
-2. Sign up or log in
-3. Click **"Add Server"**
-4. Configure:
-   - **Location**: Choose nearest (e.g., Nuremberg, Helsinki)
+2. Click **"Add Server"**
+3. Configure:
+   - **Location**: Choose nearest (e.g., Helsinki, Nuremberg)
    - **Image**: `Ubuntu 24.04`
    - **Type**: `CX22` (~€4.50/month) - 2 vCPU, 4GB RAM
-   - **SSH Key**: Add your public key (recommended) or use password
-5. Click **"Create & Buy Now"**
-6. **Copy the IP address** shown (e.g., `49.123.45.67`)
+   - **SSH Key**: ⚠️ **REQUIRED** - Add your public SSH key
+   - **DO NOT** use password authentication
+4. Click **"Create & Buy Now"**
+5. **Copy the IP address**
 
-### Step 2: Connect to Server
+### Step 2: Connect & Secure (IMMEDIATELY)
 
 ```bash
 ssh root@YOUR_SERVER_IP
+```
+
+**Run security hardening FIRST:**
+
+```bash
+# Update system
+apt update && apt upgrade -y
+
+# Configure firewall - ONLY allow necessary ports
+ufw default deny incoming
+ufw default deny outgoing  # ⚠️ BLOCKS ALL OUTBOUND BY DEFAULT
+ufw allow 22/tcp           # SSH
+ufw allow 80/tcp           # HTTP (nginx)
+ufw allow out 53           # DNS (required for apt)
+ufw allow out 80/tcp       # HTTP out (for apt updates)
+ufw allow out 443/tcp      # HTTPS out (for apt updates)
+ufw enable
+
+# Install fail2ban
+apt install fail2ban -y
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# Disable password SSH login
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+systemctl restart ssh
 ```
 
 ### Step 3: Install Docker
@@ -42,171 +76,168 @@ ssh root@YOUR_SERVER_IP
 curl -fsSL https://get.docker.com | sh
 ```
 
-### Step 4: Clone Repository
+### Step 4: Clone & Configure
 
 ```bash
 cd ~
 git clone https://github.com/AmmarMohanna/below-your-means.git
 cd below-your-means
-```
 
-### Step 5: Configure Environment
-
-```bash
+# Create environment file
 cat > .env << 'EOF'
-APP_PASSWORD=your-secure-password-here
-SESSION_SECRET=your-random-secret-string-minimum-32-chars
+APP_PASSWORD=YOUR_SECURE_PASSWORD_HERE
+SESSION_SECRET=GENERATE_WITH_openssl_rand_-hex_32
 SECURE_COOKIES=false
 EOF
+
+# Generate a proper session secret
+SESSION_SECRET=$(openssl rand -hex 32)
+sed -i "s/GENERATE_WITH_openssl_rand_-hex_32/$SESSION_SECRET/" .env
+
+# Edit .env to set your password
+nano .env
 ```
 
-**⚠️ Important**: Change both values!
-- `APP_PASSWORD`: The password you'll use to log in
-- `SESSION_SECRET`: Run `openssl rand -hex 32` to generate a random string
-- `SECURE_COOKIES`: Set to `false` for HTTP. Set to `true` (or remove line) if using HTTPS
-
-### Step 6: Set Up Database Directory
+### Step 5: Create Data Directory
 
 ```bash
 mkdir -p data
-chown -R 1000:1000 data
+chown -R 1001:1001 data
 ```
 
-### Step 7: Launch
+### Step 6: Launch
 
 ```bash
 docker compose up -d --build
 ```
 
-Wait 1-2 minutes for the build to complete.
+Wait 2-3 minutes for the build. Check logs:
 
-### Step 8: Verify
+```bash
+docker compose logs -f
+```
+
+### Step 7: Verify
 
 Open in browser:
 ```
-http://YOUR_SERVER_IP:3000
+http://YOUR_SERVER_IP
 ```
 
 **🎉 Your app is live!**
 
 ---
 
-## Server Security Setup
+## Security Hardening (CRITICAL)
 
-**⚠️ CRITICAL: Do this immediately after first deployment to prevent hacking!**
+### Architecture Overview
 
-Your server is exposed to the internet and bots constantly try to break in. Follow these steps:
-
-### Step 1: Update System
-
-```bash
-apt update && apt upgrade -y
+```
+Internet → [NGINX Proxy :80] → [Internal Network] → [App :3000]
+                  ↓
+           Has internet access
+           Rate limiting
+           Security headers
+                                       ↓
+                               NO internet access
+                               No curl/wget
+                               Isolated container
 ```
 
-### Step 2: Configure Firewall (UFW)
+### What Makes This Secure
 
-Only allow SSH (22), HTTP (80), and your app port (3000):
-
-```bash
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow 22/tcp
-ufw allow 80/tcp
-ufw allow 3000/tcp
-ufw enable
-```
-
-Type `y` when prompted.
-
-### Step 3: Install Fail2Ban (Blocks Brute Force Attacks)
-
-```bash
-apt install fail2ban -y
-systemctl enable fail2ban
-systemctl start fail2ban
-```
-
-### Step 4: Disable Password SSH Login (Use Keys Only)
-
-First, make sure you can login with SSH keys, then:
-
-```bash
-nano /etc/ssh/sshd_config
-```
-
-Find and change these lines:
-```
-PasswordAuthentication no
-PermitRootLogin prohibit-password
-```
-
-Save and restart SSH:
-```bash
-systemctl restart ssh
-```
-
-### Step 5: Create Non-Root User (Optional but Recommended)
-
-```bash
-adduser ammar
-usermod -aG sudo ammar
-usermod -aG docker ammar
-```
+| Security Measure | Description |
+|------------------|-------------|
+| **Isolated Network** | App container cannot access the internet |
+| **No Network Tools** | curl, wget, nc removed from container |
+| **Non-root User** | Container runs as UID 1001, not root |
+| **Dropped Capabilities** | All Linux capabilities dropped |
+| **Rate Limiting** | 10 requests/second per IP |
+| **Connection Limits** | Max 20 concurrent connections per IP |
+| **UFW Firewall** | Only ports 22, 80 open |
+| **Fail2ban** | Blocks brute force attacks |
+| **SSH Key Only** | Password authentication disabled |
 
 ### Verify Security
 
-Check firewall status:
 ```bash
+# Check firewall
 ufw status
-```
 
-Check fail2ban status:
-```bash
-fail2ban-client status ssh
+# Check fail2ban
+fail2ban-client status sshd
+
+# Verify container isolation
+docker exec belowyourmeans ping -c 1 google.com
+# Should fail: "ping: google.com: Temporary failure in name resolution"
+
+# Check container user
+docker exec belowyourmeans whoami
+# Should output: nextjs
 ```
 
 ### Security Checklist
 
-| Security Measure | Status |
-|------------------|--------|
-| Firewall (UFW) enabled | ⬜ |
-| Only ports 22, 80, 3000 open | ⬜ |
-| Fail2ban installed | ⬜ |
-| SSH password login disabled | ⬜ |
-| SSH keys configured | ⬜ |
-| System updated | ⬜ |
+| Item | Command to Verify | Expected |
+|------|-------------------|----------|
+| Firewall active | `ufw status` | Status: active |
+| Outbound blocked | `ufw status` | Default: deny (outgoing) |
+| Fail2ban running | `systemctl status fail2ban` | Active |
+| SSH password disabled | `grep PasswordAuthentication /etc/ssh/sshd_config` | no |
+| Container isolated | `docker exec belowyourmeans ping google.com` | Fails |
+
+---
+
+## Importing Existing Data
+
+If you have an Excel export from the old server:
+
+### On Your Local Machine (Mac/PC)
+
+```bash
+# Navigate to project
+cd ~/Desktop/below-your-means
+
+# Install dependencies (if not already)
+npm install
+
+# Run import script
+node scripts/import-excel.js /path/to/your/export.xlsx
+```
+
+This creates `data/belowyourmeans.db`
+
+### Copy to Server
+
+```bash
+# Copy database to server
+scp data/belowyourmeans.db root@YOUR_SERVER_IP:~/below-your-means/data/
+
+# Fix permissions on server
+ssh root@YOUR_SERVER_IP "chown 1001:1001 ~/below-your-means/data/belowyourmeans.db"
+
+# Restart container
+ssh root@YOUR_SERVER_IP "cd ~/below-your-means && docker compose restart"
+```
 
 ---
 
 ## Updating Your App
 
-When you push new code to GitHub, update your server:
-
-### SSH into server and run:
+When you push new code to GitHub:
 
 ```bash
+ssh root@YOUR_SERVER_IP
 cd ~/below-your-means
-git pull origin main
+git pull
 docker compose up -d --build
 ```
 
-### One-Liner Update
+### One-Liner
 
 ```bash
-cd ~/below-your-means && git pull && docker compose up -d --build
-docker compose restart
+ssh root@YOUR_SERVER_IP "cd ~/below-your-means && git pull && docker compose up -d --build"
 ```
-
-### What Happens During Update
-
-| Component | Status |
-|-----------|--------|
-| Code | ✅ Updated to latest |
-| Database | ✅ **Preserved** (in `./data/` folder) |
-| Settings | ✅ Preserved (in `.env` file) |
-| Container | 🔄 Rebuilt with new code |
-
-**Your data is safe!** The database lives outside the container.
 
 ---
 
@@ -215,15 +246,16 @@ docker compose restart
 ### Create Backup
 
 ```bash
+# On server
 cd ~/below-your-means
 cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
 ```
 
-### Download Backup to Local Machine
+### Download Backup
 
 ```bash
 # From your Mac
-scp root@37.27.31.181:~/backup-\*.db ~/Desktop/
+scp root@YOUR_SERVER_IP:~/backup-*.db ~/Desktop/
 ```
 
 ### Restore from Backup
@@ -231,33 +263,10 @@ scp root@37.27.31.181:~/backup-\*.db ~/Desktop/
 ```bash
 cd ~/below-your-means
 docker compose down
-cp ~/backup-20241227.db data/belowyourmeans.db
+cp ~/backup-20250103.db data/belowyourmeans.db
+chown 1001:1001 data/belowyourmeans.db
 docker compose up -d
 ```
-
----
-
-## Change Password
-
-To change your login password:
-
-```bash
-cd ~/below-your-means
-nano .env
-```
-
-Edit the `APP_PASSWORD` line:
-```
-APP_PASSWORD=your-new-password-here
-```
-
-Save (`Ctrl+X`, then `Y`, then `Enter`) and restart:
-
-```bash
-docker compose restart
-```
-
-**Note**: Changing the password automatically logs out all existing sessions.
 
 ---
 
@@ -266,44 +275,40 @@ docker compose restart
 ### View Logs
 
 ```bash
-cd ~/below-your-means
-docker compose logs -f
+docker compose logs -f          # All logs
+docker compose logs -f app      # App only
+docker compose logs -f proxy    # NGINX only
 ```
 
 ### Database Permission Error
 
-If you see `SQLITE_CANTOPEN` error:
+If you see `SQLITE_READONLY`:
 
 ```bash
-cd ~/below-your-means
-mkdir -p data
-chown -R 1000:1000 data
+chown -R 1001:1001 data
 docker compose restart
 ```
 
-### Restart App
-
-```bash
-docker compose restart
-```
-
-### Check if Container is Running
-
-```bash
-docker ps
-```
-
-### Rebuild from Scratch
+### Container Not Starting
 
 ```bash
 docker compose down
-docker compose up -d --build
+docker compose up -d --build --force-recreate
 ```
 
-### Check Disk Space
+### Check Container Health
 
 ```bash
-df -h
+docker ps                       # Check status
+docker inspect belowyourmeans   # Full details
+```
+
+### Rebuild Everything
+
+```bash
+docker compose down
+docker system prune -af         # Clean up
+docker compose up -d --build
 ```
 
 ---
@@ -312,38 +317,24 @@ df -h
 
 | Task | Command |
 |------|---------|
-| Start app | `docker compose up -d` |
-| Stop app | `docker compose down` |
-| View logs | `docker compose logs -f` |
+| Start | `docker compose up -d` |
+| Stop | `docker compose down` |
+| Logs | `docker compose logs -f` |
 | Restart | `docker compose restart` |
 | Update | `git pull && docker compose up -d --build` |
 | Backup | `cp data/belowyourmeans.db ~/backup.db` |
 
 ---
 
-## Auto-Restart Watchdog
-
-Set up a cron job to automatically restart the container if it becomes unhealthy:
+## Change Password
 
 ```bash
-# Make the watchdog script executable
-chmod +x ~/below-your-means/scripts/watchdog.sh
-
-# Create log file
-sudo touch /var/log/belowyourmeans-watchdog.log
-sudo chown $USER /var/log/belowyourmeans-watchdog.log
-
-# Add cron job (runs every 10 minutes)
-(crontab -l 2>/dev/null; echo "*/10 * * * * /bin/bash $HOME/below-your-means/scripts/watchdog.sh") | crontab -
-
-# Verify cron is set
-crontab -l
+nano .env
+# Edit APP_PASSWORD=your-new-password
+docker compose restart
 ```
 
-Check watchdog logs:
-```bash
-tail -f /var/log/belowyourmeans-watchdog.log
-```
+Changing the password automatically logs out all sessions.
 
 ---
 

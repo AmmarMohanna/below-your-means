@@ -370,7 +370,7 @@ export function addGymPayment({ date, sessions, notes }) {
 
 export function deleteGymPayment(id) {
   return getDb().prepare('DELETE FROM gym_payments WHERE id = ?').run(id);
-}
+  }
 
 // Gym session operations
 export function getAllGymSessions() {
