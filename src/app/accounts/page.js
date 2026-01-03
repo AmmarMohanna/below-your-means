@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { getTodayBeirut } from "@/lib/date"
 import styles from "./accounts.module.css"
 
 const TABS = [
@@ -165,9 +166,9 @@ export default function Accounts() {
     } else if (activeTab === 'current') {
       setFormData({ location: '', amount: '', notes: '' })
     } else if (activeTab === 'expected') {
-      setFormData({ source: '', expected_date: new Date().toISOString().split('T')[0], amount: '', notes: '' })
+      setFormData({ source: '', expected_date: getTodayBeirut(), amount: '', notes: '' })
     } else if (activeTab === 'payables') {
-      setFormData({ source: '', pay_date: new Date().toISOString().split('T')[0], amount: '', notes: '' })
+      setFormData({ source: '', pay_date: getTodayBeirut(), amount: '', notes: '' })
     } else if (activeTab === 'held') {
       setFormData({ person: '', amount: '', notes: '' })
     }

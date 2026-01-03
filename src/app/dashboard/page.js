@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { getNowBeirut, getTodayBeirut, formatDateBeirut } from "@/lib/date"
 import styles from "./dashboard.module.css"
 
 const CATEGORIES = [
@@ -21,7 +22,7 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState([])
   const [monthTotal, setMonthTotal] = useState(0)
   const [todayTotal, setTodayTotal] = useState(0)
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(() => getNowBeirut())
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -80,20 +81,30 @@ export default function Dashboard() {
   }
 
   const formatDate = (date) => {
-    return date.toISOString().split('T')[0]
+    return formatDateBeirut(date)
   }
 
   const formatDisplayDate = (date) => {
-    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    return date.toLocaleDateString('en-US', { 
+      timeZone: 'Asia/Beirut',
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    })
   }
 
   const formatMonth = (date) => {
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    return date.toLocaleDateString('en-US', { 
+      timeZone: 'Asia/Beirut',
+      month: 'long', 
+      year: 'numeric' 
+    })
   }
 
   const isToday = (date) => {
-    const today = new Date()
-    return date.toDateString() === today.toDateString()
+    const todayStr = getTodayBeirut()
+    const dateStr = formatDateBeirut(date)
+    return dateStr === todayStr
   }
 
   const changeDay = (delta) => {
@@ -206,7 +217,7 @@ export default function Dashboard() {
             <input
               type="date"
               value={formatDate(selectedDate)}
-              max={formatDate(new Date())}
+              max={getTodayBeirut()}
               onChange={(e) => {
                 if (e.target.value) {
                   setSelectedDate(new Date(e.target.value + 'T12:00:00'))

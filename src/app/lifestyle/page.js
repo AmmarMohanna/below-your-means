@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { getTodayBeirut } from "@/lib/date"
 import styles from "./lifestyle.module.css"
 
 const PRAYERS = [
@@ -133,7 +134,7 @@ export default function Lifestyle() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "gymSession",
-          date: new Date().toISOString().split('T')[0],
+          date: getTodayBeirut(),
           notes: "",
         }),
       })
@@ -329,7 +330,7 @@ export default function Lifestyle() {
                 onClick={() => {
                   setShowAddPayment(true)
                   setPaymentForm({ 
-                    date: new Date().toISOString().split('T')[0], 
+                    date: getTodayBeirut(), 
                     sessions: '', 
                     notes: '' 
                   })
@@ -397,7 +398,7 @@ export default function Lifestyle() {
                 onClick={() => {
                   setShowAddSession(true)
                   setSessionForm({ 
-                    date: new Date().toISOString().split('T')[0], 
+                    date: getTodayBeirut(), 
                     notes: '' 
                   })
                 }}

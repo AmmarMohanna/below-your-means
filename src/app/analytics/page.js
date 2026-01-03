@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { getNowBeirut, formatDateBeirut } from "@/lib/date"
 import styles from "./analytics.module.css"
 
 export default function Analytics() {
@@ -11,7 +12,7 @@ export default function Analytics() {
   const router = useRouter()
 
   const [dateRange, setDateRange] = useState(() => {
-    const now = new Date()
+    const now = getNowBeirut()
     const start = new Date(now.getFullYear(), now.getMonth(), 1)
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     return { start, end }
@@ -44,7 +45,7 @@ export default function Analytics() {
     setPeriod(newPeriod)
     if (newPeriod === 'custom') return // Don't change dates for custom
     
-    const now = new Date()
+    const now = getNowBeirut()
     let start, end
 
     switch (newPeriod) {
@@ -81,10 +82,15 @@ export default function Analytics() {
     setPeriod('custom')
   }
 
-  const formatDate = (date) => date.toISOString().split('T')[0]
+  const formatDate = (date) => formatDateBeirut(date)
   
   const formatDisplayDate = (date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    return date.toLocaleDateString('en-US', { 
+      timeZone: 'Asia/Beirut',
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    })
   }
 
   const filteredTransactions = transactions.filter(t => {
