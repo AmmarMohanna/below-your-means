@@ -247,8 +247,23 @@
   border-radius: 16px;
 }
 
+.itemCardExpanded {
+  border-color: rgba(12, 140, 125, 0.28);
+}
+
 .itemMain {
   min-width: 0;
+}
+
+.itemToggle {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .itemLine {
@@ -262,7 +277,8 @@
 
 .itemTitle,
 .itemMeta,
-.itemMetaValue {
+.itemMetaValue,
+.mobileReveal {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -279,6 +295,13 @@
 .footerMeta {
   color: var(--text-muted);
   font-size: 0.84rem;
+}
+
+.mobileReveal {
+  display: none;
+  color: var(--primary-strong);
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .itemAmount,
@@ -311,6 +334,10 @@
 
 .footerMeta {
   margin-top: 10px;
+}
+
+.itemDetail {
+  display: none;
 }
 
 .emptyState {
@@ -399,6 +426,11 @@
     display: none;
   }
 
+  .mobileReveal {
+    display: inline;
+    flex-shrink: 0;
+  }
+
   .itemTitle {
     font-size: 0.9rem;
   }
@@ -458,5 +490,17 @@
   .footerMeta {
     font-size: 0.74rem;
     text-align: center;
+  }
+
+  .itemDetail {
+    display: block;
+    grid-column: 1 / -1;
+    padding-top: 2px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
   }
 }

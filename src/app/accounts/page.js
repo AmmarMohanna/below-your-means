@@ -63,6 +63,7 @@ function getInitialForm(tab) {
 export default function Accounts() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("current");
+  const [expandedMetaIds, setExpandedMetaIds] = useState([]);
   const [data, setData] = useState({
     currentMoney: [],
     expectedMoney: [],
@@ -164,7 +165,14 @@ export default function Accounts() {
     setActiveTab(tab);
     setEditingId(null);
     setShowAddForm(false);
+    setExpandedMetaIds([]);
     resetForm(tab);
+  };
+
+  const toggleExpandedMeta = (id) => {
+    setExpandedMetaIds((previous) =>
+      previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
+    );
   };
 
   const handleAdd = async () => {
@@ -532,18 +540,41 @@ export default function Accounts() {
 
   const renderItemCard = (item, options) => {
     const isEditing = editingId === item.id;
+    const canRevealMeta = Boolean(options.meta);
+    const isMetaExpanded = expandedMetaIds.includes(item.id);
     if (isEditing) {
       return null;
     }
 
     return (
-      <article key={item.id} className={styles.itemCard}>
-        <div className={styles.itemMain}>
-          <div className={styles.itemLine}>
-            <span className={styles.itemTitle}>{options.title}</span>
-            {options.meta ? <span className={styles.itemMeta}>{options.meta}</span> : null}
+      <article
+        key={item.id}
+        className={`${styles.itemCard} ${isMetaExpanded ? styles.itemCardExpanded : ""}`}
+      >
+        {canRevealMeta ? (
+          <button
+            type="button"
+            className={styles.itemToggle}
+            onClick={() => toggleExpandedMeta(item.id)}
+            aria-expanded={isMetaExpanded}
+          >
+            <div className={styles.itemMain}>
+              <div className={styles.itemLine}>
+                <span className={styles.itemTitle}>{options.title}</span>
+                <span className={styles.itemMeta}>{options.meta}</span>
+                <span className={styles.mobileReveal}>
+                  {isMetaExpanded ? "Hide" : "Details"}
+                </span>
+              </div>
+            </div>
+          </button>
+        ) : (
+          <div className={styles.itemMain}>
+            <div className={styles.itemLine}>
+              <span className={styles.itemTitle}>{options.title}</span>
+            </div>
           </div>
-        </div>
+        )}
         <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
         <div className={styles.rowActions}>
           {options.canShift ? (
@@ -577,6 +608,9 @@ export default function Accounts() {
             <span className={styles.buttonLabel}>Delete</span>
           </button>
         </div>
+        {canRevealMeta && isMetaExpanded ? (
+          <div className={styles.itemDetail}>{options.meta}</div>
+        ) : null}
       </article>
     );
   };
@@ -599,7 +633,7 @@ export default function Accounts() {
     if (activeTab === "current") {
       return renderStandardList(data.currentMoney, (item) => ({
         title: item.location,
-        meta: joinParts(item.notes, item.created_at ? formatDate(item.created_at.slice(0, 10)) : ""),
+        meta: item.notes || "",
         canShift: true,
       }));
     }

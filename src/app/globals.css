@@ -48,6 +48,7 @@ body {
 }
 
 html {
+  font-size: 16.5px;
   background:
     radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 30%),
     radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 24%),
@@ -56,6 +57,7 @@ html {
 
 body {
   min-height: 100vh;
+  line-height: 1.4;
 }
 
 a {
@@ -113,4 +115,10 @@ input,
 select,
 textarea {
   -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 430px) {
+  html {
+    font-size: 17px;
+  }
 }
