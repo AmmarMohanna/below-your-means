@@ -150,6 +150,7 @@
   border: 1px solid var(--border-strong);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
+  cursor: text;
 }
 
 .currency {

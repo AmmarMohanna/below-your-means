@@ -38,7 +38,7 @@ export async function POST(request) {
 
   try {
     const data = await request.json();
-    const { amount, category, type, scope, notes, date } = data;
+    const { amount, category, type, scope, notes, date, created_at } = data;
 
     if (!amount || !category || !type || !date) {
       return NextResponse.json(
@@ -54,6 +54,7 @@ export async function POST(request) {
       scope,
       notes,
       date,
+      created_at,
     });
     return NextResponse.json({ success: true, id: result.lastInsertRowid });
   } catch (error) {

@@ -29,6 +29,10 @@ function formatMoney(value) {
   }).format(value || 0);
 }
 
+function getClientTimestamp() {
+  return new Date().toISOString().replace("T", " ").replace("Z", "");
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [transactions, setTransactions] = useState([]);
@@ -146,6 +150,7 @@ export default function Dashboard() {
           scope,
           notes: description.trim(),
           date: selectedDateValue,
+          created_at: getClientTimestamp(),
         }),
       });
 
@@ -303,9 +308,10 @@ export default function Dashboard() {
 
           <div className={styles.amountField}>
             <span className={styles.dateLabel}>Amount</span>
-            <div className={styles.amountInputWrap}>
+            <label className={styles.amountInputWrap} htmlFor="amount">
               <span className={styles.currency}>USD</span>
               <input
+                id="amount"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -314,8 +320,9 @@ export default function Dashboard() {
                 placeholder="0.00"
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
+                onFocus={(event) => event.target.select()}
               />
-            </div>
+            </label>
           </div>
 
           <button

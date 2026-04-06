@@ -384,7 +384,7 @@ function addSeconds(dateTimeText, seconds) {
 // Transaction operations
 export function getAllTransactions() {
   return getDb()
-    .prepare('SELECT * FROM transactions ORDER BY date DESC, id DESC')
+    .prepare('SELECT * FROM transactions ORDER BY date DESC, created_at DESC, id DESC')
     .all()
     .map((row) => ({ ...row, scope: normalizeScope(row.scope) }));
 }
@@ -394,13 +394,13 @@ export function getTransactionsByDateRange(startDate, endDate) {
     .prepare(`
       SELECT * FROM transactions
       WHERE date >= ? AND date <= ?
-      ORDER BY date DESC, id DESC
+      ORDER BY date DESC, created_at DESC, id DESC
     `)
     .all(startDate, endDate)
     .map((row) => ({ ...row, scope: normalizeScope(row.scope) }));
 }
 
-export function addTransaction({ amount, category, type, scope, notes, date }) {
+export function addTransaction({ amount, category, type, scope, notes, date, created_at }) {
   return insertRow('transactions', {
     amount,
     category,
@@ -408,6 +408,7 @@ export function addTransaction({ amount, category, type, scope, notes, date }) {
     scope: normalizeScope(scope),
     notes,
     date,
+    created_at,
   });
 }
 

@@ -44,12 +44,13 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+  width: min(100%, 980px);
 }
 
 .summaryCard {
   display: grid;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 16px 18px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(215, 250, 243, 0.76));
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -58,7 +59,7 @@
 }
 
 .summaryCard strong {
-  font-size: 1rem;
+  font-size: 1.08rem;
 }
 
 .summaryLabel {
@@ -70,6 +71,7 @@
 .tabs {
   display: flex;
   gap: 8px;
+  justify-content: center;
   overflow-x: auto;
   padding-bottom: 4px;
   margin-bottom: 16px;
@@ -84,14 +86,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 18px;
   white-space: nowrap;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.88);
   color: var(--text-secondary);
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-card);
@@ -105,18 +107,20 @@
 
 .section {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  justify-items: center;
 }
 
 .sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  width: min(100%, 980px);
+  text-align: center;
 }
 
 .sectionTitle {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
@@ -172,7 +176,8 @@
 .formCard {
   display: grid;
   gap: 12px;
-  padding: 14px;
+  width: min(100%, 980px);
+  padding: 18px;
 }
 
 .formGrid {
@@ -220,6 +225,12 @@
   gap: 10px;
 }
 
+.cardList,
+.groupList,
+.metalsCard {
+  width: min(100%, 980px);
+}
+
 .itemCard,
 .groupRow,
 .metalRow {
@@ -227,7 +238,7 @@
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
-  padding: 12px 14px;
+  padding: 15px 18px;
   border-radius: 16px;
 }
 
@@ -254,7 +265,7 @@
 
 .itemTitle {
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -268,14 +279,14 @@
 .itemAmount,
 .metalsValue {
   white-space: nowrap;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .groupCard,
 .metalsCard {
-  padding: 14px;
+  padding: 18px;
 }
 
 .groupHeader,
@@ -284,7 +295,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .groupTitle {
