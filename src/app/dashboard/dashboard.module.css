@@ -93,7 +93,7 @@
 .fieldLabel,
 .dateLabel {
   color: var(--text-secondary);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 600;
 }
 
@@ -109,7 +109,7 @@
   border-radius: 14px;
   background: var(--card-solid);
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -132,6 +132,7 @@
   border-radius: 14px;
   background: var(--field-bg);
   color: var(--text-primary);
+  font-size: 1rem;
 }
 
 .dateInputWrap {
@@ -152,7 +153,7 @@
   width: 100%;
   padding-right: 14px;
   color: var(--text-primary);
-  font-size: 0.96rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.2;
   text-align: center;
@@ -228,8 +229,9 @@
   padding-right: 0;
   border: none;
   background: transparent;
-  text-align: right;
-  font-weight: 600;
+  text-align: center;
+  font-size: 1.08rem;
+  font-weight: 700;
 }
 
 .saveButton {
@@ -240,7 +242,8 @@
   border-radius: 16px;
   background: linear-gradient(180deg, var(--primary), var(--primary-strong));
   color: white;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 12px 28px rgba(15, 159, 141, 0.24);
 }

@@ -37,6 +37,8 @@
   background: var(--field-bg);
   color: var(--text-primary);
   text-align: center;
+  font-size: 1.05rem;
+  font-weight: 500;
 }
 
 .input::placeholder {
@@ -55,7 +57,8 @@
   border-radius: 10px;
   background: var(--primary);
   color: white;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
 }
 

@@ -55,7 +55,7 @@
   min-height: 42px;
   padding: 0 16px;
   border-radius: 14px;
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -96,7 +96,7 @@
   border-radius: 18px;
   background: var(--card-solid);
   color: var(--text-secondary);
-  font-size: 0.94rem;
+  font-size: 1rem;
   font-weight: 700;
   text-align: center;
   cursor: pointer;

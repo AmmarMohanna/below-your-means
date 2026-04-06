@@ -93,7 +93,7 @@
   border-radius: 14px;
   background: var(--card-solid);
   color: var(--text-secondary);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -134,7 +134,7 @@
   border-radius: 12px;
   background: var(--card-solid);
   color: var(--text-secondary);
-  font-size: 0.86rem;
+  font-size: 0.94rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -194,6 +194,8 @@
   border-radius: 14px;
   background: var(--field-bg);
   color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .inlineInput {
@@ -285,7 +287,7 @@
 
 .itemTitle {
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 1.04rem;
   font-weight: 600;
 }
 
@@ -306,7 +308,7 @@
 .itemAmount,
 .metalsValue {
   white-space: nowrap;
-  font-size: 1rem;
+  font-size: 1.04rem;
   font-weight: 700;
   color: var(--text-primary);
 }
