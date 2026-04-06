@@ -39,6 +39,7 @@ next-env.d.ts
 
 # Database
 /data/
+/data-localtest/
 *.db
 *.db-wal
 *.db-shm
