@@ -4,3 +4,4 @@ services:
       - DATABASE_PATH=/app/data-localtest/belowyourmeans.db
     volumes:
       - ./data-localtest:/app/data-localtest
+      - ./:/workspace:ro

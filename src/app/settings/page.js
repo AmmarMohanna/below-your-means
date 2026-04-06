@@ -274,21 +274,13 @@ export default function Settings() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Safety & control</p>
-        <h1 className={styles.title}>Backups and recovery should not require SSH.</h1>
-        <p className={styles.subtitle}>
-          Export your workbook, pull a raw SQLite backup, or restore from an Excel export without
-          leaving the app.
-        </p>
+        <h1 className={styles.title}>Settings</h1>
       </header>
 
       <section className={styles.section}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <div>
-              <p className={styles.cardEyebrow}>Export</p>
-              <h2 className={styles.cardTitle}>Workbook export</h2>
-            </div>
+            <h2 className={styles.cardTitle}>Export Excel</h2>
             <button
               type="button"
               className={styles.primaryButton}
@@ -298,18 +290,11 @@ export default function Settings() {
               {exporting ? "Preparing..." : "Export Excel"}
             </button>
           </div>
-          <p className={styles.cardText}>
-            Downloads the full app state in the same multi-sheet format you already use, now with
-            transaction scope included.
-          </p>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <div>
-              <p className={styles.cardEyebrow}>Backup</p>
-              <h2 className={styles.cardTitle}>Raw database snapshot</h2>
-            </div>
+            <h2 className={styles.cardTitle}>Download DB</h2>
             <button
               type="button"
               className={styles.primaryButton}
@@ -319,22 +304,12 @@ export default function Settings() {
               {downloadingBackup ? "Creating..." : "Download DB"}
             </button>
           </div>
-          <p className={styles.cardText}>
-            Creates a clean SQLite snapshot from the running app so you can keep an off-device copy.
-          </p>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <div>
-              <p className={styles.cardEyebrow}>Restore</p>
-              <h2 className={styles.cardTitle}>Restore from Excel export</h2>
-            </div>
+            <h2 className={styles.cardTitle}>Restore from Excel</h2>
           </div>
-          <p className={styles.cardText}>
-            Choose one of your exported `.xlsx` files. The app will create a database backup first,
-            then replace the current data with the workbook contents.
-          </p>
 
           <label className={styles.uploadField}>
             <input
@@ -361,18 +336,11 @@ export default function Settings() {
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <div>
-              <p className={styles.cardEyebrow}>Account</p>
-              <h2 className={styles.cardTitle}>Session</h2>
-            </div>
+            <h2 className={styles.cardTitle}>Log out</h2>
             <button type="button" className={styles.dangerButton} onClick={handleLogout}>
               Log out
             </button>
           </div>
-          <p className={styles.cardText}>
-            If you ever rotate the password on the server, all existing sessions are invalidated
-            automatically.
-          </p>
         </div>
       </section>
 

@@ -9,12 +9,12 @@ import { getTodayBeirut } from "@/lib/date";
 import styles from "./accounts.module.css";
 
 const tabs = [
-  { id: "current", name: "Current", icon: "💵", color: "#059669" },
-  { id: "metals", name: "Metals", icon: "🪙", color: "#d97706" },
-  { id: "expected", name: "Expected", icon: "📥", color: "#2563eb" },
-  { id: "payables", name: "Payables", icon: "📤", color: "#dc2626" },
-  { id: "recurring", name: "Monthly", icon: "🔁", color: "#7c3aed" },
-  { id: "held", name: "Held", icon: "🤝", color: "#ea580c" },
+  { id: "current", name: "Current" },
+  { id: "metals", name: "Metals" },
+  { id: "expected", name: "Expected" },
+  { id: "payables", name: "Payables" },
+  { id: "recurring", name: "Monthly" },
+  { id: "held", name: "Held" },
 ];
 
 const recurringTypes = ["Family", "Home", "Personal"];
@@ -34,6 +34,10 @@ function formatDate(dateText) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function joinParts(...parts) {
+  return parts.filter(Boolean).join(" • ");
 }
 
 function getInitialForm(tab) {
@@ -534,35 +538,36 @@ export default function Accounts() {
 
     return (
       <article key={item.id} className={styles.itemCard}>
-        <div className={styles.itemTop}>
-          <div>
-            <h3 className={styles.itemTitle}>{options.title}</h3>
-            {options.meta && <p className={styles.itemMeta}>{options.meta}</p>}
+        <div className={styles.itemMain}>
+          <div className={styles.itemLine}>
+            <span className={styles.itemTitle}>{options.title}</span>
+            {options.meta ? <span className={styles.itemMeta}>{options.meta}</span> : null}
           </div>
-          <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
         </div>
-
-        {options.notes ? <p className={styles.itemNotes}>{options.notes}</p> : null}
-
-        <div className={styles.cardActions}>
-          {options.canShift && (
+        <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
+        <div className={styles.rowActions}>
+          {options.canShift ? (
             <>
               <button
                 type="button"
-                className={styles.actionButton}
+                className={styles.iconButton}
                 onClick={() => handleShift("earlier", item.id)}
+                aria-label="Move earlier"
+                title="Move earlier"
               >
-                Earlier
+                ↑
               </button>
               <button
                 type="button"
-                className={styles.actionButton}
+                className={styles.iconButton}
                 onClick={() => handleShift("later", item.id)}
+                aria-label="Move later"
+                title="Move later"
               >
-                Later
+                ↓
               </button>
             </>
-          )}
+          ) : null}
           <button type="button" className={styles.actionButton} onClick={() => startEdit(item)}>
             Edit
           </button>
@@ -592,8 +597,7 @@ export default function Accounts() {
     if (activeTab === "current") {
       return renderStandardList(data.currentMoney, (item) => ({
         title: item.location,
-        meta: item.created_at ? `Added ${formatDate(item.created_at.slice(0, 10))}` : "",
-        notes: item.notes,
+        meta: joinParts(item.notes, item.created_at ? formatDate(item.created_at.slice(0, 10)) : ""),
       }));
     }
 
@@ -602,8 +606,7 @@ export default function Accounts() {
         data.expectedMoney,
         (item) => ({
           title: item.source,
-          meta: `Expected ${formatDate(item.expected_date)}`,
-          notes: item.notes,
+          meta: joinParts(formatDate(item.expected_date), item.notes),
           canShift: true,
         }),
         true
@@ -615,8 +618,7 @@ export default function Accounts() {
         data.payables,
         (item) => ({
           title: item.source,
-          meta: `Due ${formatDate(item.pay_date)}`,
-          notes: item.notes,
+          meta: joinParts(formatDate(item.pay_date), item.notes),
           canShift: true,
         }),
         true
@@ -626,8 +628,7 @@ export default function Accounts() {
     if (activeTab === "held") {
       return renderStandardList(data.heldMoney, (item) => ({
         title: item.person,
-        meta: item.created_at ? `Added ${formatDate(item.created_at.slice(0, 10))}` : "",
-        notes: item.notes,
+        meta: joinParts(item.notes, item.created_at ? formatDate(item.created_at.slice(0, 10)) : ""),
       }));
     }
 
@@ -637,12 +638,9 @@ export default function Accounts() {
           {recurringTypes.map((type) => (
             <section key={type} className={styles.groupCard}>
               <div className={styles.groupHeader}>
-                <div>
-                  <p className={styles.groupEyebrow}>{type}</p>
-                  <h3 className={styles.groupTitle}>${formatMoney(
-                    recurringByType[type].reduce((sum, item) => sum + (item.amount || 0), 0)
-                  )}/mo</h3>
-                </div>
+                <h3 className={styles.groupTitle}>
+                  {type} · ${formatMoney(recurringByType[type].reduce((sum, item) => sum + (item.amount || 0), 0))}/mo
+                </h3>
               </div>
 
               <div className={styles.groupRows}>
@@ -650,11 +648,13 @@ export default function Accounts() {
                   .filter((item) => item.id !== editingId)
                   .map((item) => (
                     <article key={item.id} className={styles.groupRow}>
-                      <div>
-                        <strong className={styles.itemTitle}>{item.target}</strong>
+                      <div className={styles.itemMain}>
+                        <div className={styles.itemLine}>
+                          <span className={styles.itemTitle}>{item.target}</span>
+                        </div>
                       </div>
                       <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
-                      <div className={styles.cardActions}>
+                      <div className={styles.rowActions}>
                         <button
                           type="button"
                           className={styles.actionButton}
@@ -673,7 +673,7 @@ export default function Accounts() {
                     </article>
                   ))}
                 {recurringByType[type].length === 0 && (
-                  <div className={styles.emptyState}>No {type.toLowerCase()} commitments yet.</div>
+                  <div className={styles.emptyState}>No items.</div>
                 )}
               </div>
             </section>
@@ -685,10 +685,7 @@ export default function Accounts() {
     return (
       <section className={styles.metalsCard}>
         <div className={styles.metalsHeader}>
-          <div>
-            <p className={styles.groupEyebrow}>Metals</p>
-            <h2 className={styles.metalsValue}>${formatMoney(metals.values.total || 0)}</h2>
-          </div>
+          <h2 className={styles.metalsValue}>${formatMoney(metals.values.total || 0)}</h2>
           <button
             type="button"
             className={styles.primaryButton}
@@ -698,11 +695,6 @@ export default function Accounts() {
             {refreshingLivePrices ? "Refreshing..." : "Refresh live prices"}
           </button>
         </div>
-
-        <p className={styles.metalsHint}>
-          Live refresh happens from your browser only when you request it, so the locked-down server
-          stays isolated.
-        </p>
 
         <div className={styles.metalsRows}>
           {[
@@ -729,9 +721,11 @@ export default function Accounts() {
             },
           ].map((metal) => (
             <div key={metal.label} className={styles.metalRow}>
-              <div>
-                <strong className={styles.itemTitle}>{metal.label}</strong>
-                <p className={styles.itemMeta}>${metal.price?.toFixed(2)} per {metal.quantitySuffix}</p>
+              <div className={styles.itemMain}>
+                <div className={styles.itemLine}>
+                  <span className={styles.itemTitle}>{metal.label}</span>
+                  <span className={styles.itemMeta}>${metal.price?.toFixed(2)} / {metal.quantitySuffix}</span>
+                </div>
               </div>
               {metalsEditing ? (
                 <input
@@ -747,7 +741,7 @@ export default function Accounts() {
                   }
                 />
               ) : (
-                <span className={styles.itemMeta}>
+                <span className={styles.itemMetaValue}>
                   {(metals.holdings[metal.quantityKey] || 0).toFixed(2)}
                   {metal.quantitySuffix}
                 </span>
@@ -829,7 +823,7 @@ export default function Accounts() {
           </div>
         )}
 
-        <p className={styles.itemMeta}>
+        <p className={styles.footerMeta}>
           Last metal refresh:{" "}
           {metals.prices.last_updated
             ? new Date(metals.prices.last_updated).toLocaleString()
@@ -853,10 +847,7 @@ export default function Accounts() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>Money map</p>
-          <h1 className={styles.title}>Accounts that read well on the phone.</h1>
-        </div>
+        <h1 className={styles.title}>Accounts</h1>
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
@@ -884,10 +875,8 @@ export default function Accounts() {
             key={tab.id}
             type="button"
             className={`${styles.tabButton} ${activeTab === tab.id ? styles.activeTab : ""}`}
-            style={activeTab === tab.id ? { borderColor: tab.color, color: tab.color } : {}}
             onClick={() => selectTab(tab.id)}
           >
-            <span>{tab.icon}</span>
             <span>{tab.name}</span>
           </button>
         ))}
@@ -895,14 +884,7 @@ export default function Accounts() {
 
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.groupEyebrow}>{activeTabMeta?.icon} {activeTabMeta?.name}</p>
-            <h2 className={styles.sectionTitle}>
-              {activeTab === "expected" || activeTab === "payables"
-                ? "You can nudge items earlier or later and the date will move with them."
-                : "Fast enough for the phone, clear enough for the browser."}
-            </h2>
-          </div>
+          <h2 className={styles.sectionTitle}>{activeTabMeta?.name}</h2>
 
           {canAdd && (
             <button

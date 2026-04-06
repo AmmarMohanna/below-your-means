@@ -12,9 +12,9 @@
 }
 
 .spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid rgba(15, 23, 42, 0.08);
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
   border-top-color: var(--primary);
   border-radius: 999px;
   animation: spin 0.8s linear infinite;
@@ -27,41 +27,19 @@
 }
 
 .header {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.eyebrow,
-.panelEyebrow {
-  margin: 0;
-  color: var(--primary-strong);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  margin-bottom: 16px;
 }
 
 .title {
-  margin: 0;
-  font-size: clamp(2rem, 4.6vw, 2.7rem);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-}
-
-.subtitle {
-  margin: 0;
-  max-width: 42rem;
-  color: var(--text-secondary);
-  font-size: 0.98rem;
-  line-height: 1.55;
+  font-size: 1.6rem;
+  font-weight: 700;
 }
 
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .summaryCard,
@@ -70,38 +48,36 @@
 .alertCard {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
 }
 
 .summaryCard {
   display: grid;
-  gap: 6px;
-  padding: 14px 16px;
+  gap: 4px;
+  padding: 12px 14px;
 }
 
 .summaryCard strong {
-  font-size: 1.02rem;
+  font-size: 1rem;
 }
 
 .cardLabel {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 600;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .panel {
   display: grid;
-  gap: 14px;
-  padding: 18px;
+  gap: 12px;
+  padding: 14px;
 }
 
 .fullWidth {
@@ -110,31 +86,30 @@
 
 .panelHeader {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .panelTitle {
-  margin: 6px 0 0;
-  font-size: 1.18rem;
-  letter-spacing: -0.02em;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .list,
 .alertList,
 .largeMoves {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .listRow,
 .historyRow {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  align-items: center;
-  padding: 12px 0;
+  padding: 10px 0;
   border-top: 1px solid var(--border);
 }
 
@@ -149,7 +124,6 @@
 .moveCard strong,
 .alertCard strong {
   display: block;
-  color: var(--text-primary);
 }
 
 .listRow span,
@@ -157,42 +131,41 @@
 .moveCard span,
 .alertCard span {
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--text-muted);
-  font-size: 0.84rem;
-  line-height: 1.45;
+  font-size: 0.82rem;
 }
 
-.alertCard,
-.moveCard {
-  padding: 14px 16px;
+.moveCard,
+.alertCard {
+  padding: 12px 14px;
 }
 
 .undoButton {
-  min-height: 38px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(15, 159, 141, 0.12);
-  color: var(--primary-dark);
-  font-size: 0.85rem;
-  font-weight: 800;
-  padding: 0 14px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .undoButton:disabled {
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .emptyState {
-  padding: 12px 0;
+  padding: 10px 0;
   color: var(--text-muted);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
 .incomeAmount {
-  color: var(--primary-dark);
+  color: var(--primary-strong);
 }
 
 .expenseAmount {

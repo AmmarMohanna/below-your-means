@@ -12,9 +12,9 @@
 }
 
 .spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid rgba(15, 23, 42, 0.08);
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
   border-top-color: var(--primary);
   border-radius: 999px;
   animation: spin 0.8s linear infinite;
@@ -28,81 +28,56 @@
 
 .header {
   display: grid;
-  gap: 18px;
-  margin-bottom: 18px;
-}
-
-.eyebrow {
-  margin: 0 0 6px;
-  color: var(--primary-strong);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .title {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 2.7rem);
-  line-height: 0.96;
-  letter-spacing: -0.04em;
-}
-
-.subtitle {
-  margin: 10px 0 0;
-  max-width: 32rem;
-  color: var(--text-secondary);
-  font-size: 0.98rem;
-  line-height: 1.5;
+  font-size: 1.6rem;
+  font-weight: 700;
 }
 
 .summaryStrip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .summaryChip {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 6px;
   padding: 14px 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(215, 250, 243, 0.76));
+  background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 14px;
   box-shadow: var(--shadow-card);
-}
-
-.incomeChip {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(219, 252, 229, 0.9));
 }
 
 .summaryLabel {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .summaryValue {
-  color: var(--text-primary);
-  font-size: 1.38rem;
-  font-weight: 800;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .entryCard {
   display: grid;
-  gap: 16px;
-  margin-bottom: 22px;
-  padding: 18px;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 16px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 28px;
-  box-shadow: var(--shadow-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
 }
 
-.toggleBlock {
+.toggleBlock,
+.dateField,
+.amountField {
   display: grid;
   gap: 8px;
 }
@@ -111,10 +86,8 @@
 .fieldLabel,
 .dateLabel {
   color: var(--text-secondary);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .segmented {
@@ -124,43 +97,32 @@
 }
 
 .segment {
-  min-height: 46px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(148, 163, 184, 0.08);
+  min-height: 42px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
   color: var(--text-secondary);
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.segment:hover {
-  border-color: rgba(15, 23, 42, 0.18);
-  color: var(--text-primary);
 }
 
 .segmentActive {
-  border-color: rgba(13, 148, 136, 0.3);
-  background: linear-gradient(180deg, rgba(20, 184, 166, 0.18), rgba(13, 148, 136, 0.12));
-  color: var(--primary-dark);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-strong);
 }
 
 .textInput,
 .dateInput,
 .amountInput {
   width: 100%;
-  min-height: 52px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
   color: var(--text-primary);
-  font-size: 1rem;
-  padding: 0 16px;
 }
 
 .textInput::placeholder,
@@ -170,74 +132,52 @@
 
 .amountRow {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) 120px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 10px;
-  align-items: flex-end;
-}
-
-.dateField,
-.amountField {
-  display: grid;
-  gap: 8px;
+  align-items: end;
 }
 
 .amountInputWrap {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  min-height: 52px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  padding-inline: 14px;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
 }
 
 .currency {
   color: var(--text-muted);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .amountInput {
-  border: none;
   min-height: auto;
-  border-radius: 0;
-  background: transparent;
-  font-size: 1.18rem;
-  font-weight: 800;
-  text-align: right;
   padding-right: 0;
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-weight: 600;
 }
 
 .saveButton {
-  min-height: 52px;
+  min-width: 104px;
+  min-height: 44px;
+  padding: 0 16px;
   border: none;
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
+  border-radius: 10px;
+  background: var(--primary);
   color: white;
-  font-size: 0.98rem;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(15, 159, 141, 0.24);
 }
 
 .saveButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: none;
-}
-
-.helperText {
-  margin: -4px 0 0;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  line-height: 1.45;
-}
-
-.helperText strong {
-  color: var(--text-secondary);
 }
 
 .daySection {
@@ -247,24 +187,14 @@
 
 .dayHeader {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-end;
   gap: 12px;
 }
 
-.dayEyebrow {
-  margin: 0;
-  color: var(--primary-strong);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .dayTitle {
-  margin: 4px 0 0;
-  font-size: 1.45rem;
-  letter-spacing: -0.03em;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .dayActions {
@@ -273,14 +203,13 @@
 }
 
 .navButton {
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.9);
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
   color: var(--text-primary);
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
 }
 
@@ -294,7 +223,7 @@
 .selectionToggle,
 .bulkBar {
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--card-bg);
   box-shadow: var(--shadow-card);
 }
@@ -302,59 +231,54 @@
 .dayMetric {
   display: grid;
   gap: 4px;
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 
 .dayMetric strong {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .metricLabel {
   color: var(--text-muted);
   font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .incomeMetric strong {
-  color: var(--primary-dark);
+  color: var(--primary-strong);
 }
 
 .selectionToggle {
-  min-height: 100%;
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
   padding: 0 14px;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .bulkBar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   color: var(--text-secondary);
   font-size: 0.9rem;
-  font-weight: 700;
 }
 
 .bulkDeleteButton {
-  min-height: 40px;
+  min-height: 38px;
+  padding: 0 12px;
   border: none;
-  border-radius: 14px;
-  background: rgba(220, 38, 38, 0.12);
+  border-radius: 10px;
+  background: var(--danger-light);
   color: var(--danger);
-  font-size: 0.86rem;
-  font-weight: 800;
-  padding: 0 14px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .bulkDeleteButton:disabled {
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -364,40 +288,27 @@
 }
 
 .emptyState {
-  display: grid;
-  gap: 6px;
-  place-items: center;
-  padding: 42px 24px;
+  padding: 22px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-muted);
   text-align: center;
-  border: 1px dashed rgba(15, 23, 42, 0.14);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--text-secondary);
-}
-
-.emptyIcon {
-  font-size: 2.4rem;
 }
 
 .emptyState p {
   margin: 0;
-  color: var(--text-primary);
-  font-weight: 700;
-}
-
-.emptyHint {
-  font-size: 0.88rem;
 }
 
 .transactionCard {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: flex-start;
-  padding: 14px;
+  align-items: start;
+  padding: 12px 14px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
 }
 
@@ -409,30 +320,30 @@
 
 .transactionIcon,
 .selectCircle {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
-  font-size: 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .transactionIcon {
-  background: rgba(15, 159, 141, 0.12);
+  background: var(--primary-light);
+  color: var(--primary-strong);
 }
 
 .selectCircle {
   border: 1px solid var(--border-strong);
-  background: rgba(255, 255, 255, 0.88);
+  background: #fff;
   color: transparent;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 900;
 }
 
 .selectCircleActive {
-  border-color: rgba(15, 159, 141, 0.28);
-  background: rgba(15, 159, 141, 0.15);
+  border-color: var(--primary);
+  background: var(--primary-light);
   color: var(--primary-strong);
 }
 
@@ -444,23 +355,23 @@
 
 .transactionTopRow {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  align-items: flex-start;
 }
 
 .transactionTitle {
   min-width: 0;
-  color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.98rem;
+  font-weight: 600;
   line-height: 1.35;
   word-break: break-word;
 }
 
 .transactionAmount {
   white-space: nowrap;
-  font-size: 0.98rem;
-  font-weight: 800;
+  font-size: 0.96rem;
+  font-weight: 700;
 }
 
 .amountExpense {
@@ -468,7 +379,7 @@
 }
 
 .amountIncome {
-  color: var(--primary-dark);
+  color: var(--primary-strong);
 }
 
 .badgeRow {
@@ -479,35 +390,33 @@
 
 .badge,
 .badgeMuted {
-  min-height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
   display: inline-flex;
   align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
   font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .badge {
-  background: rgba(20, 184, 166, 0.14);
-  color: var(--primary-dark);
-}
-
-.badgeMuted {
-  background: rgba(148, 163, 184, 0.14);
+  background: #f3f4f6;
   color: var(--text-secondary);
 }
 
+.badgeMuted {
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
 .deleteButton {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 
@@ -516,12 +425,13 @@
   color: var(--danger);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   .amountRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .saveButton {
+    grid-column: 1 / -1;
     width: 100%;
   }
 }
@@ -532,19 +442,15 @@
   }
 
   .selectionToggle {
-    grid-column: 1 / -1;
     min-height: 44px;
+    grid-column: 1 / -1;
   }
 }
 
-@media (max-width: 420px) {
-  .container {
-    padding-top: 16px;
-  }
-
-  .entryCard {
-    padding: 16px;
-    border-radius: 24px;
+@media (max-width: 480px) {
+  .amountRow,
+  .summaryStrip {
+    grid-template-columns: 1fr;
   }
 
   .transactionCard {

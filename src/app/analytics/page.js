@@ -189,14 +189,9 @@ export default function Analytics() {
   }
 
   return (
-    <div className={styles.container}>
+      <div className={styles.container}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Review</p>
-        <h1 className={styles.title}>Useful, not decorative.</h1>
-        <p className={styles.subtitle}>
-          This page focuses on what needs attention now: the month, the next two weeks, stale
-          numbers, and recent changes you can undo.
-        </p>
+        <h1 className={styles.title}>Review</h1>
       </header>
 
       <section className={styles.summaryGrid}>
@@ -221,14 +216,11 @@ export default function Analytics() {
       <section className={styles.grid}>
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelEyebrow}>Next 14 days</p>
-              <h2 className={styles.panelTitle}>What is coming in</h2>
-            </div>
+            <h2 className={styles.panelTitle}>Upcoming in</h2>
           </div>
           <div className={styles.list}>
             {upcomingExpected.length === 0 ? (
-              <div className={styles.emptyState}>No expected money in the next two weeks.</div>
+              <div className={styles.emptyState}>No items.</div>
             ) : (
               upcomingExpected.map((item) => (
                 <div key={item.id} className={styles.listRow}>
@@ -245,14 +237,11 @@ export default function Analytics() {
 
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelEyebrow}>Next 14 days</p>
-              <h2 className={styles.panelTitle}>What you need to pay</h2>
-            </div>
+            <h2 className={styles.panelTitle}>Upcoming out</h2>
           </div>
           <div className={styles.list}>
             {upcomingPayables.length === 0 ? (
-              <div className={styles.emptyState}>No payables landing in the next two weeks.</div>
+              <div className={styles.emptyState}>No items.</div>
             ) : (
               upcomingPayables.map((item) => (
                 <div key={item.id} className={styles.listRow}>
@@ -269,10 +258,7 @@ export default function Analytics() {
 
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelEyebrow}>Attention</p>
-              <h2 className={styles.panelTitle}>Things to clean up</h2>
-            </div>
+            <h2 className={styles.panelTitle}>Needs attention</h2>
           </div>
           <div className={styles.alertList}>
             {overduePayables.length > 0 && (
@@ -286,25 +272,22 @@ export default function Analytics() {
             {staleMetalPrices && (
               <div className={styles.alertCard}>
                 <strong>Metal prices look stale</strong>
-                <span>Refresh them from the Accounts page when you want live numbers.</span>
+                <span>Refresh from Accounts when needed.</span>
               </div>
             )}
             {overduePayables.length === 0 && !staleMetalPrices && (
-              <div className={styles.emptyState}>No obvious cleanup items right now.</div>
+              <div className={styles.emptyState}>Nothing to review.</div>
             )}
           </div>
         </article>
 
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelEyebrow}>Recent changes</p>
-              <h2 className={styles.panelTitle}>Undo if needed</h2>
-            </div>
+            <h2 className={styles.panelTitle}>Recent changes</h2>
           </div>
           <div className={styles.list}>
             {history.length === 0 ? (
-              <div className={styles.emptyState}>No tracked changes yet.</div>
+              <div className={styles.emptyState}>No changes yet.</div>
             ) : (
               history.map((entry) => (
                 <div key={entry.id} className={styles.historyRow}>
@@ -330,10 +313,7 @@ export default function Analytics() {
 
         <article className={`${styles.panel} ${styles.fullWidth}`}>
           <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelEyebrow}>Largest moves</p>
-              <h2 className={styles.panelTitle}>Big items worth a second look</h2>
-            </div>
+            <h2 className={styles.panelTitle}>Largest moves</h2>
           </div>
           <div className={styles.largeMoves}>
             {recentLargeMoves.map((transaction) => (

@@ -8,20 +8,6 @@ import { formatDateBeirut, getNowBeirut, getTodayBeirut } from "@/lib/date";
 
 import styles from "./dashboard.module.css";
 
-const categoryIcons = {
-  "Food & Coffee": "☕",
-  "Livelihood Monthly": "🏠",
-  Family: "👨‍👩‍👧‍👦",
-  Shopping: "🛍️",
-  Utilities: "💡",
-  Healthcare: "🏥",
-  Charity: "❤️",
-  Unexpected: "⚡",
-  Income: "💰",
-  Other: "📝",
-  Business: "💼",
-};
-
 function getDefaultCategory(type, scope) {
   if (type === "income") return "Income";
   return scope === "business" ? "Business" : "Other";
@@ -223,20 +209,13 @@ export default function Dashboard() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>BelowYourMeans</p>
-          <h1 className={styles.title}>Quick entry, less friction.</h1>
-          <p className={styles.subtitle}>
-            Log the money move first. Keep the rest lightweight.
-          </p>
-        </div>
-
+        <h1 className={styles.title}>Home</h1>
         <div className={styles.summaryStrip}>
           <div className={styles.summaryChip}>
             <span className={styles.summaryLabel}>Month out</span>
             <span className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</span>
           </div>
-          <div className={`${styles.summaryChip} ${styles.incomeChip}`}>
+          <div className={styles.summaryChip}>
             <span className={styles.summaryLabel}>Month in</span>
             <span className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</span>
           </div>
@@ -340,18 +319,11 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <p className={styles.helperText}>
-          Stored as <strong>{getDefaultCategory(type, scope)}</strong> behind the scenes so your
-          old data still works.
-        </p>
       </form>
 
       <section className={styles.daySection}>
         <div className={styles.dayHeader}>
-          <div>
-            <p className={styles.dayEyebrow}>{formatDisplayDate(selectedDate)}</p>
-            <h2 className={styles.dayTitle}>Daily view</h2>
-          </div>
+          <h2 className={styles.dayTitle}>{formatDisplayDate(selectedDate)}</h2>
 
           <div className={styles.dayActions}>
             <button type="button" className={styles.navButton} onClick={() => changeDay(-1)}>
@@ -401,9 +373,7 @@ export default function Dashboard() {
         <div className={styles.transactionList}>
           {dailyTransactions.length === 0 ? (
             <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}>🧾</span>
-              <p>No money moves logged for this day.</p>
-              <span className={styles.emptyHint}>Use the form above to keep the streak clean.</span>
+              <p>No entries.</p>
             </div>
           ) : (
             dailyTransactions.map((transaction) => (
@@ -421,7 +391,7 @@ export default function Dashboard() {
                     </button>
                   ) : (
                     <div className={styles.transactionIcon}>
-                      {categoryIcons[transaction.category] || (transaction.type === "income" ? "💰" : "📝")}
+                      {transaction.type === "income" ? "+" : "-"}
                     </div>
                   )}
                 </div>
