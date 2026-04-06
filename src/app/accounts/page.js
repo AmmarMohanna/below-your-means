@@ -569,10 +569,12 @@ export default function Accounts() {
             </>
           ) : null}
           <button type="button" className={styles.actionButton} onClick={() => startEdit(item)}>
-            Edit
+            <span className={styles.mobileIcon} aria-hidden="true">✎</span>
+            <span className={styles.buttonLabel}>Edit</span>
           </button>
           <button type="button" className={styles.deleteButton} onClick={() => handleDelete(item.id)}>
-            Delete
+            <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
+            <span className={styles.buttonLabel}>Delete</span>
           </button>
         </div>
       </article>
@@ -661,14 +663,16 @@ export default function Accounts() {
                           className={styles.actionButton}
                           onClick={() => startEdit(item)}
                         >
-                          Edit
+                          <span className={styles.mobileIcon} aria-hidden="true">✎</span>
+                          <span className={styles.buttonLabel}>Edit</span>
                         </button>
                         <button
                           type="button"
                           className={styles.deleteButton}
                           onClick={() => handleDelete(item.id)}
                         >
-                          Delete
+                          <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
+                          <span className={styles.buttonLabel}>Delete</span>
                         </button>
                       </div>
                     </article>

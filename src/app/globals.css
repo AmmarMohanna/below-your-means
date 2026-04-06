@@ -4,11 +4,11 @@
 @import "@fontsource/raleway/700.css";
 
 :root {
-  --primary: #0f9f8d;
-  --primary-strong: #0a7b70;
-  --primary-dark: #0b5f58;
-  --primary-light: #d7faf3;
-  --accent: #14b8a6;
+  --primary: #0c8c7d;
+  --primary-strong: #08695f;
+  --primary-dark: #064f49;
+  --primary-light: #d1f3ed;
+  --accent: #0ea392;
   --accent-light: #ecfeff;
   --danger: #dc2626;
   --danger-light: #fee2e2;

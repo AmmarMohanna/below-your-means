@@ -170,18 +170,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const response = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
-      if (response.ok) {
-        setSelectedIds((previous) => previous.filter((item) => item !== id));
-        await fetchTransactions();
-      }
-    } catch (error) {
-      console.error("Error deleting transaction:", error);
-    }
-  };
-
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
 
@@ -424,17 +412,6 @@ export default function Dashboard() {
                 >
                   {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
                 </span>
-
-                {!selectionMode && (
-                  <button
-                    type="button"
-                    className={styles.deleteButton}
-                    onClick={() => handleDelete(transaction.id)}
-                    aria-label="Delete transaction"
-                  >
-                    ×
-                  </button>
-                )}
               </article>
             ))
           )}

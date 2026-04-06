@@ -208,6 +208,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
 }
 
 .rowActions {
@@ -215,6 +216,10 @@
   flex-wrap: nowrap;
   gap: 6px;
   justify-content: flex-end;
+}
+
+.mobileIcon {
+  display: none;
 }
 
 .cardList,
@@ -339,5 +344,119 @@
 
   .tabs {
     margin-inline: -2px;
+  }
+}
+
+@media (max-width: 430px) {
+  .container {
+    padding-inline: 12px;
+  }
+
+  .summaryGrid {
+    gap: 8px;
+  }
+
+  .summaryCard {
+    padding: 12px 10px;
+    border-radius: 16px;
+  }
+
+  .summaryCard strong {
+    font-size: 0.94rem;
+  }
+
+  .summaryLabel {
+    font-size: 0.68rem;
+  }
+
+  .tabs {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .tabButton {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 0.82rem;
+  }
+
+  .formCard,
+  .metalsCard,
+  .groupCard {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .itemCard,
+  .groupRow,
+  .metalRow {
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .itemMeta {
+    display: none;
+  }
+
+  .itemTitle {
+    font-size: 0.9rem;
+  }
+
+  .itemAmount,
+  .itemMetaValue,
+  .metalsValue {
+    font-size: 0.86rem;
+  }
+
+  .groupHeader,
+  .metalsHeader {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .groupTitle {
+    font-size: 0.92rem;
+  }
+
+  .rowActions {
+    gap: 4px;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .actionButton,
+  .deleteButton,
+  .iconButton {
+    min-height: 32px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+  }
+
+  .actionButton,
+  .deleteButton {
+    min-width: 32px;
+    padding: 0 8px;
+  }
+
+  .buttonLabel {
+    display: none;
+  }
+
+  .mobileIcon {
+    display: inline;
+    font-size: 0.88rem;
+    line-height: 1;
+  }
+
+  .inlineInput {
+    max-width: 72px;
+    min-height: 34px;
+    padding-inline: 8px;
+  }
+
+  .footerMeta {
+    font-size: 0.74rem;
+    text-align: center;
   }
 }

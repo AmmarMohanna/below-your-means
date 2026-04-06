@@ -44,6 +44,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
 .summaryChip {
@@ -66,6 +67,7 @@
 .summaryValue {
   font-size: 1.1rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .entryCard {
@@ -310,7 +312,7 @@
 
 .transactionCard {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   padding: 12px 14px;
@@ -383,22 +385,6 @@
   color: var(--primary-strong);
 }
 
-.deleteButton {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.deleteButton:hover {
-  background: var(--danger-light);
-  color: var(--danger);
-}
-
 @media (max-width: 760px) {
   .amountRow {
     grid-template-columns: 1fr 1fr;
@@ -422,16 +408,107 @@
 }
 
 @media (max-width: 480px) {
-  .amountRow,
-  .summaryStrip {
+  .amountRow {
     grid-template-columns: 1fr;
   }
 
   .transactionCard {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
+}
 
-  .deleteButton {
-    grid-column: auto;
+@media (max-width: 430px) {
+  .container {
+    padding-inline: 12px;
+  }
+
+  .summaryStrip {
+    gap: 8px;
+  }
+
+  .summaryChip {
+    padding: 12px 10px;
+    border-radius: 16px;
+  }
+
+  .summaryLabel {
+    font-size: 0.72rem;
+  }
+
+  .summaryValue {
+    font-size: 0.96rem;
+  }
+
+  .entryCard {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .amountRow {
+    gap: 8px;
+  }
+
+  .dayHeader {
+    gap: 8px;
+  }
+
+  .dayTitle {
+    min-width: 0;
+    font-size: 0.98rem;
+  }
+
+  .dayActions {
+    gap: 6px;
+  }
+
+  .navButton {
+    width: 34px;
+    height: 34px;
+  }
+
+  .daySummary {
+    gap: 8px;
+  }
+
+  .dayMetric {
+    padding: 10px 8px;
+  }
+
+  .dayMetric strong {
+    font-size: 0.92rem;
+  }
+
+  .metricLabel {
+    font-size: 0.68rem;
+  }
+
+  .selectionToggle {
+    padding-inline: 10px;
+    font-size: 0.82rem;
+  }
+
+  .transactionList {
+    gap: 8px;
+  }
+
+  .transactionCard {
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 15px;
+  }
+
+  .transactionIcon,
+  .selectCircle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.82rem;
+  }
+
+  .transactionTitle {
+    font-size: 0.9rem;
+  }
+
+  .transactionAmount {
+    font-size: 0.88rem;
   }
 }
