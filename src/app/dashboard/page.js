@@ -281,17 +281,21 @@ export default function Dashboard() {
         <div className={styles.amountRow}>
           <div className={styles.dateField}>
             <span className={styles.dateLabel}>Date</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={selectedDateValue}
-              max={getTodayBeirut()}
-              onChange={(event) => {
-                if (event.target.value) {
-                  setSelectedDate(new Date(`${event.target.value}T12:00:00`));
-                }
-              }}
-            />
+            <label className={styles.dateInputWrap}>
+              <span className={styles.dateInputValue}>{selectedDateValue}</span>
+              <span className={styles.dateInputIcon}>▾</span>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={selectedDateValue}
+                max={getTodayBeirut()}
+                onChange={(event) => {
+                  if (event.target.value) {
+                    setSelectedDate(new Date(`${event.target.value}T12:00:00`));
+                  }
+                }}
+              />
+            </label>
           </div>
 
           <div className={styles.amountField}>
