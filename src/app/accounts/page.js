@@ -551,18 +551,18 @@ export default function Accounts() {
               <button
                 type="button"
                 className={styles.iconButton}
-                onClick={() => handleShift("earlier", item.id)}
-                aria-label="Move earlier"
-                title="Move earlier"
+                onClick={() => handleShift("up", item.id)}
+                aria-label="Move up"
+                title="Move up"
               >
                 ↑
               </button>
               <button
                 type="button"
                 className={styles.iconButton}
-                onClick={() => handleShift("later", item.id)}
-                aria-label="Move later"
-                title="Move later"
+                onClick={() => handleShift("down", item.id)}
+                aria-label="Move down"
+                title="Move down"
               >
                 ↓
               </button>
@@ -598,6 +598,7 @@ export default function Accounts() {
       return renderStandardList(data.currentMoney, (item) => ({
         title: item.location,
         meta: joinParts(item.notes, item.created_at ? formatDate(item.created_at.slice(0, 10)) : ""),
+        canShift: true,
       }));
     }
 

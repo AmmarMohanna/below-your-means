@@ -2,13 +2,16 @@
   min-height: 100vh;
   max-width: var(--app-max-width);
   margin: 0 auto;
+  background: var(--bg);
   padding: 20px var(--page-gutter) var(--page-bottom-space);
 }
 
 .loading {
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
+  background: var(--bg);
 }
 
 .spinner {
@@ -16,251 +19,518 @@
   height: 32px;
   border: 3px solid var(--border);
   border-top-color: var(--primary);
-  border-radius: 999px;
+  border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .header {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
-.title {
-  font-size: 1.6rem;
-  font-weight: 700;
+.headerContent {
+  display: grid;
+  gap: 8px;
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: 'Amiri', serif, system-ui;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.45;
 }
 
 .tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: 8px;
   margin-bottom: 16px;
 }
 
 .tab {
-  min-height: 42px;
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--text-secondary);
-  font-weight: 600;
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  border-color: var(--primary);
 }
 
 .activeTab {
-  border-color: var(--primary);
   background: var(--primary-light);
-  color: var(--primary-strong);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-.section {
-  display: grid;
-  gap: 12px;
+.inspirationCard {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  text-align: center;
+  border: 2px solid #d97706;
+}
+
+.dhikr {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-family: 'Amiri', serif, system-ui;
+}
+
+.dhikrItem {
+  font-size: 0.9rem;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.dhikrDivider {
+  color: #d97706;
+}
+
+.dailyReminders {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.reminder {
+  font-size: 0.8rem;
+  color: #78350f;
+  font-family: 'Amiri', serif, system-ui;
+}
+
+.missedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.missedLabel {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.missedNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
 }
 
 .prayerGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.prayerCard,
-.singleCard,
-.summaryCard,
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
 .prayerCard {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-}
-
-.singleCard,
-.summaryCard,
-.card {
-  padding: 14px;
-}
-
-.singleRow,
-.summaryCard,
-.cardHeader,
-.listRow {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.prayerCard:hover {
+  border-color: var(--primary);
 }
 
 .prayerInfo {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .prayerNameAr {
   font-size: 1.1rem;
   font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Amiri', serif, system-ui;
 }
 
 .prayerNameEn {
+  font-size: 0.6rem;
   color: var(--text-muted);
-  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.counterControls {
-  display: inline-flex;
+.prayerControls {
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.counterButton {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: #fff;
+.prayerBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--text-primary);
-  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.counterButton:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.counterValue {
-  min-width: 28px;
-  text-align: center;
-  font-weight: 700;
-}
-
-.summaryLabel {
-  display: block;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.summaryValue {
-  display: block;
-  margin-top: 4px;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.primaryButton,
-.secondaryButton,
-.deleteButton {
-  min-height: 38px;
-  padding: 0 12px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.primaryButton {
-  border: 1px solid var(--primary);
+.prayerBtn:hover:not(:disabled) {
   background: var(--primary);
+  border-color: var(--primary);
   color: white;
 }
 
-.secondaryButton,
-.deleteButton {
-  border: 1px solid var(--border-strong);
-  background: #fff;
-  color: var(--text-secondary);
+.prayerBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.deleteButton {
-  color: var(--danger);
+.prayerCount {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--primary);
+  min-width: 28px;
+  text-align: center;
 }
 
-.card {
-  display: grid;
-  gap: 12px;
+.fastingSection {
+  margin-top: 16px;
 }
 
-.cardTitle {
+.fastingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fastingLabel {
   font-size: 1rem;
   font-weight: 700;
+  color: var(--text-primary);
 }
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.fastingNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.fastingCard {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.fastingCard:hover {
+  border-color: var(--primary);
+}
+
+.fastingInfo {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
+.fastingIcon {
+  font-size: 1.5rem;
+}
+
+.fastingName {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Amiri', serif, system-ui;
+}
+
+.sessionsSummary {
+  background: linear-gradient(135deg, var(--primary-light) 0%, #99f6e4 100%);
+  border: 2px solid var(--primary);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.sessionsRemaining {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sessionsNumber {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.sessionsLabel {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.quickWorkoutBtn {
+  margin-top: 16px;
+  padding: 14px 28px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+.quickWorkoutBtn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+}
+
+.quickWorkoutBtn:active {
+  transform: translateY(0);
+}
+
+.gymCard {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.gymCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.gymCardHeader h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.addBtn {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.addBtn:hover {
+  background: var(--primary-dark);
+}
+
+.addForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+  background: var(--primary-light);
+  border-bottom: 1px solid var(--border);
+}
+
 .formInput {
-  width: 100%;
-  min-height: 42px;
-  padding: 0 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--card-bg);
+}
+
+.formInput:focus {
+  border-color: var(--primary);
+  outline: none;
 }
 
 .formActions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
-.list {
-  display: grid;
-  gap: 8px;
+.saveBtn, .cancelBtn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.listRow {
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+.saveBtn {
+  background: var(--primary);
+  color: white;
 }
 
-.listRow:first-child {
-  padding-top: 0;
-  border-top: none;
+.saveBtn:hover {
+  background: var(--primary-dark);
 }
 
-.rowText {
-  min-width: 0;
+.cancelBtn {
+  background: var(--border);
+  color: var(--text-secondary);
 }
 
-.rowText strong,
-.rowText span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.cancelBtn:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
-.rowText span {
-  margin-top: 2px;
+.paymentsList, .sessionsList {
+  padding: 8px 0;
+}
+
+.paymentItem, .sessionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.paymentItem:last-child, .sessionItem:last-child {
+  border-bottom: none;
+}
+
+.paymentItem:hover, .sessionItem:hover {
+  background: var(--bg);
+}
+
+.paymentDate, .sessionDate {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.paymentSessions {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.paymentNotes, .sessionNotes {
+  flex: 1;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
 }
 
-.emptyState {
-  color: var(--text-muted);
-  font-size: 0.88rem;
+.deleteBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  opacity: 0.4;
+  transition: all 0.2s;
 }
 
-@media (max-width: 720px) {
-  .formGrid {
-    grid-template-columns: 1fr;
+.paymentItem:hover .deleteBtn,
+.sessionItem:hover .deleteBtn {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+}
+
+@media (hover: none) {
+  .deleteBtn {
+    opacity: 1;
   }
 }
 
-@media (max-width: 560px) {
+.emptyState {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 400px) {
   .prayerGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .dhikr {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dhikrDivider {
+    display: none;
   }
 }

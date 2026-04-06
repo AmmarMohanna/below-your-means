@@ -30,11 +30,14 @@
   display: grid;
   gap: 16px;
   margin-bottom: 16px;
+  justify-items: center;
+  text-align: center;
 }
 
 .title {
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
 
 .summaryStrip {
@@ -47,10 +50,11 @@
   display: grid;
   gap: 6px;
   padding: 14px 16px;
-  background: var(--card-bg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(215, 250, 243, 0.76));
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 20px;
   box-shadow: var(--shadow-card);
+  text-align: center;
 }
 
 .summaryLabel {
@@ -71,8 +75,8 @@
   padding: 16px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-card);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
 }
 
 .toggleBlock,
@@ -99,8 +103,8 @@
 .segment {
   min-height: 42px;
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 14px;
+  background: rgba(148, 163, 184, 0.08);
   color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 600;
@@ -108,8 +112,8 @@
 }
 
 .segmentActive {
-  border-color: var(--primary);
-  background: var(--primary-light);
+  border-color: rgba(13, 148, 136, 0.3);
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.18), rgba(13, 148, 136, 0.12));
   color: var(--primary-strong);
 }
 
@@ -120,8 +124,8 @@
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
   color: var(--text-primary);
 }
 
@@ -144,8 +148,8 @@
   min-height: 44px;
   padding-inline: 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .currency {
@@ -168,11 +172,12 @@
   min-height: 44px;
   padding: 0 16px;
   border: none;
-  border-radius: 10px;
-  background: var(--primary);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
   color: white;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 12px 28px rgba(15, 159, 141, 0.24);
 }
 
 .saveButton:disabled {
@@ -206,8 +211,8 @@
   width: 36px;
   height: 36px;
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
   color: var(--text-primary);
   font-size: 1rem;
   cursor: pointer;
@@ -232,6 +237,7 @@
   display: grid;
   gap: 4px;
   padding: 12px 14px;
+  text-align: center;
 }
 
 .dayMetric strong {
@@ -254,6 +260,7 @@
   color: var(--text-secondary);
   font-weight: 600;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .bulkBar {
@@ -302,13 +309,13 @@
 
 .transactionCard {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 12px;
-  align-items: start;
+  align-items: center;
   padding: 12px 14px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 18px;
   box-shadow: var(--shadow-card);
 }
 
@@ -348,24 +355,17 @@
 }
 
 .transactionBody {
-  display: grid;
-  gap: 8px;
   min-width: 0;
-}
-
-.transactionTopRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
 }
 
 .transactionTitle {
   min-width: 0;
   font-size: 0.98rem;
   font-weight: 600;
-  line-height: 1.35;
-  word-break: break-word;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .transactionAmount {
@@ -379,33 +379,6 @@
 }
 
 .amountIncome {
-  color: var(--primary-strong);
-}
-
-.badgeRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.badge,
-.badgeMuted {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.badge {
-  background: #f3f4f6;
-  color: var(--text-secondary);
-}
-
-.badgeMuted {
-  background: var(--primary-light);
   color: var(--primary-strong);
 }
 
@@ -454,11 +427,10 @@
   }
 
   .transactionCard {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
   .deleteButton {
-    grid-column: 2;
-    justify-self: end;
+    grid-column: auto;
   }
 }

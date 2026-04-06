@@ -5,9 +5,25 @@ import path from 'path';
 const dbPath =
   process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'belowyourmeans.db');
 
-const datedAccountConfig = {
-  expectedMoney: { table: 'expected_money', dateField: 'expected_date' },
-  payables: { table: 'payables', dateField: 'pay_date' },
+const orderedAccountConfig = {
+  currentMoney: {
+    table: 'current_money',
+    orderField: 'created_at',
+    orderBy: 'created_at DESC, id DESC',
+    valueType: 'timestamp',
+  },
+  expectedMoney: {
+    table: 'expected_money',
+    orderField: 'expected_date',
+    orderBy: 'expected_date ASC, id ASC',
+    valueType: 'date',
+  },
+  payables: {
+    table: 'payables',
+    orderField: 'pay_date',
+    orderBy: 'pay_date ASC, id ASC',
+    valueType: 'date',
+  },
 };
 
 let db = null;
@@ -360,6 +376,11 @@ function addDays(dateText, days) {
   return nextDate.toISOString().slice(0, 10);
 }
 
+function addSeconds(dateTimeText, seconds) {
+  const modifier = `${seconds >= 0 ? '+' : ''}${seconds} seconds`;
+  return getDb().prepare('SELECT datetime(?, ?) AS value').get(dateTimeText, modifier).value;
+}
+
 // Transaction operations
 export function getAllTransactions() {
   return getDb()
@@ -507,15 +528,24 @@ export function deleteHeldMoney(id) {
 }
 
 export function shiftDatedAccountItem(kind, id, direction) {
-  const config = datedAccountConfig[kind];
+  const config = orderedAccountConfig[kind];
   if (!config) {
-    throw new Error('Unsupported dated account list');
+    throw new Error('Unsupported account list');
+  }
+
+  const normalizedDirection =
+    direction === 'earlier' || direction === 'up'
+      ? 'up'
+      : direction === 'later' || direction === 'down'
+        ? 'down'
+        : null;
+
+  if (!normalizedDirection) {
+    throw new Error('Unsupported direction');
   }
 
   const items = getDb()
-    .prepare(
-      `SELECT id, ${config.dateField} AS date_value FROM ${config.table} ORDER BY ${config.dateField} ASC, id ASC`
-    )
+    .prepare(`SELECT id, ${config.orderField} AS order_value FROM ${config.table} ORDER BY ${config.orderBy}`)
     .all();
 
   const currentIndex = items.findIndex((item) => item.id === id);
@@ -524,19 +554,51 @@ export function shiftDatedAccountItem(kind, id, direction) {
   }
 
   const currentItem = items[currentIndex];
-  let nextDate = currentItem.date_value;
+  let nextValue = currentItem.order_value;
 
-  if (direction === 'earlier') {
-    const previousItem = items[currentIndex - 1];
-    nextDate = previousItem ? addDays(previousItem.date_value, -1) : addDays(currentItem.date_value, -1);
-  } else if (direction === 'later') {
-    const followingItem = items[currentIndex + 1];
-    nextDate = followingItem ? addDays(followingItem.date_value, 1) : addDays(currentItem.date_value, 1);
+  if (config.valueType === 'timestamp') {
+    const targetIndex =
+      normalizedDirection === 'up'
+        ? Math.max(0, currentIndex - 1)
+        : Math.min(items.length - 1, currentIndex + 1);
+
+    if (targetIndex === currentIndex) {
+      return { changes: 0 };
+    }
+
+    const reordered = [...items];
+    const [movedItem] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, movedItem);
+
+    const anchorValue = items[0].order_value;
+    const database = getDb();
+    const transaction = database.transaction(() => {
+      reordered.forEach((item, index) => {
+        updateRow(config.table, item.id, {
+          [config.orderField]: addSeconds(anchorValue, -index),
+        });
+      });
+    });
+
+    transaction();
+    return { changes: 1 };
+  } else if (config.valueType === 'date') {
+    if (normalizedDirection === 'up') {
+      const previousItem = items[currentIndex - 1];
+      nextValue = previousItem
+        ? addDays(previousItem.order_value, -1)
+        : addDays(currentItem.order_value, -1);
+    } else {
+      const followingItem = items[currentIndex + 1];
+      nextValue = followingItem
+        ? addDays(followingItem.order_value, 1)
+        : addDays(currentItem.order_value, 1);
+    }
   } else {
-    throw new Error('Unsupported direction');
+    throw new Error('Unsupported ordering strategy');
   }
 
-  return updateRow(config.table, id, { [config.dateField]: nextDate });
+  return updateRow(config.table, id, { [config.orderField]: nextValue });
 }
 
 // Metals operations

@@ -1,12 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 
 import BottomNav from "@/components/BottomNav";
 
 import styles from "./settings.module.css";
+
+function formatHistoryTitle(entry) {
+  const record = entry.after || entry.before || {};
+
+  if (entry.table_name === "transactions") {
+    return record.notes || record.category || "Transaction";
+  }
+
+  if (entry.table_name === "current_money") {
+    return record.location || "Current money";
+  }
+
+  if (entry.table_name === "expected_money" || entry.table_name === "payables") {
+    return record.source || "Scheduled item";
+  }
+
+  if (entry.table_name === "recurring") {
+    return record.target || "Recurring";
+  }
+
+  if (entry.table_name === "held_money") {
+    return record.person || "Held money";
+  }
+
+  if (entry.table_name === "gym_payments" || entry.table_name === "gym_sessions") {
+    return record.notes || record.date || "Gym";
+  }
+
+  return entry.table_name.replaceAll("_", " ");
+}
+
+function formatHistoryMeta(entry) {
+  return `${entry.action} • ${entry.table_name.replaceAll("_", " ")}`;
+}
 
 export default function Settings() {
   const router = useRouter();
@@ -15,6 +49,32 @@ export default function Settings() {
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [importMessage, setImportMessage] = useState("");
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [undoingId, setUndoingId] = useState(null);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const response = await fetch("/api/history?limit=8");
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+        throw new Error("Failed to fetch history");
+      }
+
+      setHistory(await response.json());
+    } catch (error) {
+      console.error("History error:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const handleExportData = async () => {
     setExporting(true);
@@ -252,6 +312,7 @@ export default function Settings() {
         `Restore complete. Safety backup created at ${result.backupPath.split("/").slice(-2).join("/")}.`
       );
       setSelectedFile(null);
+      await fetchHistory();
       router.refresh();
     } catch (error) {
       console.error("Import error:", error);
@@ -268,6 +329,28 @@ export default function Settings() {
       router.refresh();
     } catch (error) {
       console.error("Logout error:", error);
+    }
+  };
+
+  const handleUndo = async (auditId) => {
+    setUndoingId(auditId);
+
+    try {
+      const response = await fetch("/api/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auditId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to undo change");
+      }
+
+      await fetchHistory();
+    } catch (error) {
+      console.error("Undo error:", error);
+    } finally {
+      setUndoingId(null);
     }
   };
 
@@ -332,6 +415,39 @@ export default function Settings() {
           </div>
 
           {importMessage ? <p className={styles.importMessage}>{importMessage}</p> : null}
+        </div>
+
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Recent changes</h2>
+          </div>
+
+          <div className={styles.historyList}>
+            {loadingHistory ? (
+              <div className={styles.emptyState}>Loading...</div>
+            ) : history.length === 0 ? (
+              <div className={styles.emptyState}>No recent changes.</div>
+            ) : (
+              history.map((entry) => (
+                <div key={entry.id} className={styles.historyRow}>
+                  <div className={styles.historyText}>
+                    <strong>{formatHistoryTitle(entry)}</strong>
+                    <span>
+                      {formatHistoryMeta(entry)} • {new Date(entry.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={() => handleUndo(entry.id)}
+                    disabled={undoingId === entry.id}
+                  >
+                    {undoingId === entry.id ? "Undoing..." : "Undo"}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         <div className={styles.card}>

@@ -93,7 +93,15 @@ export default function Dashboard() {
   }, [selectedDate, transactions]);
 
   const dailyTransactions = useMemo(
-    () => transactions.filter((transaction) => transaction.date === selectedDateValue),
+    () =>
+      transactions
+        .filter((transaction) => transaction.date === selectedDateValue)
+        .sort((left, right) => {
+          if (left.created_at && right.created_at && left.created_at !== right.created_at) {
+            return right.created_at.localeCompare(left.created_at);
+          }
+          return right.id - left.id;
+        }),
     [selectedDateValue, transactions]
   );
 
@@ -397,27 +405,18 @@ export default function Dashboard() {
                 </div>
 
                 <div className={styles.transactionBody}>
-                  <div className={styles.transactionTopRow}>
-                    <strong className={styles.transactionTitle}>
-                      {transaction.notes || transaction.category}
-                    </strong>
-                    <span
-                      className={`${styles.transactionAmount} ${
-                        transaction.type === "income" ? styles.amountIncome : styles.amountExpense
-                      }`}
-                    >
-                      {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className={styles.badgeRow}>
-                    <span className={styles.badge}>{transaction.type}</span>
-                    <span className={styles.badge}>{transaction.scope || "personal"}</span>
-                    {transaction.category !== getDefaultCategory(transaction.type, transaction.scope) && (
-                      <span className={styles.badgeMuted}>{transaction.category}</span>
-                    )}
-                  </div>
+                  <strong className={styles.transactionTitle}>
+                    {transaction.notes || transaction.category}
+                  </strong>
                 </div>
+
+                <span
+                  className={`${styles.transactionAmount} ${
+                    transaction.type === "income" ? styles.amountIncome : styles.amountExpense
+                  }`}
+                >
+                  {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                </span>
 
                 {!selectionMode && (
                   <button
