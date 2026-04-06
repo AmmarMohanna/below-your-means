@@ -56,3 +56,10 @@ logs/
 
 # Backups (keep local, don't commit)
 /backups/
+/bym-release-backups/
+belowyourmeans-export-*.xlsx
+belowyourmeans-export-*.xls
+belowyourmeans-backup-*.db
+data-pre-*.tgz
+data-post-*.tgz
+data-before-clean-redeploy-*.tgz
