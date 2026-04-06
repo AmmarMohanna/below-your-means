@@ -576,7 +576,7 @@ export function updateMetalPrices({
       gold_24k_price_per_gram,
       gold_21k_price_per_gram,
       silver_price_per_kg,
-      fromApi ? database.prepare('SELECT CURRENT_TIMESTAMP AS now').get().now : beforeRow?.prices_fetched_at
+      fromApi ? database.prepare('SELECT CURRENT_TIMESTAMP AS now').get().now : null
     );
 
   if (result.changes) {

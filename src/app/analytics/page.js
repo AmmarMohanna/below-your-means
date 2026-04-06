@@ -79,12 +79,16 @@ export default function Analytics() {
   }, [fetchReviewData]);
 
   const now = getNowBeirut();
+  const reviewBaseDate = useMemo(
+    () => new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12),
+    [now]
+  );
   const startOfMonth = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1, 12), [now]);
   const endOfReviewWindow = useMemo(() => {
-    const date = new Date(now);
+    const date = new Date(reviewBaseDate);
     date.setDate(date.getDate() + 14);
     return date;
-  }, [now]);
+  }, [reviewBaseDate]);
 
   const monthTransactions = useMemo(
     () =>
@@ -120,31 +124,31 @@ export default function Analytics() {
     () =>
       accounts.expectedMoney.filter((item) => {
         const date = parseDate(item.expected_date);
-        return date >= now && date <= endOfReviewWindow;
+        return date >= reviewBaseDate && date <= endOfReviewWindow;
       }),
-    [accounts.expectedMoney, endOfReviewWindow, now]
+    [accounts.expectedMoney, endOfReviewWindow, reviewBaseDate]
   );
 
   const upcomingPayables = useMemo(
     () =>
       accounts.payables.filter((item) => {
         const date = parseDate(item.pay_date);
-        return date >= now && date <= endOfReviewWindow;
+        return date >= reviewBaseDate && date <= endOfReviewWindow;
       }),
-    [accounts.payables, endOfReviewWindow, now]
+    [accounts.payables, endOfReviewWindow, reviewBaseDate]
   );
 
   const overduePayables = useMemo(
-    () => accounts.payables.filter((item) => parseDate(item.pay_date) < now),
-    [accounts.payables, now]
+    () => accounts.payables.filter((item) => parseDate(item.pay_date) < reviewBaseDate),
+    [accounts.payables, reviewBaseDate]
   );
 
   const staleMetalPrices = useMemo(() => {
     if (!metals.prices?.last_updated) return true;
     const updatedAt = new Date(metals.prices.last_updated);
-    const ageMs = now.getTime() - updatedAt.getTime();
+    const ageMs = reviewBaseDate.getTime() - updatedAt.getTime();
     return ageMs > 1000 * 60 * 60 * 24 * 7;
-  }, [metals.prices, now]);
+  }, [metals.prices, reviewBaseDate]);
 
   const recentLargeMoves = useMemo(
     () =>
