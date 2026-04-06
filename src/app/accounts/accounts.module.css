@@ -1,820 +1,362 @@
 .container {
   min-height: 100vh;
-  max-width: 600px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
-  background: var(--bg);
-  padding-bottom: 90px;
+  padding: 20px var(--page-gutter) var(--page-bottom-space);
 }
 
 .loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  place-items: center;
   min-height: 100vh;
-  background: var(--bg);
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border);
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(15, 23, 42, 0.08);
   border-top-color: var(--primary);
-  border-radius: 50%;
+  border-radius: 999px;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Header */
 .header {
-  padding: 16px 20px;
-  background: var(--bg);
+  display: grid;
+  gap: 18px;
+  margin-bottom: 20px;
 }
 
-.headerContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.75rem;
+.eyebrow,
+.groupEyebrow {
+  margin: 0;
+  color: var(--primary-strong);
+  font-size: 0.78rem;
   font-weight: 800;
-  color: var(--text-primary);
-  font-style: italic;
-}
-
-.menuBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-}
-
-.menuBtn span {
-  width: 20px;
-  height: 2px;
-  background: var(--text-primary);
-  border-radius: 1px;
-}
-
-/* Summary */
-.summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 12px;
-  padding: 12px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  border: 2px solid var(--border);
-}
-
-.summaryItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.summaryLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.summaryValue {
-  font-size: 1.1rem;
-  font-weight: 700;
+.title {
+  margin: 6px 0 0;
+  font-size: clamp(2rem, 4.6vw, 2.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
 }
 
-.summaryDivider {
-  color: var(--border);
-  font-weight: 300;
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
-/* Tabs */
+.summaryCard {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.summaryCard strong {
+  font-size: 1rem;
+}
+
+.summaryLabel {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .tabs {
   display: flex;
   gap: 8px;
-  padding: 0 16px;
-  margin-top: 16px;
   overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 18px;
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .tabs::-webkit-scrollbar {
   display: none;
 }
 
-.tab {
-  display: flex;
-  flex-direction: column;
+.tabButton {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 12px 16px;
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 14px;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
-  min-width: 80px;
-  flex-shrink: 0;
-}
-
-.tab:hover {
-  border-color: var(--primary);
+  box-shadow: var(--shadow-card);
 }
 
 .activeTab {
-  background: var(--card-bg);
-  border-width: 2px;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.12), rgba(13, 148, 136, 0.08));
 }
 
-.tabIcon {
-  font-size: 1.25rem;
+.section {
+  display: grid;
+  gap: 14px;
 }
 
-.tabName {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.activeTab .tabName {
-  color: inherit;
-}
-
-/* Table Section */
-.tableSection {
-  margin: 20px 16px;
-}
-
-.tableTitle {
+.sectionHeader {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.addButton {
-  margin-left: auto;
-  padding: 8px 16px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.addButton:hover {
-  background: var(--primary-dark);
-}
-
-/* Table */
-.tableContainer {
-  background: var(--card-bg);
-  border-radius: 16px;
-  overflow: hidden;
-  border: 2px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.tableHeader {
-  display: flex;
-  padding: 12px 16px;
-  background: var(--bg);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+  align-items: flex-end;
   gap: 12px;
 }
 
-.tableRow {
-  display: flex;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  align-items: center;
-  transition: background 0.2s;
-  gap: 12px;
-}
-
-.tableRow:last-child {
-  border-bottom: none;
-}
-
-.tableRow:hover {
-  background: var(--bg);
-}
-
-/* Columns */
-.colLocation, .colSource {
-  flex: 1.5;
-  min-width: 0;
+.sectionTitle {
+  margin: 6px 0 0;
+  max-width: 40rem;
+  color: var(--text-secondary);
+  font-size: 0.98rem;
   font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  word-break: break-word;
+  line-height: 1.5;
 }
 
-.colDate {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.colAmount {
-  flex: 0.8;
-  min-width: 0;
-  font-weight: 700;
-  color: var(--primary);
-  font-size: 0.9rem;
-}
-
-.colNotes {
-  flex: 1.5;
-  min-width: 0;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  word-break: break-word;
-  line-height: 1.3;
-}
-
-.colActions {
-  flex: 0 0 50px;
-  display: flex;
-  gap: 4px;
-  justify-content: flex-end;
-  opacity: 0.4;
-  transition: opacity 0.2s;
-}
-
-.tableRow:hover .colActions,
-.recurringRow:hover .colActions {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .colActions {
-    opacity: 1;
-  }
-}
-
-.editBtn, .deleteBtn {
-  width: 28px;
-  height: 28px;
+.primaryButton,
+.secondaryButton,
+.actionButton,
+.deleteButton {
+  min-height: 42px;
   border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-}
-
-.editBtn:hover {
-  background: var(--primary-light);
-}
-
-.deleteBtn:hover {
-  background: var(--danger-light);
-}
-
-/* Edit Row */
-.editRow, .addRow {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  background: var(--primary-light);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-
-.editInput {
-  flex: 1;
-  min-width: 80px;
-  padding: 10px 12px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px;
   font-size: 0.9rem;
-  background: var(--card-bg);
-}
-
-.editInput:focus {
-  border-color: var(--primary);
-  outline: none;
-}
-
-.editSelect {
-  padding: 10px 12px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: var(--card-bg);
-  min-width: 100px;
-}
-
-.editActions {
-  display: flex;
-  gap: 4px;
-}
-
-.saveBtn, .cancelBtn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 0 14px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.saveBtn {
-  background: var(--primary);
+.primaryButton {
+  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
   color: white;
+  box-shadow: 0 12px 28px rgba(15, 159, 141, 0.22);
 }
 
-.saveBtn:hover {
-  background: var(--primary-dark);
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-.cancelBtn {
-  background: var(--border);
+.secondaryButton,
+.actionButton {
+  background: rgba(148, 163, 184, 0.12);
   color: var(--text-secondary);
 }
 
-.cancelBtn:hover {
-  background: var(--danger-light);
+.deleteButton {
+  background: rgba(220, 38, 38, 0.12);
   color: var(--danger);
 }
 
-/* Total Row */
-.emptyRow {
-  padding: 32px 16px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.formCard,
+.metalsCard,
+.groupCard,
+.itemCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-card);
 }
 
-/* Metals Section */
-.metalsContainer {
-  background: var(--card-bg);
-  border-radius: 16px;
-  overflow: hidden;
-  border: 2px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+.formCard {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.formInput,
+.inlineInput {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  padding: 0 14px;
+}
+
+.inlineInput {
+  max-width: 92px;
+}
+
+.formActions,
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cardList,
+.groupList {
+  display: grid;
+  gap: 12px;
+}
+
+.itemCard {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.itemTop,
+.groupHeader,
+.metalRow,
+.groupRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.itemTitle,
+.groupTitle {
+  display: block;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.groupTitle {
+  font-size: 1.3rem;
+}
+
+.itemMeta {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.itemAmount,
+.metalsValue {
+  color: var(--text-primary);
+  font-size: 1.02rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.metalsValue {
+  font-size: 1.9rem;
+}
+
+.itemNotes {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.emptyState {
+  padding: 18px 16px;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.groupCard {
+  padding: 16px;
+}
+
+.groupRows {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.groupRow {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.metalsCard {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
 }
 
 .metalsHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.metalsTitle {
-  font-weight: 700;
-  color: #92400e;
-  font-size: 1rem;
+.metalsHint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
-.editMetalsBtn {
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid #d97706;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  color: #92400e;
-  transition: all 0.2s;
-}
-
-.editMetalsBtn:hover {
-  background: #fffbeb;
-}
-
-.priceWarning {
-  padding: 10px 16px;
-  background: #fef3c7;
-  color: #92400e;
-  font-size: 0.8rem;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-}
-
-.metalRows {
-  padding: 0;
+.metalsRows {
+  display: grid;
+  gap: 10px;
 }
 
 .metalRow {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-  gap: 16px;
-}
-
-.metalRow:last-child {
-  border-bottom: none;
-}
-
-.metalInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.metalIcon {
-  font-size: 1.5rem;
-}
-
-.metalDetails {
-  display: flex;
-  flex-direction: column;
-}
-
-.metalName {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-}
-
-.metalPrice {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.metalGrams {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  min-width: 70px;
-  text-align: right;
-}
-
-.metalInput {
-  width: 80px;
-  padding: 8px 10px;
-  border: 2px solid #d97706;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-align: center;
-  background: #fffbeb;
-}
-
-.metalInput:focus {
-  outline: none;
-  border-color: #b45309;
-}
-
-.metalValue {
-  font-weight: 700;
-  color: #b45309;
-  font-size: 1rem;
-  min-width: 90px;
-  text-align: right;
-}
-
-.metalsTotalRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-top: 2px solid #d97706;
-}
-
-.metalsTotalLabel {
-  font-weight: 700;
-  color: #92400e;
-  font-size: 1rem;
-}
-
-.metalsTotalValue {
-  font-weight: 800;
-  color: #92400e;
-  font-size: 1.25rem;
-}
-
-.pricesUpdated {
-  padding: 10px 16px;
-  background: var(--bg);
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  text-align: center;
-}
-
-.pricesFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: var(--bg);
+  padding: 14px 0;
   border-top: 1px solid var(--border);
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
-.editPricesBtn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  font-weight: 500;
+.metalRow:first-child {
+  border-top: none;
+  padding-top: 0;
 }
 
-.editPricesBtn:hover {
-  background: var(--card-bg);
-  color: var(--text-primary);
-}
-
-.pricesUpdatedText {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.priceEditRow {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.priceInput {
-  width: 60px;
-  padding: 4px 6px;
-  border: 1px solid #d97706;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  background: var(--bg);
-  color: var(--text-primary);
-  text-align: right;
-}
-
-.priceInput:focus {
-  outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-}
-
-.priceEditActions {
-  display: flex;
-  gap: 8px;
-}
-
-.priceEditorBox {
-  background: rgba(217, 119, 6, 0.1);
-  border: 1px solid #d97706;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.priceInputRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.priceInputRow:last-of-type {
-  margin-bottom: 8px;
-}
-
-.priceInputRow label {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-.priceInputLarge {
-  width: 120px;
-  padding: 8px 12px;
-  border: 2px solid #d97706;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: var(--bg);
-  color: var(--text-primary);
-  text-align: right;
-}
-
-.priceInputLarge:focus {
-  outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-}
-
-.priceCalcPreview {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(217, 119, 6, 0.3);
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.totalRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: var(--bg);
-  border-top: 2px solid var(--border);
-}
-
-.totalLabel {
-  font-weight: 700;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-}
-
-.totalAmount {
-  font-weight: 800;
-  color: var(--primary);
-  font-size: 1.1rem;
-}
-
-/* Recurring Table */
-.recurringContainer {
-  background: var(--card-bg);
-  border-radius: 16px;
-  overflow: hidden;
-  border: 2px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.recurringSection {
-  border-bottom: 1px solid var(--border);
-}
-
-.recurringSection:last-of-type {
-  border-bottom: none;
-}
-
-.recurringHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: var(--bg);
-  border-left: 4px solid;
-}
-
-.recurringType {
-  font-weight: 700;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-.recurringTotal {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.recurringRow {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
-}
-
-.recurringRow:last-child {
-  border-bottom: none;
-}
-
-.recurringRow:hover {
-  background: var(--bg);
-}
-
-.recurringTarget {
-  flex: 1;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.recurringAmount {
-  font-weight: 700;
-  color: var(--primary);
-}
-
-/* Bottom Navigation */
-.bottomNav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 8px 16px;
-  transition: color 0.2s;
-  border-radius: 8px;
-}
-
-.navItem.active {
-  color: var(--primary);
-  background: var(--primary-light);
-}
-
-.navItem:hover {
-  color: var(--primary);
-}
-
-.navIcon {
-  font-size: 1.4rem;
-}
-
-/* Responsive - smaller screens */
-@media (max-width: 600px) {
-  .colNotes {
-    display: none;
-  }
-  
-  .colDate {
-    font-size: 0.7rem;
-    flex: 0.8;
-  }
-  
-  .colAmount {
-    font-size: 0.8rem;
-    flex: 0.7;
-  }
-  
-  .colLocation, .colSource {
-    font-size: 0.8rem;
-    flex: 1.2;
-  }
-  
-  .colActions {
-    flex: 0 0 40px;
-  }
-  
-  .summary {
-    gap: 12px;
-    padding: 10px;
-  }
-  
-  .summaryValue {
-    font-size: 1rem;
-  }
-  
-  .tab {
-    padding: 10px 12px;
-    min-width: 55px;
-  }
-  
-  .tabIcon {
-    font-size: 1.1rem;
-  }
-  
-  .tabName {
-    font-size: 0.55rem;
+@media (max-width: 760px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+@media (max-width: 640px) {
+  .sectionHeader,
+  .metalsHeader,
+  .itemTop,
+  .metalRow {
+    flex-direction: column;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .itemAmount,
+  .metalsValue {
+    white-space: normal;
+  }
+}

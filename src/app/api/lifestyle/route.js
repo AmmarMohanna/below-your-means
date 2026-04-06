@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { isAuthenticated } from "@/lib/auth";
 import {
   getPrayers,
@@ -15,8 +14,7 @@ import {
 
 // GET - fetch all lifestyle data
 export async function GET() {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,8 +45,7 @@ export async function GET() {
 
 // POST - add new data
 export async function POST(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -79,8 +76,7 @@ export async function POST(request) {
 
 // PUT - update prayer count or set prayers
 export async function PUT(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -108,8 +104,7 @@ export async function PUT(request) {
 
 // DELETE - remove data
 export async function DELETE(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -145,4 +140,3 @@ export async function DELETE(request) {
     );
   }
 }
-

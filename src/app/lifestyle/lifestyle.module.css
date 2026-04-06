@@ -1,9 +1,9 @@
 .container {
   min-height: 100vh;
-  max-width: 600px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   background: var(--bg);
-  padding-bottom: 100px;
+  padding: 20px var(--page-gutter) var(--page-bottom-space);
 }
 
 .loading {
@@ -29,14 +29,12 @@
 
 /* Header */
 .header {
-  padding: 16px 20px;
-  background: var(--bg);
+  margin-bottom: 18px;
 }
 
 .headerContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  gap: 8px;
 }
 
 .logo {
@@ -46,28 +44,26 @@
   font-family: 'Amiri', serif, system-ui;
 }
 
-.menuBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.menuBtn span {
-  width: 20px;
-  height: 2px;
-  background: var(--text-primary);
-  border-radius: 1px;
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.45;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
   gap: 8px;
-  padding: 0 16px;
   margin-bottom: 16px;
 }
 
@@ -96,7 +92,6 @@
 
 /* Prayer Section */
 .prayerSection {
-  padding: 0 16px;
 }
 
 .inspirationCard {
@@ -307,7 +302,6 @@
 
 /* Gym Section */
 .gymSection {
-  padding: 0 16px;
 }
 
 .sessionsSummary {
@@ -537,51 +531,6 @@
   font-size: 0.9rem;
 }
 
-/* Bottom Navigation */
-.bottomNav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 8px 16px;
-  transition: color 0.2s;
-  border-radius: 8px;
-}
-
-.navItem.active {
-  color: var(--primary);
-  background: var(--primary-light);
-}
-
-.navItem:hover {
-  color: var(--primary);
-}
-
-.navIcon {
-  font-size: 1.4rem;
-}
-
 /* Responsive */
 @media (max-width: 400px) {
   .prayerGrid {
@@ -597,4 +546,3 @@
     display: none;
   }
 }
-

@@ -1,296 +1,357 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { getNowBeirut, formatDateBeirut } from "@/lib/date"
-import styles from "./analytics.module.css"
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import BottomNav from "@/components/BottomNav";
+import { getNowBeirut } from "@/lib/date";
+
+import styles from "./analytics.module.css";
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: value >= 1000 ? 0 : 2,
+  }).format(value || 0);
+}
+
+function parseDate(dateText) {
+  return new Date(`${dateText}T12:00:00`);
+}
+
+function formatDate(dateText) {
+  return parseDate(dateText).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default function Analytics() {
-  const [transactions, setTransactions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [period, setPeriod] = useState('month')
-  const router = useRouter()
+  const router = useRouter();
+  const [transactions, setTransactions] = useState([]);
+  const [accounts, setAccounts] = useState({
+    expectedMoney: [],
+    payables: [],
+    currentMoney: [],
+    recurring: [],
+    heldMoney: [],
+  });
+  const [metals, setMetals] = useState({ prices: {}, values: {} });
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [undoingId, setUndoingId] = useState(null);
 
-  const [dateRange, setDateRange] = useState(() => {
-    const now = getNowBeirut()
-    const start = new Date(now.getFullYear(), now.getMonth(), 1)
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    return { start, end }
-  })
+  const fetchReviewData = useCallback(async () => {
+    try {
+      const [transactionsRes, accountsRes, metalsRes, historyRes] = await Promise.all([
+        fetch("/api/transactions"),
+        fetch("/api/accounts"),
+        fetch("/api/metals"),
+        fetch("/api/history?limit=8"),
+      ]);
+
+      if (!transactionsRes.ok || !accountsRes.ok || !metalsRes.ok || !historyRes.ok) {
+        if (
+          transactionsRes.status === 401 ||
+          accountsRes.status === 401 ||
+          metalsRes.status === 401 ||
+          historyRes.status === 401
+        ) {
+          router.push("/login");
+          return;
+        }
+
+        throw new Error("Failed to fetch review data");
+      }
+
+      setTransactions(await transactionsRes.json());
+      setAccounts(await accountsRes.json());
+      setMetals(await metalsRes.json());
+      setHistory(await historyRes.json());
+    } catch (error) {
+      console.error("Error fetching review data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
-    fetchTransactions()
-  }, [])
+    fetchReviewData();
+  }, [fetchReviewData]);
 
-  const fetchTransactions = async () => {
+  const now = getNowBeirut();
+  const startOfMonth = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1, 12), [now]);
+  const endOfReviewWindow = useMemo(() => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 14);
+    return date;
+  }, [now]);
+
+  const monthTransactions = useMemo(
+    () =>
+      transactions.filter((transaction) => {
+        const date = parseDate(transaction.date);
+        return (
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear() &&
+          date >= startOfMonth
+        );
+      }),
+    [now, startOfMonth, transactions]
+  );
+
+  const monthSummary = useMemo(
+    () =>
+      monthTransactions.reduce(
+        (summary, transaction) => {
+          summary[transaction.type] += transaction.amount;
+          if ((transaction.scope || "personal") === "business") {
+            summary.business += transaction.amount;
+          } else {
+            summary.personal += transaction.amount;
+          }
+          return summary;
+        },
+        { income: 0, expense: 0, business: 0, personal: 0 }
+      ),
+    [monthTransactions]
+  );
+
+  const upcomingExpected = useMemo(
+    () =>
+      accounts.expectedMoney.filter((item) => {
+        const date = parseDate(item.expected_date);
+        return date >= now && date <= endOfReviewWindow;
+      }),
+    [accounts.expectedMoney, endOfReviewWindow, now]
+  );
+
+  const upcomingPayables = useMemo(
+    () =>
+      accounts.payables.filter((item) => {
+        const date = parseDate(item.pay_date);
+        return date >= now && date <= endOfReviewWindow;
+      }),
+    [accounts.payables, endOfReviewWindow, now]
+  );
+
+  const overduePayables = useMemo(
+    () => accounts.payables.filter((item) => parseDate(item.pay_date) < now),
+    [accounts.payables, now]
+  );
+
+  const staleMetalPrices = useMemo(() => {
+    if (!metals.prices?.last_updated) return true;
+    const updatedAt = new Date(metals.prices.last_updated);
+    const ageMs = now.getTime() - updatedAt.getTime();
+    return ageMs > 1000 * 60 * 60 * 24 * 7;
+  }, [metals.prices, now]);
+
+  const recentLargeMoves = useMemo(
+    () =>
+      [...transactions]
+        .sort((left, right) => Math.abs(right.amount) - Math.abs(left.amount))
+        .slice(0, 6),
+    [transactions]
+  );
+
+  const handleUndo = async (auditId) => {
+    setUndoingId(auditId);
+
     try {
-      const response = await fetch("/api/transactions")
+      const response = await fetch("/api/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auditId }),
+      });
+
       if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/login")
-          return
-        }
-        throw new Error("Failed to fetch")
+        throw new Error("Failed to undo change");
       }
-      const data = await response.json()
-      setTransactions(data)
+
+      await fetchReviewData();
     } catch (error) {
-      console.error("Error:", error)
+      console.error("Error undoing change:", error);
     } finally {
-      setLoading(false)
+      setUndoingId(null);
     }
-  }
-
-  const handlePeriodChange = (newPeriod) => {
-    setPeriod(newPeriod)
-    if (newPeriod === 'custom') return // Don't change dates for custom
-    
-    const now = getNowBeirut()
-    let start, end
-
-    switch (newPeriod) {
-      case 'week':
-        start = new Date(now)
-        start.setDate(now.getDate() - now.getDay())
-        end = new Date(start)
-        end.setDate(start.getDate() + 6)
-        break
-      case 'month':
-        start = new Date(now.getFullYear(), now.getMonth(), 1)
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        break
-      case 'year':
-        start = new Date(now.getFullYear(), 0, 1)
-        end = new Date(now.getFullYear(), 11, 31)
-        break
-      default:
-        start = new Date(now.getFullYear(), now.getMonth(), 1)
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    }
-    setDateRange({ start, end })
-  }
-
-  const handleStartDateChange = (e) => {
-    const newStart = new Date(e.target.value + 'T00:00:00')
-    setDateRange(prev => ({ ...prev, start: newStart }))
-    setPeriod('custom')
-  }
-
-  const handleEndDateChange = (e) => {
-    const newEnd = new Date(e.target.value + 'T23:59:59')
-    setDateRange(prev => ({ ...prev, end: newEnd }))
-    setPeriod('custom')
-  }
-
-  const formatDate = (date) => formatDateBeirut(date)
-  
-  const formatDisplayDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      timeZone: 'Asia/Beirut',
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    })
-  }
-
-  const filteredTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date)
-    return tDate >= dateRange.start && tDate <= dateRange.end
-  })
-
-  const totalIncome = filteredTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0)
-
-  const totalExpenses = filteredTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
-
-  const netTotal = totalIncome - totalExpenses
-
-  const daysInPeriod = Math.ceil((dateRange.end - dateRange.start) / (1000 * 60 * 60 * 24)) + 1
-  const avgDailyExpense = totalExpenses / daysInPeriod
-  const avgDailyIncome = totalIncome / daysInPeriod
-
-  // Category breakdown
-  const categoryTotals = filteredTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((acc, t) => {
-      acc[t.category] = (acc[t.category] || 0) + t.amount
-      return acc
-    }, {})
-
-  const sortedCategories = Object.entries(categoryTotals)
-    .sort((a, b) => b[1] - a[1])
-
-  // Largest expenses
-  const largestExpenses = filteredTransactions
-    .filter(t => t.type === 'expense')
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5)
+  };
 
   if (loading) {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner}></div>
       </div>
-    )
+    );
   }
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <header className={styles.header}>
-        <h1 className={styles.title}>Analytics</h1>
-        <button className={styles.menuBtn} onClick={() => router.push('/settings')}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+        <p className={styles.eyebrow}>Review</p>
+        <h1 className={styles.title}>Useful, not decorative.</h1>
+        <p className={styles.subtitle}>
+          This page focuses on what needs attention now: the month, the next two weeks, stale
+          numbers, and recent changes you can undo.
+        </p>
       </header>
 
-      {/* Period Selector */}
-      <div className={styles.periodSelector}>
-        <select 
-          value={period} 
-          onChange={(e) => handlePeriodChange(e.target.value)}
-          className={styles.periodSelect}
-        >
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-          <option value="year">This Year</option>
-          <option value="custom">Custom Range</option>
-        </select>
-      </div>
-
-      {/* Date Range Picker */}
-      <div className={styles.dateRange}>
-        <div className={styles.datePickerGroup}>
-          <label className={styles.dateLabel}>From</label>
-          <input
-            type="date"
-            value={formatDate(dateRange.start)}
-            onChange={handleStartDateChange}
-            className={styles.datePicker}
-          />
-        </div>
-        <span className={styles.dateArrow}>→</span>
-        <div className={styles.datePickerGroup}>
-          <label className={styles.dateLabel}>To</label>
-          <input
-            type="date"
-            value={formatDate(dateRange.end)}
-            onChange={handleEndDateChange}
-            className={styles.datePicker}
-          />
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <section className={styles.summary}>
-        <h2 className={styles.sectionTitle}>Summary</h2>
-        <div className={styles.summaryCards}>
-          <div className={`${styles.summaryCard} ${styles.incomeCard}`}>
-            <span className={styles.cardIcon}>📈</span>
-            <span className={styles.cardLabel}>Total Income</span>
-            <span className={styles.cardValue}>${totalIncome.toFixed(2)}</span>
-          </div>
-          <div className={`${styles.summaryCard} ${styles.expenseCard}`}>
-            <span className={styles.cardIcon}>📉</span>
-            <span className={styles.cardLabel}>Total Expenses</span>
-            <span className={styles.cardValue}>${totalExpenses.toFixed(2)}</span>
-          </div>
-        </div>
-
-        <div className={styles.netSection}>
-          <div className={styles.netRow}>
-            <span>Net Total</span>
-            <span className={netTotal >= 0 ? styles.positive : styles.negative}>
-              {netTotal >= 0 ? '+' : ''}${netTotal.toFixed(2)}
-            </span>
-          </div>
-          <div className={styles.netRow}>
-            <span>Avg. Daily Expense</span>
-            <span>${avgDailyExpense.toFixed(2)}</span>
-          </div>
-          <div className={styles.netRow}>
-            <span>Avg. Daily Income</span>
-            <span>${avgDailyIncome.toFixed(2)}</span>
-          </div>
-        </div>
+      <section className={styles.summaryGrid}>
+        <article className={styles.summaryCard}>
+          <span className={styles.cardLabel}>Month out</span>
+          <strong>${formatMoney(monthSummary.expense)}</strong>
+        </article>
+        <article className={styles.summaryCard}>
+          <span className={styles.cardLabel}>Month in</span>
+          <strong>${formatMoney(monthSummary.income)}</strong>
+        </article>
+        <article className={styles.summaryCard}>
+          <span className={styles.cardLabel}>Personal flow</span>
+          <strong>${formatMoney(monthSummary.personal)}</strong>
+        </article>
+        <article className={styles.summaryCard}>
+          <span className={styles.cardLabel}>Business flow</span>
+          <strong>${formatMoney(monthSummary.business)}</strong>
+        </article>
       </section>
 
-      {/* Spending by Category */}
-      <section className={styles.categorySection}>
-        <h2 className={styles.sectionTitle}>Spending by Category</h2>
-        <div className={styles.categoryList}>
-          {sortedCategories.length === 0 ? (
-            <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}>📊</span>
-              <p>No expenses in this period</p>
+      <section className={styles.grid}>
+        <article className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Next 14 days</p>
+              <h2 className={styles.panelTitle}>What is coming in</h2>
             </div>
-          ) : (
-            sortedCategories.map(([category, amount]) => (
-              <div key={category} className={styles.categoryItem}>
-                <div className={styles.categoryInfo}>
-                  <span className={styles.categoryName}>{category}</span>
-                  <div className={styles.categoryBar}>
-                    <div 
-                      className={styles.categoryFill}
-                      style={{ width: `${(amount / totalExpenses) * 100}%` }}
-                    ></div>
+          </div>
+          <div className={styles.list}>
+            {upcomingExpected.length === 0 ? (
+              <div className={styles.emptyState}>No expected money in the next two weeks.</div>
+            ) : (
+              upcomingExpected.map((item) => (
+                <div key={item.id} className={styles.listRow}>
+                  <div>
+                    <strong>{item.source}</strong>
+                    <span>{formatDate(item.expected_date)}</span>
                   </div>
+                  <strong>${formatMoney(item.amount)}</strong>
                 </div>
-                <span className={styles.categoryAmount}>${amount.toFixed(2)}</span>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+              ))
+            )}
+          </div>
+        </article>
 
-      {/* Largest Expenses */}
-      <section className={styles.largestSection}>
-        <h2 className={styles.sectionTitle}>Largest Expenses</h2>
-        <div className={styles.largestList}>
-          {largestExpenses.length === 0 ? (
-            <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}>💸</span>
-              <p>No expenses in this period</p>
+        <article className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Next 14 days</p>
+              <h2 className={styles.panelTitle}>What you need to pay</h2>
             </div>
-          ) : (
-            largestExpenses.map(t => (
-              <div key={t.id} className={styles.largestItem}>
-                <div className={styles.largestInfo}>
-                  <span className={styles.largestCategory}>{t.category}</span>
-                  <span className={styles.largestDate}>{t.date}</span>
+          </div>
+          <div className={styles.list}>
+            {upcomingPayables.length === 0 ? (
+              <div className={styles.emptyState}>No payables landing in the next two weeks.</div>
+            ) : (
+              upcomingPayables.map((item) => (
+                <div key={item.id} className={styles.listRow}>
+                  <div>
+                    <strong>{item.source}</strong>
+                    <span>{formatDate(item.pay_date)}</span>
+                  </div>
+                  <strong>${formatMoney(item.amount)}</strong>
                 </div>
-                <span className={styles.largestAmount}>${t.amount.toFixed(2)}</span>
+              ))
+            )}
+          </div>
+        </article>
+
+        <article className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Attention</p>
+              <h2 className={styles.panelTitle}>Things to clean up</h2>
+            </div>
+          </div>
+          <div className={styles.alertList}>
+            {overduePayables.length > 0 && (
+              <div className={styles.alertCard}>
+                <strong>{overduePayables.length} overdue payables</strong>
+                <span>
+                  ${formatMoney(overduePayables.reduce((sum, item) => sum + (item.amount || 0), 0))}
+                </span>
               </div>
-            ))
-          )}
-        </div>
+            )}
+            {staleMetalPrices && (
+              <div className={styles.alertCard}>
+                <strong>Metal prices look stale</strong>
+                <span>Refresh them from the Accounts page when you want live numbers.</span>
+              </div>
+            )}
+            {overduePayables.length === 0 && !staleMetalPrices && (
+              <div className={styles.emptyState}>No obvious cleanup items right now.</div>
+            )}
+          </div>
+        </article>
+
+        <article className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Recent changes</p>
+              <h2 className={styles.panelTitle}>Undo if needed</h2>
+            </div>
+          </div>
+          <div className={styles.list}>
+            {history.length === 0 ? (
+              <div className={styles.emptyState}>No tracked changes yet.</div>
+            ) : (
+              history.map((entry) => (
+                <div key={entry.id} className={styles.historyRow}>
+                  <div>
+                    <strong>
+                      {entry.action} {entry.table_name.replaceAll("_", " ")}
+                    </strong>
+                    <span>{new Date(entry.created_at).toLocaleString()}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.undoButton}
+                    onClick={() => handleUndo(entry.id)}
+                    disabled={undoingId === entry.id}
+                  >
+                    {undoingId === entry.id ? "Undoing..." : "Undo"}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </article>
+
+        <article className={`${styles.panel} ${styles.fullWidth}`}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Largest moves</p>
+              <h2 className={styles.panelTitle}>Big items worth a second look</h2>
+            </div>
+          </div>
+          <div className={styles.largeMoves}>
+            {recentLargeMoves.map((transaction) => (
+              <div key={transaction.id} className={styles.moveCard}>
+                <strong>{transaction.notes || transaction.category}</strong>
+                <span>
+                  {formatDate(transaction.date)} • {transaction.scope || "personal"}
+                </span>
+                <strong
+                  className={
+                    transaction.type === "income" ? styles.incomeAmount : styles.expenseAmount
+                  }
+                >
+                  {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                </strong>
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
 
-      {/* Bottom Navigation */}
-      <nav className={styles.bottomNav}>
-        <button className={styles.navItem} onClick={() => router.push('/dashboard')}>
-          <span className={styles.navIcon}>🏠</span>
-          <span>Home</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/accounts')}>
-          <span className={styles.navIcon}>💰</span>
-          <span>Accounts</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
-          <span className={styles.navIcon}>🌙</span>
-          <span>Lifestyle</span>
-        </button>
-        <button className={`${styles.navItem} ${styles.active}`}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Analytics</span>
-        </button>
-      </nav>
+      <BottomNav active="analytics" />
     </div>
-  )
+  );
 }
-

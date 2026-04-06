@@ -3,32 +3,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  padding: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.12), transparent 24%),
+    var(--bg);
+  padding: 24px;
 }
 
 .card {
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
   background: var(--card-bg);
-  padding: 40px 32px;
-  border-radius: 20px;
+  padding: 40px 28px;
+  border-radius: 28px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
 }
 
 .logo {
-  font-size: 1.75rem;
-  font-weight: 700;
-  font-style: italic;
+  font-size: 2rem;
+  font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 8px;
+  letter-spacing: -0.04em;
 }
 
 .tagline {
   color: var(--text-muted);
-  font-size: 0.95rem;
-  margin-bottom: 32px;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin-bottom: 28px;
 }
 
 .form {
@@ -39,12 +44,13 @@
 
 .input {
   width: 100%;
-  padding: 16px 20px;
+  min-height: 54px;
+  padding: 0 20px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   font-size: 1rem;
   color: var(--text-primary);
-  background: var(--bg);
+  background: rgba(255, 255, 255, 0.88);
   text-align: center;
 }
 
@@ -65,19 +71,20 @@
 
 .button {
   width: 100%;
-  padding: 16px;
+  min-height: 54px;
   border: none;
-  border-radius: 12px;
-  background: var(--primary);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
   color: white;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: transform 0.2s ease;
+  box-shadow: 0 12px 28px rgba(15, 159, 141, 0.22);
 }
 
 .button:hover:not(:disabled) {
-  background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 .button:disabled {

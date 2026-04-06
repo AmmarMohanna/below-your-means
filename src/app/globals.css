@@ -4,20 +4,30 @@
 @import '@fontsource/raleway/700.css';
 
 :root {
-  /* Ammar Mohanna theme - Bold Teal with high contrast */
-  --primary: #0d9488;
-  --primary-dark: #0a7b70;
-  --primary-light: #ccfbf1;
+  --primary: #0f9f8d;
+  --primary-strong: #0a7b70;
+  --primary-dark: #0b5f58;
+  --primary-light: #d7faf3;
+  --accent: #14b8a6;
+  --accent-light: #ecfeff;
   --danger: #dc2626;
   --danger-light: #fee2e2;
-  --bg: #f0fdfa;
-  --card-bg: #ffffff;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --bg: #f5f8fb;
+  --bg-strong: #e7eef5;
+  --card-bg: rgba(255, 255, 255, 0.94);
+  --card-solid: #ffffff;
   --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #64748b;
-  --border: #99e6db;
-  --accent: #0d9488;
-  --accent-light: #ccfbf1;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+  --shadow-soft: 0 14px 40px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --app-max-width: 760px;
+  --page-gutter: clamp(14px, 4vw, 24px);
+  --page-bottom-space: calc(102px + env(safe-area-inset-bottom));
 }
 
 * {
@@ -34,6 +44,17 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg);
   color: var(--text-primary);
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 24%),
+    var(--bg);
+}
+
+body {
+  min-height: 100vh;
 }
 
 a {
@@ -84,4 +105,11 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }

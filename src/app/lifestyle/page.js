@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import BottomNav from "@/components/BottomNav"
 import { getTodayBeirut } from "@/lib/date"
 import styles from "./lifestyle.module.css"
 
@@ -191,13 +192,10 @@ export default function Lifestyle() {
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
+        <p className={styles.eyebrow}>Lifestyle</p>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>أُلفة</h1>
-          <button className={styles.menuBtn} onClick={() => router.push('/analytics')}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+          <p className={styles.subtitle}>Prayers, fasting, and gym tracking without clutter.</p>
         </div>
       </header>
 
@@ -450,26 +448,7 @@ export default function Lifestyle() {
         </section>
       )}
 
-      {/* Bottom Navigation */}
-      <nav className={styles.bottomNav}>
-        <button className={styles.navItem} onClick={() => router.push('/dashboard')}>
-          <span className={styles.navIcon}>🏠</span>
-          <span>Home</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/accounts')}>
-          <span className={styles.navIcon}>💰</span>
-          <span>Accounts</span>
-        </button>
-        <button className={`${styles.navItem} ${styles.active}`}>
-          <span className={styles.navIcon}>🌙</span>
-          <span>Lifestyle</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/analytics')}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Analytics</span>
-        </button>
-      </nav>
+      <BottomNav active="lifestyle" />
     </div>
   )
 }
-

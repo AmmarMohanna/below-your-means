@@ -1,320 +1,471 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { getNowBeirut, getTodayBeirut, formatDateBeirut } from "@/lib/date"
-import styles from "./dashboard.module.css"
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const CATEGORIES = [
-  { id: 'food', name: 'Food & Coffee', icon: '☕' },
-  { id: 'livelihood', name: 'Livelihood Monthly', icon: '🏠' },
-  { id: 'family', name: 'Family', icon: '👨‍👩‍👧‍👦' },
-  { id: 'shopping', name: 'Shopping', icon: '🛍️' },
-  { id: 'utilities', name: 'Utilities', icon: '💡' },
-  { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
-  { id: 'charity', name: 'Charity', icon: '❤️' },
-  { id: 'unexpected', name: 'Unexpected', icon: '⚡' },
-  { id: 'income', name: 'Income', icon: '💰' },
-  { id: 'other', name: 'Other', icon: '📝' },
-]
+import BottomNav from "@/components/BottomNav";
+import { formatDateBeirut, getNowBeirut, getTodayBeirut } from "@/lib/date";
+
+import styles from "./dashboard.module.css";
+
+const categoryIcons = {
+  "Food & Coffee": "☕",
+  "Livelihood Monthly": "🏠",
+  Family: "👨‍👩‍👧‍👦",
+  Shopping: "🛍️",
+  Utilities: "💡",
+  Healthcare: "🏥",
+  Charity: "❤️",
+  Unexpected: "⚡",
+  Income: "💰",
+  Other: "📝",
+  Business: "💼",
+};
+
+function getDefaultCategory(type, scope) {
+  if (type === "income") return "Income";
+  return scope === "business" ? "Business" : "Other";
+}
+
+function formatDisplayDate(date) {
+  return date.toLocaleDateString("en-US", {
+    timeZone: "Asia/Beirut",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(value || 0);
+}
 
 export default function Dashboard() {
-  const [transactions, setTransactions] = useState([])
-  const [monthTotal, setMonthTotal] = useState(0)
-  const [todayTotal, setTodayTotal] = useState(0)
-  const [selectedDate, setSelectedDate] = useState(() => getNowBeirut())
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-
-  // Form state
-  const [category, setCategory] = useState('food')
-  const [description, setDescription] = useState('')
-  const [amount, setAmount] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter();
+  const [transactions, setTransactions] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(() => getNowBeirut());
+  const [loading, setLoading] = useState(true);
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [type, setType] = useState("expense");
+  const [scope, setScope] = useState("personal");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const response = await fetch("/api/transactions")
+      const response = await fetch("/api/transactions");
       if (!response.ok) {
         if (response.status === 401) {
-          router.push("/login")
-          return
+          router.push("/login");
+          return;
         }
-        throw new Error("Failed to fetch")
+        throw new Error("Failed to fetch transactions");
       }
-      const data = await response.json()
-      setTransactions(data)
-      calculateTotals(data, selectedDate)
+
+      const data = await response.json();
+      setTransactions(data);
     } catch (error) {
-      console.error("Error:", error)
+      console.error("Error fetching transactions:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [router, selectedDate])
+  }, [router]);
 
   useEffect(() => {
-    fetchTransactions()
-  }, [fetchTransactions])
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   useEffect(() => {
-    calculateTotals(transactions, selectedDate)
-  }, [selectedDate, transactions])
+    setSelectedIds([]);
+    setSelectionMode(false);
+  }, [selectedDate]);
 
-  const calculateTotals = (data, date) => {
-    const month = date.getMonth()
-    const year = date.getFullYear()
-    const dateStr = formatDate(date)
+  const selectedDateValue = formatDateBeirut(selectedDate);
 
-    const monthExpenses = data
-      .filter(t => {
-        const tDate = new Date(t.date)
-        return tDate.getMonth() === month && tDate.getFullYear() === year && t.type === 'expense'
-      })
-      .reduce((sum, t) => sum + t.amount, 0)
+  const monthlySummary = useMemo(() => {
+    const month = selectedDate.getMonth();
+    const year = selectedDate.getFullYear();
 
-    const todayExpenses = data
-      .filter(t => t.date === dateStr && t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0)
+    return transactions.reduce(
+      (summary, transaction) => {
+        const transactionDate = new Date(`${transaction.date}T12:00:00`);
+        if (transactionDate.getMonth() !== month || transactionDate.getFullYear() !== year) {
+          return summary;
+        }
 
-    setMonthTotal(monthExpenses)
-    setTodayTotal(todayExpenses)
-  }
+        summary[transaction.type] += transaction.amount;
+        return summary;
+      },
+      { income: 0, expense: 0 }
+    );
+  }, [selectedDate, transactions]);
 
-  const formatDate = (date) => {
-    return formatDateBeirut(date)
-  }
+  const dailyTransactions = useMemo(
+    () => transactions.filter((transaction) => transaction.date === selectedDateValue),
+    [selectedDateValue, transactions]
+  );
 
-  const formatDisplayDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      timeZone: 'Asia/Beirut',
-      weekday: 'long', 
-      month: 'long', 
-      day: 'numeric' 
-    })
-  }
+  const dailySummary = useMemo(
+    () =>
+      dailyTransactions.reduce(
+        (summary, transaction) => {
+          summary[transaction.type] += transaction.amount;
+          return summary;
+        },
+        { income: 0, expense: 0 }
+      ),
+    [dailyTransactions]
+  );
 
-  const formatMonth = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      timeZone: 'Asia/Beirut',
-      month: 'long', 
-      year: 'numeric' 
-    })
-  }
+  const toggleSelected = (id) => {
+    setSelectedIds((previous) =>
+      previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
+    );
+  };
 
-  const isToday = (date) => {
-    const todayStr = getTodayBeirut()
-    const dateStr = formatDateBeirut(date)
-    return dateStr === todayStr
-  }
+  const changeDay = (days) => {
+    const nextDate = new Date(selectedDate);
+    nextDate.setDate(nextDate.getDate() + days);
+    setSelectedDate(nextDate);
+  };
 
-  const changeDay = (delta) => {
-    const newDate = new Date(selectedDate)
-    newDate.setDate(newDate.getDate() + delta)
-    setSelectedDate(newDate)
-  }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!amount || parseFloat(amount) <= 0) return;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!amount || parseFloat(amount) <= 0) return
+    setIsSubmitting(true);
 
-    setIsSubmitting(true)
     try {
       const response = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: parseFloat(amount),
-          category: CATEGORIES.find(c => c.id === category)?.name || category,
-          type: category === 'income' ? 'income' : 'expense',
-          notes: description,
-          date: formatDate(selectedDate),
+          category: getDefaultCategory(type, scope),
+          type,
+          scope,
+          notes: description.trim(),
+          date: selectedDateValue,
         }),
-      })
+      });
 
-      if (response.ok) {
-        setAmount('')
-        setDescription('')
-        fetchTransactions()
+      if (!response.ok) {
+        throw new Error("Failed to save transaction");
       }
+
+      setAmount("");
+      setDescription("");
+      setType("expense");
+      setScope("personal");
+      await fetchTransactions();
     } catch (error) {
-      console.error("Error adding transaction:", error)
+      console.error("Error saving transaction:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/transactions/${id}`, { method: "DELETE" })
+      const response = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
       if (response.ok) {
-        fetchTransactions()
+        setSelectedIds((previous) => previous.filter((item) => item !== id));
+        await fetchTransactions();
       }
     } catch (error) {
-      console.error("Error deleting:", error)
+      console.error("Error deleting transaction:", error);
     }
-  }
+  };
 
-  const todayTransactions = transactions.filter(t => t.date === formatDate(selectedDate))
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
 
-  const getCategoryIcon = (categoryName) => {
-    const cat = CATEGORIES.find(c => c.name === categoryName)
-    return cat?.icon || '📝'
-  }
+    setIsBulkDeleting(true);
+
+    try {
+      const response = await fetch("/api/transactions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "bulkDelete",
+          ids: selectedIds,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete selected transactions");
+      }
+
+      setSelectedIds([]);
+      setSelectionMode(false);
+      await fetchTransactions();
+    } catch (error) {
+      console.error("Error deleting selected transactions:", error);
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner}></div>
       </div>
-    )
+    );
   }
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.logo}>BelowYourMeans</h1>
-          <button className={styles.menuBtn} onClick={() => router.push('/accounts')}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+        <div>
+          <p className={styles.eyebrow}>BelowYourMeans</p>
+          <h1 className={styles.title}>Quick entry, less friction.</h1>
+          <p className={styles.subtitle}>
+            Log the money move first. Keep the rest lightweight.
+          </p>
         </div>
-        <div className={styles.monthInfo}>
-          <span className={styles.monthTotal}>${monthTotal.toFixed(0)}</span>
-          <span className={styles.monthName}>{formatMonth(selectedDate)}</span>
+
+        <div className={styles.summaryStrip}>
+          <div className={styles.summaryChip}>
+            <span className={styles.summaryLabel}>Month out</span>
+            <span className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</span>
+          </div>
+          <div className={`${styles.summaryChip} ${styles.incomeChip}`}>
+            <span className={styles.summaryLabel}>Month in</span>
+            <span className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</span>
+          </div>
         </div>
       </header>
 
-      {/* Quick Add Form */}
-      <form onSubmit={handleSubmit} className={styles.addForm}>
-        <div className={styles.categorySelect}>
-          <select 
-            value={category} 
-            onChange={(e) => setCategory(e.target.value)}
-            className={styles.select}
-          >
-            {CATEGORIES.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.icon} {cat.name}
-              </option>
-            ))}
-          </select>
+      <form className={styles.entryCard} onSubmit={handleSubmit}>
+        <div className={styles.toggleBlock}>
+          <span className={styles.toggleLabel}>Type</span>
+          <div className={styles.segmented}>
+            <button
+              type="button"
+              className={`${styles.segment} ${type === "expense" ? styles.segmentActive : ""}`}
+              onClick={() => setType("expense")}
+            >
+              Expense
+            </button>
+            <button
+              type="button"
+              className={`${styles.segment} ${type === "income" ? styles.segmentActive : ""}`}
+              onClick={() => setType("income")}
+            >
+              Income
+            </button>
+          </div>
         </div>
 
+        <div className={styles.toggleBlock}>
+          <span className={styles.toggleLabel}>Scope</span>
+          <div className={styles.segmented}>
+            <button
+              type="button"
+              className={`${styles.segment} ${scope === "personal" ? styles.segmentActive : ""}`}
+              onClick={() => setScope("personal")}
+            >
+              Personal
+            </button>
+            <button
+              type="button"
+              className={`${styles.segment} ${scope === "business" ? styles.segmentActive : ""}`}
+              onClick={() => setScope("business")}
+            >
+              Business
+            </button>
+          </div>
+        </div>
+
+        <label className={styles.fieldLabel} htmlFor="description">
+          Note
+        </label>
         <input
+          id="description"
           type="text"
-          placeholder="Description (optional)"
+          className={styles.textInput}
+          placeholder={
+            type === "income" ? "Who paid you or what was it?" : "What did you spend on?"
+          }
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className={styles.descInput}
+          onChange={(event) => setDescription(event.target.value)}
         />
 
         <div className={styles.amountRow}>
-          <div className={styles.dateBtn}>
-            <span className={styles.dateBtnLabel}>Date</span>
+          <div className={styles.dateField}>
+            <span className={styles.dateLabel}>Date</span>
             <input
               type="date"
-              value={formatDate(selectedDate)}
+              className={styles.dateInput}
+              value={selectedDateValue}
               max={getTodayBeirut()}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setSelectedDate(new Date(e.target.value + 'T12:00:00'))
+              onChange={(event) => {
+                if (event.target.value) {
+                  setSelectedDate(new Date(`${event.target.value}T12:00:00`));
                 }
               }}
-              className={styles.dateInput}
             />
           </div>
 
-          <input
-            type="number"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className={styles.amountInput}
-            step="0.01"
-            min="0"
-          />
+          <div className={styles.amountField}>
+            <span className={styles.dateLabel}>Amount</span>
+            <div className={styles.amountInputWrap}>
+              <span className={styles.currency}>USD</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0"
+                className={styles.amountInput}
+                placeholder="0.00"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+              />
+            </div>
+          </div>
 
-          <span className={styles.currency}>USD</span>
-
-          <button 
-            type="submit" 
-            className={styles.addBtn}
+          <button
+            type="submit"
+            className={styles.saveButton}
             disabled={isSubmitting || !amount}
           >
-            +
+            {isSubmitting ? "Saving..." : "Save"}
           </button>
         </div>
+
+        <p className={styles.helperText}>
+          Stored as <strong>{getDefaultCategory(type, scope)}</strong> behind the scenes so your
+          old data still works.
+        </p>
       </form>
 
-      {/* Today's Transactions */}
-      <section className={styles.todaySection}>
-        <div className={styles.todayHeader}>
+      <section className={styles.daySection}>
+        <div className={styles.dayHeader}>
           <div>
-            <span className={styles.todayTotal}>${todayTotal.toFixed(0)}</span>
-            <h2 className={styles.todayTitle}>
-              {isToday(selectedDate) ? "Today's Expenses" : "Expenses"}
-            </h2>
-            <span className={styles.todayDate}>{formatDisplayDate(selectedDate)}</span>
+            <p className={styles.dayEyebrow}>{formatDisplayDate(selectedDate)}</p>
+            <h2 className={styles.dayTitle}>Daily view</h2>
           </div>
-          <div className={styles.dayNav}>
-            <button onClick={() => changeDay(-1)} className={styles.navBtn}>◀</button>
-            <button onClick={() => changeDay(1)} className={styles.navBtn}>▶</button>
+
+          <div className={styles.dayActions}>
+            <button type="button" className={styles.navButton} onClick={() => changeDay(-1)}>
+              ←
+            </button>
+            <button type="button" className={styles.navButton} onClick={() => changeDay(1)}>
+              →
+            </button>
           </div>
         </div>
 
+        <div className={styles.daySummary}>
+          <div className={styles.dayMetric}>
+            <span className={styles.metricLabel}>Spent</span>
+            <strong>${formatMoney(dailySummary.expense)}</strong>
+          </div>
+          <div className={`${styles.dayMetric} ${styles.incomeMetric}`}>
+            <span className={styles.metricLabel}>Received</span>
+            <strong>${formatMoney(dailySummary.income)}</strong>
+          </div>
+          <button
+            type="button"
+            className={styles.selectionToggle}
+            onClick={() => {
+              setSelectionMode((previous) => !previous);
+              setSelectedIds([]);
+            }}
+          >
+            {selectionMode ? "Cancel select" : "Select"}
+          </button>
+        </div>
+
+        {selectionMode && selectedIds.length > 0 && (
+          <div className={styles.bulkBar}>
+            <span>{selectedIds.length} selected</span>
+            <button
+              type="button"
+              className={styles.bulkDeleteButton}
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+            >
+              {isBulkDeleting ? "Deleting..." : "Delete selected"}
+            </button>
+          </div>
+        )}
+
         <div className={styles.transactionList}>
-          {todayTransactions.length === 0 ? (
+          {dailyTransactions.length === 0 ? (
             <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}>📋</span>
-              <p>No transactions for this day</p>
-              <span className={styles.emptyHint}>Add your first expense above</span>
+              <span className={styles.emptyIcon}>🧾</span>
+              <p>No money moves logged for this day.</p>
+              <span className={styles.emptyHint}>Use the form above to keep the streak clean.</span>
             </div>
           ) : (
-            todayTransactions.map(t => (
-              <div key={t.id} className={styles.transaction}>
-                <span className={styles.transactionIcon}>{getCategoryIcon(t.category)}</span>
-                <div className={styles.transactionInfo}>
-                  <span className={styles.transactionNote}>{t.notes || t.category}</span>
-                  <span className={styles.transactionCategory}>{t.category}</span>
+            dailyTransactions.map((transaction) => (
+              <article key={transaction.id} className={styles.transactionCard}>
+                <div className={styles.transactionLeading}>
+                  {selectionMode ? (
+                    <button
+                      type="button"
+                      className={`${styles.selectCircle} ${
+                        selectedIds.includes(transaction.id) ? styles.selectCircleActive : ""
+                      }`}
+                      onClick={() => toggleSelected(transaction.id)}
+                    >
+                      {selectedIds.includes(transaction.id) ? "✓" : ""}
+                    </button>
+                  ) : (
+                    <div className={styles.transactionIcon}>
+                      {categoryIcons[transaction.category] || (transaction.type === "income" ? "💰" : "📝")}
+                    </div>
+                  )}
                 </div>
-                <span className={`${styles.transactionAmount} ${t.type === 'income' ? styles.income : styles.expense}`}>
-                  {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
-                </span>
-                <button 
-                  onClick={() => handleDelete(t.id)} 
-                  className={styles.deleteBtn}
-                  title="Delete"
-                >
-                  ×
-                </button>
-              </div>
+
+                <div className={styles.transactionBody}>
+                  <div className={styles.transactionTopRow}>
+                    <strong className={styles.transactionTitle}>
+                      {transaction.notes || transaction.category}
+                    </strong>
+                    <span
+                      className={`${styles.transactionAmount} ${
+                        transaction.type === "income" ? styles.amountIncome : styles.amountExpense
+                      }`}
+                    >
+                      {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className={styles.badgeRow}>
+                    <span className={styles.badge}>{transaction.type}</span>
+                    <span className={styles.badge}>{transaction.scope || "personal"}</span>
+                    {transaction.category !== getDefaultCategory(transaction.type, transaction.scope) && (
+                      <span className={styles.badgeMuted}>{transaction.category}</span>
+                    )}
+                  </div>
+                </div>
+
+                {!selectionMode && (
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    onClick={() => handleDelete(transaction.id)}
+                    aria-label="Delete transaction"
+                  >
+                    ×
+                  </button>
+                )}
+              </article>
             ))
           )}
         </div>
       </section>
 
-      {/* Bottom Navigation */}
-      <nav className={styles.bottomNav}>
-        <button className={`${styles.navItem} ${styles.active}`}>
-          <span className={styles.navIcon}>🏠</span>
-          <span>Home</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/accounts')}>
-          <span className={styles.navIcon}>💰</span>
-          <span>Accounts</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
-          <span className={styles.navIcon}>🌙</span>
-          <span>Lifestyle</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/analytics')}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Analytics</span>
-        </button>
-      </nav>
+      <BottomNav active="dashboard" />
     </div>
-  )
+  );
 }
