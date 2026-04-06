@@ -51,7 +51,7 @@
   display: grid;
   gap: 6px;
   padding: 14px 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(215, 250, 243, 0.76));
+  background: linear-gradient(180deg, #fbfffd, #daf0e8);
   border: 1px solid var(--border);
   border-radius: 20px;
   box-shadow: var(--shadow-card);
@@ -106,7 +106,7 @@
   min-height: 42px;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  background: rgba(148, 163, 184, 0.08);
+  background: var(--card-solid);
   color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 600;
@@ -127,7 +127,7 @@
   padding: 0 14px;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--field-bg);
   color: var(--text-primary);
 }
 
@@ -151,7 +151,7 @@
   padding-inline: 12px;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--field-bg);
   cursor: text;
 }
 
@@ -215,7 +215,7 @@
   height: 36px;
   border: 1px solid var(--border-strong);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-solid);
   color: var(--text-primary);
   font-size: 1rem;
   cursor: pointer;
@@ -263,7 +263,7 @@
   color: var(--text-secondary);
   font-weight: 600;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-solid);
 }
 
 .bulkBar {

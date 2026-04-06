@@ -76,7 +76,7 @@
 
 .secondaryButton {
   border: 1px solid var(--border);
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--card-solid);
   color: var(--text-secondary);
 }
 
@@ -94,7 +94,7 @@
   padding: 0 16px;
   border: 1px dashed rgba(15, 23, 42, 0.16);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-solid);
   color: var(--text-secondary);
   font-size: 0.94rem;
   font-weight: 700;

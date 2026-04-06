@@ -51,7 +51,7 @@
   display: grid;
   gap: 4px;
   padding: 16px 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(215, 250, 243, 0.76));
+  background: linear-gradient(180deg, #fbfffd, #daf0e8);
   border: 1px solid var(--border);
   border-radius: 18px;
   box-shadow: var(--shadow-card);
@@ -91,7 +91,7 @@
   white-space: nowrap;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--card-solid);
   color: var(--text-secondary);
   font-size: 0.92rem;
   font-weight: 600;
@@ -133,7 +133,7 @@
   padding: 0 12px;
   border: 1px solid var(--border-strong);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--card-solid);
   color: var(--text-secondary);
   font-size: 0.86rem;
   font-weight: 600;
@@ -193,7 +193,7 @@
   padding: 0 12px;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--field-bg);
   color: var(--text-primary);
 }
 

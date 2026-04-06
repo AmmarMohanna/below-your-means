@@ -34,7 +34,7 @@
   padding: 0 14px;
   border: 1px solid var(--border-strong);
   border-radius: 10px;
-  background: #fff;
+  background: var(--field-bg);
   color: var(--text-primary);
   text-align: center;
 }
