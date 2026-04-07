@@ -123,11 +123,6 @@ export default function Dashboard() {
     [dailyTransactions]
   );
 
-  const monthlyNet = monthlySummary.income - monthlySummary.expense;
-  const monthlyLabel = selectedDate.toLocaleDateString("en-US", {
-    month: "short",
-  });
-
   const toggleSelected = (id) => {
     setSelectedIds((previous) =>
       previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
@@ -224,13 +219,15 @@ export default function Dashboard() {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>Home</h1>
-        <div className={styles.monthLine}>
-          <span>{monthlyLabel}</span>
-          <span>Out ${formatMoney(monthlySummary.expense)}</span>
-          <span>In ${formatMoney(monthlySummary.income)}</span>
-          <span className={monthlyNet >= 0 ? styles.netPositive : styles.netNegative}>
-            Net {monthlyNet >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthlyNet))}
-          </span>
+        <div className={styles.summaryStrip}>
+          <div className={styles.summaryChip}>
+            <span className={styles.summaryLabel}>Month out</span>
+            <span className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</span>
+          </div>
+          <div className={styles.summaryChip}>
+            <span className={styles.summaryLabel}>Month in</span>
+            <span className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</span>
+          </div>
         </div>
       </header>
 

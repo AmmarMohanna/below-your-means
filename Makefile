@@ -1,7 +1,7 @@
 # BelowYourMeans - Docker Commands
 # Only Docker required - no local Node.js installation needed
 
-.PHONY: dev dev-build dev-down local-test local-test-build local-test-down local-test-import-latest prod prod-build prod-down logs shell db-backup clean help
+.PHONY: dev dev-build dev-down local-test local-test-build local-test-down local-test-import-latest local-test-seed-demo prod prod-build prod-down logs shell db-backup clean help
 
 # Development
 dev: ## Start development server with hot reload
@@ -30,6 +30,10 @@ local-test-import-latest: ## Import latest belowyourmeans-export-*.xlsx into ./d
 	fi; \
 	mkdir -p data-localtest; \
 	docker compose -p bym-localtest -f docker-compose.dev.yml -f docker-compose.localtest.yml run --rm dev node scripts/import-excel.js /workspace/$${latest#./}
+
+local-test-seed-demo: ## Seed committed synthetic demo data into ./data-localtest
+	@mkdir -p data-localtest; \
+	docker compose -p bym-localtest -f docker-compose.dev.yml -f docker-compose.localtest.yml run --rm dev node /workspace/scripts/seed-demo.js /workspace/mock-data/demo-data.json
 
 # Production
 prod: ## Start production server
