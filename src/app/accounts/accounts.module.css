@@ -127,7 +127,8 @@
 .secondaryButton,
 .actionButton,
 .deleteButton,
-.iconButton {
+.iconButton,
+.completeButton {
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid var(--border-strong);
@@ -153,6 +154,12 @@
 
 .deleteButton {
   color: var(--danger);
+}
+
+.completeButton {
+  border-color: rgba(15, 118, 110, 0.22);
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--primary-strong);
 }
 
 .iconButton {
@@ -338,7 +345,25 @@
 }
 
 .itemDetail {
-  display: none;
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  padding-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.itemDetailText {
+  min-width: 0;
+}
+
+.itemDetailTitle {
+  color: var(--text-primary);
+  font-size: 0.92rem;
 }
 
 .emptyState {
@@ -466,7 +491,8 @@
   .secondaryButton,
   .actionButton,
   .deleteButton,
-  .iconButton {
+  .iconButton,
+  .completeButton {
     min-height: 32px;
     border-radius: 10px;
     font-size: 0.78rem;
@@ -500,14 +526,11 @@
   }
 
   .itemDetail {
-    display: block;
-    grid-column: 1 / -1;
     padding-top: 2px;
-    color: var(--text-muted);
     font-size: 0.8rem;
-    line-height: 1.4;
-    text-align: left;
-    white-space: normal;
-    word-break: break-word;
+  }
+
+  .completeButton {
+    justify-self: start;
   }
 }

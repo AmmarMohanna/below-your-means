@@ -119,17 +119,31 @@
 }
 
 .historyRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
 
+.historyRowExpanded {
+  border-top-color: var(--border-strong);
+}
+
 .historyRow:first-child {
   padding-top: 0;
   border-top: none;
+}
+
+.historyToggle {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .historyText {
@@ -150,6 +164,30 @@
   font-size: 0.82rem;
 }
 
+.historyReveal {
+  display: none;
+  margin-top: 4px;
+  color: var(--primary-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.historyDetail {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.historyDetail strong,
+.historyDetail span {
+  display: block;
+}
+
+.historyDetail strong {
+  color: var(--text-primary);
+}
+
 .emptyState {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -157,9 +195,16 @@
 }
 
 @media (max-width: 640px) {
-  .cardHeader,
-  .historyRow {
+  .cardHeader {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .historyRow {
+    grid-template-columns: 1fr;
+  }
+
+  .historyReveal {
+    display: inline-block;
   }
 }

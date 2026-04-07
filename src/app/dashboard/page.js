@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [expandedTransactionIds, setExpandedTransactionIds] = useState([]);
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -74,6 +75,7 @@ export default function Dashboard() {
   useEffect(() => {
     setSelectedIds([]);
     setSelectionMode(false);
+    setExpandedTransactionIds([]);
   }, [selectedDate]);
 
   const selectedDateValue = formatDateBeirut(selectedDate);
@@ -121,8 +123,19 @@ export default function Dashboard() {
     [dailyTransactions]
   );
 
+  const monthlyNet = monthlySummary.income - monthlySummary.expense;
+  const monthlyLabel = selectedDate.toLocaleDateString("en-US", {
+    month: "short",
+  });
+
   const toggleSelected = (id) => {
     setSelectedIds((previous) =>
+      previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
+    );
+  };
+
+  const toggleExpandedTransaction = (id) => {
+    setExpandedTransactionIds((previous) =>
       previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
     );
   };
@@ -211,15 +224,13 @@ export default function Dashboard() {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>Home</h1>
-        <div className={styles.summaryStrip}>
-          <div className={styles.summaryChip}>
-            <span className={styles.summaryLabel}>Month out</span>
-            <span className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</span>
-          </div>
-          <div className={styles.summaryChip}>
-            <span className={styles.summaryLabel}>Month in</span>
-            <span className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</span>
-          </div>
+        <div className={styles.monthLine}>
+          <span>{monthlyLabel}</span>
+          <span>Out ${formatMoney(monthlySummary.expense)}</span>
+          <span>In ${formatMoney(monthlySummary.income)}</span>
+          <span className={monthlyNet >= 0 ? styles.netPositive : styles.netNegative}>
+            Net {monthlyNet >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthlyNet))}
+          </span>
         </div>
       </header>
 
@@ -384,7 +395,12 @@ export default function Dashboard() {
             </div>
           ) : (
             dailyTransactions.map((transaction) => (
-              <article key={transaction.id} className={styles.transactionCard}>
+              <article
+                key={transaction.id}
+                className={`${styles.transactionCard} ${
+                  expandedTransactionIds.includes(transaction.id) ? styles.transactionCardExpanded : ""
+                }`}
+              >
                 <div className={styles.transactionLeading}>
                   {selectionMode ? (
                     <button
@@ -403,11 +419,24 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                <div className={styles.transactionBody}>
-                  <strong className={styles.transactionTitle}>
-                    {transaction.notes || transaction.category}
-                  </strong>
-                </div>
+                <button
+                  type="button"
+                  className={styles.transactionToggle}
+                  onClick={() => toggleExpandedTransaction(transaction.id)}
+                  aria-expanded={expandedTransactionIds.includes(transaction.id)}
+                  disabled={selectionMode}
+                >
+                  <div className={styles.transactionBody}>
+                    <strong className={styles.transactionTitle}>
+                      {transaction.notes || transaction.category}
+                    </strong>
+                    {!selectionMode ? (
+                      <span className={styles.transactionReveal}>
+                        {expandedTransactionIds.includes(transaction.id) ? "Hide" : "Details"}
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
 
                 <span
                   className={`${styles.transactionAmount} ${
@@ -416,6 +445,19 @@ export default function Dashboard() {
                 >
                   {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
                 </span>
+
+                {expandedTransactionIds.includes(transaction.id) ? (
+                  <div className={styles.transactionDetail}>
+                    <strong>{transaction.notes || transaction.category}</strong>
+                    <span>
+                      {[
+                        transaction.category,
+                        transaction.scope === "business" ? "Business" : "Personal",
+                        formatDisplayDate(new Date(`${transaction.date}T12:00:00`)),
+                      ].join(" • ")}
+                    </span>
+                  </div>
+                ) : null}
               </article>
             ))
           )}

@@ -22,6 +22,8 @@ import {
   updateHeldMoney,
   deleteHeldMoney,
   shiftDatedAccountItem,
+  completeExpectedMoney,
+  completePayable,
 } from '@/lib/db';
 
 // GET all data for all tables
@@ -174,9 +176,28 @@ export async function PATCH(request) {
   }
 
   try {
-    const { table, id, direction } = await request.json();
+    const { action, table, id, direction, date, scope } = await request.json();
 
-    if (!table || !id || !direction) {
+    if (!table || !id) {
+      return NextResponse.json({ error: 'Missing table or id' }, { status: 400 });
+    }
+
+    if (action === 'complete') {
+      switch (table) {
+        case 'expectedMoney':
+          completeExpectedMoney(Number(id), { date, scope });
+          break;
+        case 'payables':
+          completePayable(Number(id), { date, scope });
+          break;
+        default:
+          return NextResponse.json({ error: 'Invalid completion table' }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (!direction) {
       return NextResponse.json({ error: 'Missing table, id, or direction' }, { status: 400 });
     }
 

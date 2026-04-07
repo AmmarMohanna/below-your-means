@@ -85,6 +85,7 @@ export default function Accounts() {
   const [metalsEditing, setMetalsEditing] = useState(false);
   const [pricesEditing, setPricesEditing] = useState(false);
   const [refreshingLivePrices, setRefreshingLivePrices] = useState(false);
+  const [completingId, setCompletingId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -255,6 +256,38 @@ export default function Accounts() {
       await fetchData();
     } catch (error) {
       console.error("Error shifting dated item:", error);
+    }
+  };
+
+  const handleComplete = async (table, id) => {
+    const completionKey = `${table}:${id}`;
+    setCompletingId(completionKey);
+
+    try {
+      const response = await fetch("/api/accounts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "complete",
+          table,
+          id,
+          date: getTodayBeirut(),
+          scope: "personal",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to complete item");
+      }
+
+      setExpandedMetaIds((previous) =>
+        previous.filter((entryId) => entryId !== `${table}:${id}` && entryId !== id)
+      );
+      await fetchData();
+    } catch (error) {
+      console.error("Error completing scheduled item:", error);
+    } finally {
+      setCompletingId(null);
     }
   };
 
@@ -541,7 +574,10 @@ export default function Accounts() {
   const renderItemCard = (item, options) => {
     const isEditing = editingId === item.id;
     const canRevealMeta = Boolean(options.meta);
-    const isMetaExpanded = expandedMetaIds.includes(item.id);
+    const detailId = options.detailId ?? item.id;
+    const isMetaExpanded = expandedMetaIds.includes(detailId);
+    const completionKey = options.completeAction ? `${options.completeAction.table}:${item.id}` : null;
+    const isCompleting = completionKey ? completingId === completionKey : false;
     if (isEditing) {
       return null;
     }
@@ -555,7 +591,7 @@ export default function Accounts() {
           <button
             type="button"
             className={styles.itemToggle}
-            onClick={() => toggleExpandedMeta(item.id)}
+            onClick={() => toggleExpandedMeta(detailId)}
             aria-expanded={isMetaExpanded}
           >
             <div className={styles.itemMain}>
@@ -609,7 +645,20 @@ export default function Accounts() {
           </button>
         </div>
         {canRevealMeta && isMetaExpanded ? (
-          <div className={styles.itemDetail}>{options.meta}</div>
+          <div className={styles.itemDetail}>
+            <strong className={styles.itemDetailTitle}>{options.title}</strong>
+            <span className={styles.itemDetailText}>{options.meta}</span>
+            {options.completeAction ? (
+              <button
+                type="button"
+                className={styles.completeButton}
+                onClick={() => handleComplete(options.completeAction.table, item.id)}
+                disabled={isCompleting}
+              >
+                {isCompleting ? `${options.completeAction.label}...` : options.completeAction.label}
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </article>
     );
@@ -644,7 +693,12 @@ export default function Accounts() {
         (item) => ({
           title: item.source,
           meta: joinParts(formatDate(item.expected_date), item.notes),
+          detailId: `expectedMoney:${item.id}`,
           canShift: true,
+          completeAction: {
+            table: "expectedMoney",
+            label: "Received",
+          },
         }),
         true
       );
@@ -656,7 +710,12 @@ export default function Accounts() {
         (item) => ({
           title: item.source,
           meta: joinParts(formatDate(item.pay_date), item.notes),
+          detailId: `payables:${item.id}`,
           canShift: true,
+          completeAction: {
+            table: "payables",
+            label: "Paid",
+          },
         }),
         true
       );
@@ -759,13 +818,28 @@ export default function Accounts() {
               value: metals.values.silver,
             },
           ].map((metal) => (
-            <div key={metal.label} className={styles.metalRow}>
-              <div className={styles.itemMain}>
-                <div className={styles.itemLine}>
-                  <span className={styles.itemTitle}>{metal.label}</span>
-                  <span className={styles.itemMeta}>${metal.price?.toFixed(2)} / {metal.quantitySuffix}</span>
+            <div
+              key={metal.label}
+              className={`${styles.metalRow} ${
+                expandedMetaIds.includes(`metal:${metal.quantityKey}`) ? styles.itemCardExpanded : ""
+              }`}
+            >
+              <button
+                type="button"
+                className={styles.itemToggle}
+                onClick={() => toggleExpandedMeta(`metal:${metal.quantityKey}`)}
+                aria-expanded={expandedMetaIds.includes(`metal:${metal.quantityKey}`)}
+              >
+                <div className={styles.itemMain}>
+                  <div className={styles.itemLine}>
+                    <span className={styles.itemTitle}>{metal.label}</span>
+                    <span className={styles.itemMeta}>${metal.price?.toFixed(2)} / {metal.quantitySuffix}</span>
+                    <span className={styles.mobileReveal}>
+                      {expandedMetaIds.includes(`metal:${metal.quantityKey}`) ? "Hide" : "Details"}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </button>
               {metalsEditing ? (
                 <input
                   type="number"
@@ -786,6 +860,14 @@ export default function Accounts() {
                 </span>
               )}
               <strong className={styles.itemAmount}>${formatMoney(metal.value || 0)}</strong>
+              {expandedMetaIds.includes(`metal:${metal.quantityKey}`) ? (
+                <div className={styles.itemDetail}>
+                  <strong className={styles.itemDetailTitle}>{metal.label}</strong>
+                  <span className={styles.itemDetailText}>
+                    ${metal.price?.toFixed(2)} / {metal.quantitySuffix}
+                  </span>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

@@ -37,6 +37,15 @@ export function normalizeScope(scope) {
   return scope === 'business' ? 'business' : 'personal';
 }
 
+function getTransactionCategory(type, scope) {
+  if (type === 'income') return 'Income';
+  return normalizeScope(scope) === 'business' ? 'Business' : 'Other';
+}
+
+function buildCompletionNotes(label, notes) {
+  return [label, notes].filter(Boolean).join(' • ');
+}
+
 export function getDb() {
   if (!db) {
     db = new Database(dbPath);
@@ -471,6 +480,35 @@ export function deleteExpectedMoney(id) {
   return deleteRow('expected_money', id);
 }
 
+export function completeExpectedMoney(id, { date, scope } = {}) {
+  const database = getDb();
+  const transaction = database.transaction((targetId, targetDate, targetScope) => {
+    const item = getRowById('expected_money', targetId);
+    if (!item) {
+      throw new Error('Expected money item not found');
+    }
+
+    const normalizedScope = normalizeScope(targetScope);
+    const transactionResult = insertRow(
+      'transactions',
+      {
+        amount: item.amount,
+        category: getTransactionCategory('income', normalizedScope),
+        type: 'income',
+        scope: normalizedScope,
+        notes: buildCompletionNotes(item.source, item.notes),
+        date: targetDate || item.expected_date,
+      },
+      'completion'
+    );
+
+    deleteRow('expected_money', targetId, 'completion');
+    return { transactionId: transactionResult.lastInsertRowid };
+  });
+
+  return transaction(Number(id), date, scope);
+}
+
 // Payables operations
 export function getAllPayables() {
   return getDb()
@@ -488,6 +526,35 @@ export function updatePayable(id, { source, pay_date, amount, notes }) {
 
 export function deletePayable(id) {
   return deleteRow('payables', id);
+}
+
+export function completePayable(id, { date, scope } = {}) {
+  const database = getDb();
+  const transaction = database.transaction((targetId, targetDate, targetScope) => {
+    const item = getRowById('payables', targetId);
+    if (!item) {
+      throw new Error('Payable item not found');
+    }
+
+    const normalizedScope = normalizeScope(targetScope);
+    const transactionResult = insertRow(
+      'transactions',
+      {
+        amount: item.amount,
+        category: getTransactionCategory('expense', normalizedScope),
+        type: 'expense',
+        scope: normalizedScope,
+        notes: buildCompletionNotes(item.source, item.notes),
+        date: targetDate || item.pay_date,
+      },
+      'completion'
+    );
+
+    deleteRow('payables', targetId, 'completion');
+    return { transactionId: transactionResult.lastInsertRowid };
+  });
+
+  return transaction(Number(id), date, scope);
 }
 
 // Recurring payments operations

@@ -52,6 +52,7 @@ export default function Settings() {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [undoingId, setUndoingId] = useState(null);
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState([]);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -75,6 +76,12 @@ export default function Settings() {
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
+
+  const toggleExpandedHistory = (id) => {
+    setExpandedHistoryIds((previous) =>
+      previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
+    );
+  };
 
   const handleExportData = async () => {
     setExporting(true);
@@ -429,13 +436,28 @@ export default function Settings() {
               <div className={styles.emptyState}>No recent changes.</div>
             ) : (
               history.map((entry) => (
-                <div key={entry.id} className={styles.historyRow}>
-                  <div className={styles.historyText}>
-                    <strong>{formatHistoryTitle(entry)}</strong>
-                    <span>
-                      {formatHistoryMeta(entry)} • {new Date(entry.created_at).toLocaleString()}
+                <div
+                  key={entry.id}
+                  className={`${styles.historyRow} ${
+                    expandedHistoryIds.includes(entry.id) ? styles.historyRowExpanded : ""
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className={styles.historyToggle}
+                    onClick={() => toggleExpandedHistory(entry.id)}
+                    aria-expanded={expandedHistoryIds.includes(entry.id)}
+                  >
+                    <div className={styles.historyText}>
+                      <strong>{formatHistoryTitle(entry)}</strong>
+                      <span>
+                        {formatHistoryMeta(entry)} • {new Date(entry.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className={styles.historyReveal}>
+                      {expandedHistoryIds.includes(entry.id) ? "Hide" : "Details"}
                     </span>
-                  </div>
+                  </button>
                   <button
                     type="button"
                     className={styles.secondaryButton}
@@ -444,6 +466,14 @@ export default function Settings() {
                   >
                     {undoingId === entry.id ? "Undoing..." : "Undo"}
                   </button>
+                  {expandedHistoryIds.includes(entry.id) ? (
+                    <div className={styles.historyDetail}>
+                      <strong>{formatHistoryTitle(entry)}</strong>
+                      <span>
+                        {formatHistoryMeta(entry)} • {new Date(entry.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               ))
             )}

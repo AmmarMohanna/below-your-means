@@ -40,34 +40,29 @@
   letter-spacing: -0.04em;
 }
 
-.summaryStrip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.monthLine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-}
-
-.summaryChip {
-  display: grid;
-  gap: 6px;
-  padding: 14px 16px;
-  background: linear-gradient(180deg, #fbfffd, #daf0e8);
+  padding: 12px 14px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 18px;
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
-  text-align: center;
-}
-
-.summaryLabel {
-  color: var(--text-muted);
-  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.summaryValue {
-  font-size: 1.1rem;
-  font-weight: 700;
-  white-space: nowrap;
+.netPositive {
+  color: var(--primary-strong);
+}
+
+.netNegative {
+  color: var(--danger);
 }
 
 .entryCard {
@@ -387,6 +382,10 @@
   box-shadow: var(--shadow-card);
 }
 
+.transactionCardExpanded {
+  border-color: rgba(15, 118, 110, 0.2);
+}
+
 .transactionLeading {
   display: flex;
   align-items: center;
@@ -422,8 +421,25 @@
   color: var(--primary-strong);
 }
 
+.transactionToggle {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.transactionToggle:disabled {
+  cursor: default;
+}
+
 .transactionBody {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .transactionTitle {
@@ -434,6 +450,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.transactionReveal {
+  display: none;
+  flex-shrink: 0;
+  color: var(--primary-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .transactionAmount {
@@ -448,6 +472,26 @@
 
 .amountIncome {
   color: var(--primary-strong);
+}
+
+.transactionDetail {
+  grid-column: 1 / -1;
+  padding-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.transactionDetail strong,
+.transactionDetail span {
+  display: block;
+}
+
+.transactionDetail strong {
+  color: var(--text-primary);
 }
 
 @media (max-width: 760px) {
@@ -487,21 +531,17 @@
     padding-inline: 12px;
   }
 
-  .summaryStrip {
+  .monthLine {
     gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
   }
 
-  .summaryChip {
-    padding: 12px 10px;
-    border-radius: 16px;
-  }
-
-  .summaryLabel {
-    font-size: 0.72rem;
-  }
-
-  .summaryValue {
-    font-size: 0.96rem;
+  .monthLine::-webkit-scrollbar {
+    display: none;
   }
 
   .entryCard {
@@ -587,5 +627,13 @@
 
   .transactionAmount {
     font-size: 0.88rem;
+  }
+
+  .transactionReveal {
+    display: inline;
+  }
+
+  .transactionDetail {
+    font-size: 0.78rem;
   }
 }
