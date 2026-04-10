@@ -293,6 +293,126 @@
   font-family: 'Amiri', serif, system-ui;
 }
 
+.remindersSection {
+  margin-top: 16px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.remindersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.remindersTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.reminderForm {
+  background: var(--primary-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.intervalRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.remindersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reminderItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--bg);
+}
+
+.reminderItemDue {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.reminderTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reminderTextGroup {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reminderTitleText {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.reminderSubText {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.reminderIntervalLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.reminderActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.reminderActionBtn {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reminderActionBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.reminderDeleteBtn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .sessionsSummary {
   background: linear-gradient(135deg, var(--primary-light) 0%, #99f6e4 100%);
   border: 2px solid var(--primary);
@@ -532,5 +652,9 @@
 
   .dhikrDivider {
     display: none;
+  }
+
+  .reminderTopRow {
+    flex-direction: column;
   }
 }

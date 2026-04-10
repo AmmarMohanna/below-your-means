@@ -87,11 +87,14 @@ export default function Settings() {
     setExporting(true);
 
     try {
-      const [transactionsRes, accountsRes, metalsRes, lifestyleRes] = await Promise.all([
+      const [transactionsRes, accountsRes, metalsRes, lifestyleRes, remindersRes, todosRes] =
+        await Promise.all([
         fetch("/api/transactions"),
         fetch("/api/accounts"),
         fetch("/api/metals"),
         fetch("/api/lifestyle"),
+        fetch("/api/reminders"),
+        fetch("/api/todos"),
       ]);
 
       if (!transactionsRes.ok) throw new Error("Failed to fetch transactions");
@@ -100,6 +103,8 @@ export default function Settings() {
       const accounts = accountsRes.ok ? await accountsRes.json() : {};
       const metals = metalsRes.ok ? await metalsRes.json() : {};
       const lifestyle = lifestyleRes.ok ? await lifestyleRes.json() : {};
+      const reminders = remindersRes.ok ? await remindersRes.json() : [];
+      const todos = todosRes.ok ? await todosRes.json() : [];
 
       const workbook = XLSX.utils.book_new();
 
@@ -250,6 +255,39 @@ export default function Settings() {
             ...lifestyle.gymSessions.map((item) => [item.date, item.notes || ""]),
           ]),
           "Gym Sessions"
+        );
+      }
+
+      if (reminders.length > 0) {
+        XLSX.utils.book_append_sheet(
+          workbook,
+          XLSX.utils.aoa_to_sheet([
+            ["Title", "Interval (hours)", "Next Due At", "Last Done At", "Active"],
+            ...reminders.map((item) => [
+              item.title || "",
+              item.interval_hours || 0,
+              item.next_due_at || "",
+              item.last_done_at || "",
+              item.is_active ? "Yes" : "No",
+            ]),
+          ]),
+          "Reminders"
+        );
+      }
+
+      if (todos.length > 0) {
+        XLSX.utils.book_append_sheet(
+          workbook,
+          XLSX.utils.aoa_to_sheet([
+            ["Title", "Completed", "Created At", "Updated At"],
+            ...todos.map((item) => [
+              item.title || "",
+              item.completed ? "Yes" : "No",
+              item.created_at || "",
+              item.updated_at || "",
+            ]),
+          ]),
+          "Todo"
         );
       }
 

@@ -253,6 +253,84 @@
   cursor: not-allowed;
 }
 
+.reminderPanel {
+  margin-bottom: 16px;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.reminderPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.reminderPanelTitle {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.enableAlertsBtn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  background: #fff;
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reminderList {
+  display: grid;
+  gap: 6px;
+}
+
+.reminderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.reminderItemTitle {
+  color: #78350f;
+  font-size: 0.88rem;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.reminderActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.reminderDoneBtn,
+.reminderPauseBtn {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  background: #fff;
+  color: #92400e;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .daySection {
   display: grid;
   gap: 12px;
@@ -524,6 +602,15 @@
 @media (max-width: 480px) {
   .amountRow {
     grid-template-columns: 1fr;
+  }
+
+  .reminderItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reminderActions {
+    justify-content: flex-end;
   }
 
   .transactionCard {

@@ -24,7 +24,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 ### 🌙 Lifestyle — Personal Habits
 - **Prayer Tracker** — Track missed prayers (Soboh, Dohor, Aaser, Maghreb, Ishaa, Ayaat) with +/- counters
 - **Gym Tracker** — Log payments and sessions, see remaining sessions, quick "I Worked Out Today" button
-- Daily reminders for Quran reading and Friday charity
+- **Custom Reminders** — Add/edit/remove reminders, mark as done to restart timer, pause/resume anytime
 
 ### 📈 Analytics — Insights
 - Custom date range reports
@@ -33,9 +33,13 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - Daily averages
 
 ### ⚙️ Settings & Data
-- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym) as multi-sheet Excel file
+- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym, reminders, todo) as multi-sheet Excel file
 - Password-protected access
 - Simple logout
+
+### ✅ Todo Page
+- Dedicated todo page for quick add/check/edit/delete
+- Clean mobile + desktop layout
 
 ### 📱 PWA Support
 - Install on iPhone/Android for native app experience
@@ -70,7 +74,7 @@ docker compose -f docker-compose.dev.yml up --build
 See **[DEPLOY.md](DEPLOY.md)** for complete step-by-step instructions:
 
 - First-time deployment to Hetzner/VPS
-- Updating your app
+- Automated CI/CD with GitHub Actions
 - Changing password
 - Backup & restore
 
@@ -132,11 +136,11 @@ below-your-means/
 ## 📝 Backup
 
 ```bash
-# Create backup on server
-cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
+# Create safe backup on server
+bash scripts/backup-db.sh "$PWD"
 
-# Download to local machine
-scp root@YOUR_SERVER:~/backup-*.db ~/Desktop/
+# Download archive to local machine
+scp root@YOUR_SERVER:~/below-your-means/backups/belowyourmeans-*.tar.gz ~/Desktop/
 
 # Export via app
 # Settings → Export Data → Downloads Excel file with all data

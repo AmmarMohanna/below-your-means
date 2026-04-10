@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
@@ -36,8 +36,10 @@ function getClientTimestamp() {
 export default function Dashboard() {
   const router = useRouter();
   const [transactions, setTransactions] = useState([]);
+  const [reminders, setReminders] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => getNowBeirut());
   const [loading, setLoading] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState("default");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("expense");
@@ -47,20 +49,28 @@ export default function Dashboard() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [expandedTransactionIds, setExpandedTransactionIds] = useState([]);
+  const notifiedReminderIds = useRef(new Set());
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const response = await fetch("/api/transactions");
-      if (!response.ok) {
-        if (response.status === 401) {
+      const [transactionsRes, remindersRes] = await Promise.all([
+        fetch("/api/transactions"),
+        fetch("/api/reminders"),
+      ]);
+
+      if (!transactionsRes.ok || !remindersRes.ok) {
+        const status = !transactionsRes.ok ? transactionsRes.status : remindersRes.status;
+        if (status === 401) {
           router.push("/login");
           return;
         }
         throw new Error("Failed to fetch transactions");
       }
 
-      const data = await response.json();
+      const data = await transactionsRes.json();
+      const remindersData = await remindersRes.json();
       setTransactions(data);
+      setReminders(remindersData || []);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -71,6 +81,11 @@ export default function Dashboard() {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    setNotificationPermission(Notification.permission);
+  }, []);
 
   useEffect(() => {
     setSelectedIds([]);
@@ -121,6 +136,14 @@ export default function Dashboard() {
         { income: 0, expense: 0 }
       ),
     [dailyTransactions]
+  );
+
+  const dueReminders = useMemo(
+    () =>
+      reminders.filter(
+        (reminder) => reminder.is_active && new Date(reminder.next_due_at).getTime() <= Date.now()
+      ),
+    [reminders]
   );
 
   const toggleSelected = (id) => {
@@ -206,6 +229,49 @@ export default function Dashboard() {
       setIsBulkDeleting(false);
     }
   };
+
+  const requestNotificationPermission = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+  };
+
+  const handleReminderAction = async (id, action) => {
+    try {
+      const response = await fetch("/api/reminders", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update reminder");
+      }
+
+      await fetchTransactions();
+    } catch (error) {
+      console.error("Reminder action error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (notificationPermission !== "granted" || dueReminders.length === 0) return;
+
+    dueReminders.forEach((reminder) => {
+      if (notifiedReminderIds.current.has(reminder.id)) return;
+      new Notification("Reminder Due", { body: reminder.title });
+      notifiedReminderIds.current.add(reminder.id);
+    });
+  }, [dueReminders, notificationPermission]);
+
+  useEffect(() => {
+    const dueSet = new Set(dueReminders.map((reminder) => reminder.id));
+    notifiedReminderIds.current.forEach((id) => {
+      if (!dueSet.has(id)) {
+        notifiedReminderIds.current.delete(id);
+      }
+    });
+  }, [dueReminders]);
 
   if (loading) {
     return (
@@ -335,6 +401,47 @@ export default function Dashboard() {
         </div>
 
       </form>
+
+      {dueReminders.length > 0 && (
+        <section className={styles.reminderPanel}>
+          <div className={styles.reminderPanelHeader}>
+            <h2 className={styles.reminderPanelTitle}>⏰ Due Reminders</h2>
+            {notificationPermission === "default" && (
+              <button
+                type="button"
+                className={styles.enableAlertsBtn}
+                onClick={requestNotificationPermission}
+              >
+                Enable Alerts
+              </button>
+            )}
+          </div>
+
+          <div className={styles.reminderList}>
+            {dueReminders.map((reminder) => (
+              <div key={reminder.id} className={styles.reminderItem}>
+                <span className={styles.reminderItemTitle}>{reminder.title}</span>
+                <div className={styles.reminderActions}>
+                  <button
+                    type="button"
+                    className={styles.reminderDoneBtn}
+                    onClick={() => handleReminderAction(reminder.id, "done")}
+                  >
+                    Done
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.reminderPauseBtn}
+                    onClick={() => handleReminderAction(reminder.id, "pause")}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className={styles.daySection}>
         <div className={styles.dayHeader}>

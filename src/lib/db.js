@@ -199,6 +199,25 @@ function initializeSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS reminders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      interval_hours INTEGER NOT NULL CHECK(interval_hours > 0),
+      next_due_at TEXT NOT NULL,
+      last_done_at TEXT DEFAULT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1 CHECK(is_active IN (0, 1)),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS todo_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0, 1)),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       table_name TEXT NOT NULL,
@@ -218,6 +237,8 @@ function initializeSchema() {
     CREATE INDEX IF NOT EXISTS idx_payables_date ON payables(pay_date);
     CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
     CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_reminders_active_due ON reminders(is_active, next_due_at);
+    CREATE INDEX IF NOT EXISTS idx_todo_completed_created ON todo_items(completed, created_at DESC);
   `);
 
   try {
@@ -784,6 +805,129 @@ export function addGymSession({ date, notes }) {
 
 export function deleteGymSession(id) {
   return deleteRow('gym_sessions', id);
+}
+
+// Reminder operations
+export function getAllReminders() {
+  return getDb()
+    .prepare('SELECT * FROM reminders ORDER BY is_active DESC, next_due_at ASC, id ASC')
+    .all();
+}
+
+export function addReminder({ title, interval_hours }) {
+  const intervalHours = Number(interval_hours);
+  const now = Date.now();
+  const nextDueAt = new Date(now + intervalHours * 60 * 60 * 1000).toISOString();
+  return insertRow('reminders', {
+    title,
+    interval_hours: intervalHours,
+    next_due_at: nextDueAt,
+    is_active: 1,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function updateReminder(
+  id,
+  { title, interval_hours, is_active, recalculate_from_now = false }
+) {
+  const reminder = getRowById('reminders', id);
+  if (!reminder) {
+    throw new Error('Reminder not found');
+  }
+
+  const intervalHours =
+    interval_hours === undefined ? reminder.interval_hours : Number(interval_hours);
+  const activeValue =
+    is_active === undefined
+      ? reminder.is_active
+      : is_active === true || is_active === 1 || is_active === '1'
+        ? 1
+        : 0;
+
+  return updateRow('reminders', id, {
+    title: title ?? reminder.title,
+    interval_hours: intervalHours,
+    is_active: activeValue,
+    next_due_at: recalculate_from_now
+      ? new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString()
+      : reminder.next_due_at,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function markReminderDone(id) {
+  const reminder = getRowById('reminders', id);
+  if (!reminder) {
+    throw new Error('Reminder not found');
+  }
+
+  const nowIso = new Date().toISOString();
+  const nextDueAt = new Date(Date.now() + reminder.interval_hours * 60 * 60 * 1000).toISOString();
+
+  return updateRow('reminders', id, {
+    last_done_at: nowIso,
+    next_due_at: nextDueAt,
+    is_active: 1,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function pauseReminder(id) {
+  return updateRow('reminders', id, {
+    is_active: 0,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function resumeReminder(id) {
+  return updateRow('reminders', id, {
+    is_active: 1,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function deleteReminder(id) {
+  return deleteRow('reminders', id);
+}
+
+// Todo operations
+export function getAllTodoItems() {
+  return getDb()
+    .prepare('SELECT * FROM todo_items ORDER BY completed ASC, created_at DESC, id DESC')
+    .all();
+}
+
+export function addTodoItem({ title }) {
+  return insertRow('todo_items', {
+    title,
+    completed: 0,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function updateTodoItem(id, { title, completed }) {
+  const todo = getRowById('todo_items', id);
+  if (!todo) {
+    throw new Error('Todo item not found');
+  }
+
+  const completedValue =
+    completed === undefined
+      ? todo.completed
+      : completed === true || completed === 1 || completed === '1'
+        ? 1
+        : 0;
+
+  return updateRow('todo_items', id, {
+    title: title ?? todo.title,
+    completed: completedValue,
+    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
+  });
+}
+
+export function deleteTodoItem(id) {
+  return deleteRow('todo_items', id);
 }
 
 // Audit operations
