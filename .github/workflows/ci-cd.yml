@@ -56,4 +56,7 @@ jobs:
 
             cd "$APP_DIR"
             git fetch --prune origin
+            if [ ! -f "scripts/deploy-safe.sh" ]; then
+              git checkout -q -B main origin/main
+            fi
             bash scripts/deploy-safe.sh "$APP_DIR" "origin/main"
