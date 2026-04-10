@@ -244,6 +244,12 @@ Set these in `GitHub → Settings → Secrets and variables → Actions`:
 | `HETZNER_SSH_KEY` | Private SSH key contents | Yes |
 | `HETZNER_APP_DIR` | `/root/below-your-means` | No |
 
+Notes:
+
+- `HETZNER_SSH_KEY` must be the full private key contents, including the `-----BEGIN ... PRIVATE KEY-----` and `-----END ... PRIVATE KEY-----` lines.
+- The matching public key must already be present in `~/.ssh/authorized_keys` for `HETZNER_USER` on the Hetzner server.
+- If the private key is encrypted with a passphrase, either use an unencrypted deploy key for GitHub Actions or add the action's `passphrase` input with a separate secret.
+
 ### One-Time Prep Before Enabling Workflows
 
 Make sure your server has the latest scripts at least once:
@@ -254,6 +260,14 @@ cd ~/below-your-means
 git checkout codex-ux-hardening-iphone17
 git pull --ff-only origin codex-ux-hardening-iphone17
 ```
+
+Before enabling deploys, verify the same key pair works outside GitHub Actions:
+
+```bash
+ssh -i /path/to/private_key root@YOUR_SERVER_IP
+```
+
+If that fails locally, the workflow will fail too.
 
 ### Data-Safe Deploy Flow
 
