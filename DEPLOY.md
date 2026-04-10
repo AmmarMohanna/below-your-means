@@ -15,7 +15,7 @@ Complete guide for deploying BelowYourMeans securely to a Hetzner VPS (or any Li
 1. [Quick Start (New Server)](#quick-start-new-server)
 2. [Security Hardening (CRITICAL)](#security-hardening-critical)
 3. [Importing Existing Data](#importing-existing-data)
-4. [Updating Your App](#updating-your-app)
+4. [Automated CI/CD (Recommended)](#automated-cicd-recommended)
 5. [Backup & Restore](#backup--restore)
 6. [Troubleshooting](#troubleshooting)
 
@@ -222,21 +222,69 @@ ssh root@YOUR_SERVER_IP "cd ~/below-your-means && docker compose restart"
 
 ---
 
-## Updating Your App
+## Automated CI/CD (Recommended)
 
-When you push new code to GitHub:
+This repo includes two GitHub Actions workflows:
+
+- `.github/workflows/ci-cd.yml`
+  - Runs lint + build on PRs and pushes to `codex-ux-hardening-iphone17`
+  - Deploys to Hetzner on `codex-ux-hardening-iphone17` pushes
+- `.github/workflows/backup-db.yml`
+  - Runs a daily DB backup on your server
+  - Can also be triggered manually
+
+### Required GitHub Secrets
+
+Set these in `GitHub → Settings → Secrets and variables → Actions`:
+
+| Secret | Example | Required |
+|--------|---------|----------|
+| `HETZNER_HOST` | `46.224.39.93` | Yes |
+| `HETZNER_USER` | `root` | Yes |
+| `HETZNER_SSH_KEY` | Private SSH key contents | Yes |
+| `HETZNER_APP_DIR` | `/root/below-your-means` | No |
+
+Notes:
+
+- `HETZNER_SSH_KEY` must be the full private key contents, including the `-----BEGIN ... PRIVATE KEY-----` and `-----END ... PRIVATE KEY-----` lines.
+- The matching public key must already be present in `~/.ssh/authorized_keys` for `HETZNER_USER` on the Hetzner server.
+- If the private key is encrypted with a passphrase, either use an unencrypted deploy key for GitHub Actions or add the action's `passphrase` input with a separate secret.
+
+### One-Time Prep Before Enabling Workflows
+
+Make sure your server has the latest scripts at least once:
 
 ```bash
 ssh root@YOUR_SERVER_IP
 cd ~/below-your-means
-git pull
-docker compose up -d --build
+git checkout codex-ux-hardening-iphone17
+git pull --ff-only origin codex-ux-hardening-iphone17
 ```
 
-### One-Liner
+Before enabling deploys, verify the same key pair works outside GitHub Actions:
 
 ```bash
-ssh root@YOUR_SERVER_IP "cd ~/below-your-means && git pull && docker compose up -d --build"
+ssh -i /path/to/private_key root@YOUR_SERVER_IP
+```
+
+If that fails locally, the workflow will fail too.
+
+### Data-Safe Deploy Flow
+
+Every deploy runs `scripts/deploy-safe.sh`, which:
+
+1. Creates a backup first (`scripts/backup-db.sh`)
+2. Runs SQLite integrity check + WAL checkpoint before DB copy
+3. Deploys with `docker compose up -d --build`
+4. Health-checks `http://127.0.0.1/api/auth/check`
+5. Rolls back automatically if deployment fails
+
+### Manual Fallback (Safe Update)
+
+```bash
+ssh root@YOUR_SERVER_IP
+cd ~/below-your-means
+bash scripts/deploy-safe.sh "$PWD" "origin/codex-ux-hardening-iphone17"
 ```
 
 ---
@@ -245,20 +293,45 @@ ssh root@YOUR_SERVER_IP "cd ~/below-your-means && git pull && docker compose up 
 
 ### Create Backup
 
+Recommended (integrity check + retention):
+
 ```bash
-# On server
 cd ~/below-your-means
-cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d).db
+bash scripts/backup-db.sh "$PWD"
+# Backups are stored in ./backups as .tar.gz archives
+```
+
+Simple manual copy:
+
+```bash
+cp data/belowyourmeans.db ~/backup-$(date +%Y%m%d-%H%M%S).db
 ```
 
 ### Download Backup
 
 ```bash
-# From your Mac
+# From your Mac - automated backup archives
+scp root@YOUR_SERVER_IP:~/below-your-means/backups/belowyourmeans-*.tar.gz ~/Desktop/
+
+# From your Mac - manual one-file backups
 scp root@YOUR_SERVER_IP:~/backup-*.db ~/Desktop/
 ```
 
 ### Restore from Backup
+
+From automated archive:
+
+```bash
+cd ~/below-your-means
+docker compose down
+mkdir -p /tmp/bym-restore
+tar -xzf backups/belowyourmeans-YYYYMMDD-HHMMSS.tar.gz -C /tmp/bym-restore
+cp /tmp/bym-restore/belowyourmeans.db* data/
+chown 1001:1001 data/belowyourmeans.db
+docker compose up -d
+```
+
+From manual `.db` backup:
 
 ```bash
 cd ~/below-your-means
@@ -321,8 +394,8 @@ docker compose up -d --build
 | Stop | `docker compose down` |
 | Logs | `docker compose logs -f` |
 | Restart | `docker compose restart` |
-| Update | `git pull && docker compose up -d --build` |
-| Backup | `cp data/belowyourmeans.db ~/backup.db` |
+| Update (safe) | `bash scripts/deploy-safe.sh "$PWD" "origin/codex-ux-hardening-iphone17"` |
+| Backup | `bash scripts/backup-db.sh "$PWD"` |
 
 ---
 

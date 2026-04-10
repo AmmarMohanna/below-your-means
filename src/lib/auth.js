@@ -39,7 +39,7 @@ export async function isAuthenticated() {
 
 // Check if secure cookies should be used
 // Set SECURE_COOKIES=false in .env if using HTTP (no HTTPS)
-function useSecureCookies() {
+function shouldUseSecureCookies() {
   if (process.env.SECURE_COOKIES === 'false') return false;
   return process.env.NODE_ENV === 'production';
 }
@@ -50,7 +50,7 @@ export function getSessionCookieConfig(value) {
     name: SESSION_COOKIE_NAME,
     value,
     httpOnly: true,
-    secure: useSecureCookies(),
+    secure: shouldUseSecureCookies(),
     sameSite: 'lax',
     maxAge: SESSION_MAX_AGE,
     path: '/',
@@ -63,10 +63,9 @@ export function getClearSessionCookieConfig() {
     name: SESSION_COOKIE_NAME,
     value: '',
     httpOnly: true,
-    secure: useSecureCookies(),
+    secure: shouldUseSecureCookies(),
     sameSite: 'lax',
     maxAge: 0,
     path: '/',
   };
 }
-

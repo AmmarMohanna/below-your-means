@@ -56,6 +56,7 @@ db.exec(`
     amount REAL NOT NULL,
     category TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+    scope TEXT NOT NULL DEFAULT 'personal' CHECK(scope IN ('personal', 'business')),
     notes TEXT,
     date TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -154,6 +155,7 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
   CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+  CREATE INDEX IF NOT EXISTS idx_transactions_scope ON transactions(scope);
 `);
 
 // Read Excel file
@@ -185,8 +187,8 @@ const transactions = getSheetData('Transactions');
 if (transactions.length > 0) {
   console.log(`💳 Importing ${transactions.length} transactions...`);
   const insertTx = db.prepare(`
-    INSERT INTO transactions (date, category, type, amount, notes)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO transactions (date, category, type, scope, amount, notes)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
   for (const t of transactions) {
     try {
@@ -194,6 +196,7 @@ if (transactions.length > 0) {
         t['Date'] || new Date().toISOString().split('T')[0],
         t['Category'] || 'Other',
         t['Type'] || 'expense',
+        t['Scope'] === 'business' ? 'business' : 'personal',
         parseFloat(t['Amount']) || 0,
         t['Notes'] || null
       );
@@ -398,4 +401,3 @@ console.log('   ssh root@YOUR_SERVER_IP "chown 1001:1001 ~/below-your-means/data
 console.log('');
 console.log('3. Restart the container:');
 console.log('   ssh root@YOUR_SERVER_IP "cd ~/below-your-means && docker compose restart"');
-

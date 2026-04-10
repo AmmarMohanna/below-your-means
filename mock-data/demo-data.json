@@ -1,0 +1,175 @@
+{
+  "transactions": [
+    {
+      "date": "today",
+      "category": "Other",
+      "type": "expense",
+      "scope": "personal",
+      "amount": 12.5,
+      "notes": "Coffee and snack"
+    },
+    {
+      "date": "today",
+      "category": "Business",
+      "type": "expense",
+      "scope": "business",
+      "amount": 48,
+      "notes": "Taxi to meeting"
+    },
+    {
+      "date": "today",
+      "category": "Income",
+      "type": "income",
+      "scope": "personal",
+      "amount": 85,
+      "notes": "Sold old headphones"
+    },
+    {
+      "date": "today-1",
+      "category": "Other",
+      "type": "expense",
+      "scope": "personal",
+      "amount": 26,
+      "notes": "Groceries"
+    },
+    {
+      "date": "today-2",
+      "category": "Business",
+      "type": "income",
+      "scope": "business",
+      "amount": 420,
+      "notes": "Client invoice"
+    },
+    {
+      "date": "today-3",
+      "category": "Other",
+      "type": "expense",
+      "scope": "personal",
+      "amount": 18,
+      "notes": "Parking"
+    },
+    {
+      "date": "today-5",
+      "category": "Other",
+      "type": "expense",
+      "scope": "personal",
+      "amount": 31,
+      "notes": "Phone bill"
+    },
+    {
+      "date": "today-8",
+      "category": "Income",
+      "type": "income",
+      "scope": "personal",
+      "amount": 1350,
+      "notes": "Monthly salary"
+    }
+  ],
+  "currentMoney": [
+    {
+      "location": "Wallet",
+      "amount": 140,
+      "notes": "Daily cash"
+    },
+    {
+      "location": "Bank account",
+      "amount": 2280,
+      "notes": "Main balance"
+    },
+    {
+      "location": "Savings envelope",
+      "amount": 320,
+      "notes": "Trip fund"
+    }
+  ],
+  "expectedMoney": [
+    {
+      "source": "Family transfer",
+      "expected_date": "today+1",
+      "amount": 200,
+      "notes": "April support"
+    },
+    {
+      "source": "Freelance balance",
+      "expected_date": "today+3",
+      "amount": 650,
+      "notes": "Project remainder"
+    }
+  ],
+  "payables": [
+    {
+      "source": "Rent share",
+      "pay_date": "today+2",
+      "amount": 300,
+      "notes": "Apartment"
+    },
+    {
+      "source": "Internet",
+      "pay_date": "today+5",
+      "amount": 42,
+      "notes": "Home line"
+    }
+  ],
+  "recurring": [
+    {
+      "target": "Parents",
+      "type": "Family",
+      "amount": 250
+    },
+    {
+      "target": "Home supplies",
+      "type": "Home",
+      "amount": 90
+    },
+    {
+      "target": "Subscriptions",
+      "type": "Personal",
+      "amount": 35
+    }
+  ],
+  "heldMoney": [
+    {
+      "person": "Ahmad",
+      "amount": 120,
+      "notes": "To return next week"
+    }
+  ],
+  "metals": {
+    "gold_24k_grams": 18.5,
+    "gold_21k_grams": 9.2,
+    "silver_kg": 0.6,
+    "gold_24k_price_per_gram": 86,
+    "gold_21k_price_per_gram": 75.25,
+    "silver_price_per_kg": 980
+  },
+  "prayers": {
+    "soboh": 2,
+    "dohor": 1,
+    "aaser": 0,
+    "maghreb": 1,
+    "ishaa": 0,
+    "ayaat": 3,
+    "fasting": 1
+  },
+  "gymPayments": [
+    {
+      "date": "today-10",
+      "sessions": 12,
+      "notes": "Monthly package"
+    }
+  ],
+  "gymSessions": [
+    {
+      "date": "today-2",
+      "notes": "Leg day"
+    },
+    {
+      "date": "today-4",
+      "notes": "Push"
+    },
+    {
+      "date": "today-6",
+      "notes": "Cardio"
+    }
+  ]
+}

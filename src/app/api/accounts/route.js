@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { isAuthenticated } from '@/lib/auth';
 import {
   getAllCurrentMoney,
@@ -22,12 +21,14 @@ import {
   addHeldMoney,
   updateHeldMoney,
   deleteHeldMoney,
+  shiftDatedAccountItem,
+  completeExpectedMoney,
+  completePayable,
 } from '@/lib/db';
 
 // GET all data for all tables
 export async function GET() {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -53,8 +54,7 @@ export async function GET() {
 
 // POST - add new item to any table
 export async function POST(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -92,8 +92,7 @@ export async function POST(request) {
 
 // PUT - update item in any table
 export async function PUT(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -130,8 +129,7 @@ export async function PUT(request) {
 
 // DELETE - delete item from any table
 export async function DELETE(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -171,3 +169,42 @@ export async function DELETE(request) {
   }
 }
 
+// PATCH - shift dated account items earlier/later
+export async function PATCH(request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { action, table, id, direction, date, scope } = await request.json();
+
+    if (!table || !id) {
+      return NextResponse.json({ error: 'Missing table or id' }, { status: 400 });
+    }
+
+    if (action === 'complete') {
+      switch (table) {
+        case 'expectedMoney':
+          completeExpectedMoney(Number(id), { date, scope });
+          break;
+        case 'payables':
+          completePayable(Number(id), { date, scope });
+          break;
+        default:
+          return NextResponse.json({ error: 'Invalid completion table' }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (!direction) {
+      return NextResponse.json({ error: 'Missing table, id, or direction' }, { status: 400 });
+    }
+
+    shiftDatedAccountItem(table, Number(id), direction);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error shifting dated item:', error);
+    return NextResponse.json({ error: 'Failed to reorder item' }, { status: 500 });
+  }
+}

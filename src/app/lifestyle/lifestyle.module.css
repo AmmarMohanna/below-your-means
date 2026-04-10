@@ -1,9 +1,9 @@
 .container {
   min-height: 100vh;
-  max-width: 600px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   background: var(--bg);
-  padding-bottom: 100px;
+  padding: 20px var(--page-gutter) var(--page-bottom-space);
 }
 
 .loading {
@@ -27,16 +27,13 @@
   to { transform: rotate(360deg); }
 }
 
-/* Header */
 .header {
-  padding: 16px 20px;
-  background: var(--bg);
+  margin-bottom: 18px;
 }
 
 .headerContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  gap: 8px;
 }
 
 .logo {
@@ -46,28 +43,25 @@
   font-family: 'Amiri', serif, system-ui;
 }
 
-.menuBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.menuBtn span {
-  width: 20px;
-  height: 2px;
-  background: var(--text-primary);
-  border-radius: 1px;
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.45;
 }
 
-/* Tabs */
 .tabs {
   display: flex;
   gap: 8px;
-  padding: 0 16px;
   margin-bottom: 16px;
 }
 
@@ -92,11 +86,6 @@
   background: var(--primary-light);
   border-color: var(--primary);
   color: var(--primary);
-}
-
-/* Prayer Section */
-.prayerSection {
-  padding: 0 16px;
 }
 
 .inspirationCard {
@@ -246,7 +235,6 @@
   text-align: center;
 }
 
-/* Fasting Section */
 .fastingSection {
   margin-top: 16px;
 }
@@ -305,9 +293,124 @@
   font-family: 'Amiri', serif, system-ui;
 }
 
-/* Gym Section */
-.gymSection {
-  padding: 0 16px;
+.remindersSection {
+  margin-top: 16px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.remindersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.remindersTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.reminderForm {
+  background: var(--primary-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.intervalRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.remindersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reminderItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--bg);
+}
+
+.reminderItemDue {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.reminderTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reminderTextGroup {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reminderTitleText {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.reminderSubText {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.reminderIntervalLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.reminderActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.reminderActionBtn {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reminderActionBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.reminderDeleteBtn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .sessionsSummary {
@@ -537,64 +640,21 @@
   font-size: 0.9rem;
 }
 
-/* Bottom Navigation */
-.bottomNav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 8px 16px;
-  transition: color 0.2s;
-  border-radius: 8px;
-}
-
-.navItem.active {
-  color: var(--primary);
-  background: var(--primary-light);
-}
-
-.navItem:hover {
-  color: var(--primary);
-}
-
-.navIcon {
-  font-size: 1.4rem;
-}
-
-/* Responsive */
 @media (max-width: 400px) {
   .prayerGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .dhikr {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .dhikrDivider {
     display: none;
   }
-}
 
+  .reminderTopRow {
+    flex-direction: column;
+  }
+}

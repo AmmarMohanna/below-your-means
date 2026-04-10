@@ -1,189 +1,301 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { getTodayBeirut } from "@/lib/date"
-import styles from "./accounts.module.css"
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const TABS = [
-  { id: 'current', name: 'Current Money', icon: '💵', color: '#10b981' },
-  { id: 'metals', name: 'Metals', icon: '🪙', color: '#eab308' },
-  { id: 'expected', name: 'Expected', icon: '📥', color: '#3b82f6' },
-  { id: 'payables', name: 'To Pay', icon: '📤', color: '#ef4444' },
-  { id: 'recurring', name: 'Monthly', icon: '🔄', color: '#8b5cf6' },
-  { id: 'held', name: 'Held', icon: '🤝', color: '#f59e0b' },
-]
+import BottomNav from "@/components/BottomNav";
+import { getTodayBeirut } from "@/lib/date";
 
-const RECURRING_TYPES = ['Family', 'Home', 'Personal']
+import styles from "./accounts.module.css";
+
+const tabs = [
+  { id: "current", name: "Current" },
+  { id: "metals", name: "Metals" },
+  { id: "expected", name: "Expected" },
+  { id: "payables", name: "Payables" },
+  { id: "recurring", name: "Monthly" },
+  { id: "held", name: "Held" },
+];
+
+const recurringTypes = ["Family", "Home", "Personal"];
+const troyOuncesPerKg = 32.1507465686;
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: value >= 1000 ? 0 : 2,
+  }).format(value || 0);
+}
+
+function formatDate(dateText) {
+  if (!dateText) return "";
+  const date = new Date(`${dateText}T12:00:00`);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function joinParts(...parts) {
+  return parts.filter(Boolean).join(" • ");
+}
+
+function getInitialForm(tab) {
+  if (tab === "recurring") {
+    return { target: "", type: "Personal", amount: "" };
+  }
+
+  if (tab === "current") {
+    return { location: "", amount: "", notes: "" };
+  }
+
+  if (tab === "expected") {
+    return { source: "", expected_date: getTodayBeirut(), amount: "", notes: "" };
+  }
+
+  if (tab === "payables") {
+    return { source: "", pay_date: getTodayBeirut(), amount: "", notes: "" };
+  }
+
+  return { person: "", amount: "", notes: "" };
+}
 
 export default function Accounts() {
-  const [activeTab, setActiveTab] = useState('current')
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("current");
+  const [expandedMetaIds, setExpandedMetaIds] = useState([]);
   const [data, setData] = useState({
     currentMoney: [],
     expectedMoney: [],
     payables: [],
     recurring: [],
     heldMoney: [],
-  })
+  });
   const [metals, setMetals] = useState({
     holdings: { gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 },
-    prices: { gold_24k_per_gram: 85, gold_21k_per_gram: 74.4, silver_per_kg: 950 },
-    values: { gold_24k: 0, gold_21k: 0, silver: 0, total: 0 }
-  })
-  const [metalsEditing, setMetalsEditing] = useState(false)
-  const [pricesEditing, setPricesEditing] = useState(false)
-  const [metalsForm, setMetalsForm] = useState({ gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 })
-  const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 })
-  const [loading, setLoading] = useState(true)
-  const [editingId, setEditingId] = useState(null)
-  const [showAddForm, setShowAddForm] = useState(false)
-  const router = useRouter()
-
-  // Form state
-  const [formData, setFormData] = useState({})
+    prices: { gold_24k_per_gram: 85, gold_21k_per_gram: 74.4, silver_per_kg: 950, source: "manual" },
+    values: { gold_24k: 0, gold_21k: 0, silver: 0, total: 0 },
+  });
+  const [metalsForm, setMetalsForm] = useState({ gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 });
+  const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 });
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState(getInitialForm("current"));
+  const [metalsEditing, setMetalsEditing] = useState(false);
+  const [pricesEditing, setPricesEditing] = useState(false);
+  const [refreshingLivePrices, setRefreshingLivePrices] = useState(false);
+  const [completingId, setCompletingId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch("/api/accounts")
+      const response = await fetch("/api/accounts");
       if (!response.ok) {
         if (response.status === 401) {
-          router.push("/login")
-          return
+          router.push("/login");
+          return;
         }
-        throw new Error("Failed to fetch")
+        throw new Error("Failed to fetch accounts");
       }
-      const result = await response.json()
-      setData(result)
+
+      setData(await response.json());
     } catch (error) {
-      console.error("Error:", error)
+      console.error("Error fetching accounts:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [router])
+  }, [router]);
 
   const fetchMetals = useCallback(async () => {
     try {
-      const response = await fetch("/api/metals")
-      if (response.ok) {
-        const result = await response.json()
-        setMetals(result)
-        setMetalsForm(result.holdings)
-        // Convert stored per-gram price back to per-oz for display
-        const goldPerOz = (result.prices.gold_24k_per_gram || 85) * 31.1035
-        setPricesForm({
-          gold_per_oz: Math.round(goldPerOz),
-          silver_per_kg: result.prices.silver_per_kg || 950
-        })
+      const response = await fetch("/api/metals");
+      if (!response.ok) {
+        throw new Error("Failed to fetch metals");
       }
+
+      const result = await response.json();
+      setMetals(result);
+      setMetalsForm(result.holdings);
+      setPricesForm({
+        gold_per_oz: Math.round((result.prices.gold_24k_per_gram || 85) * 31.1035),
+        silver_per_kg: result.prices.silver_per_kg || 950,
+      });
     } catch (error) {
-      console.error("Error fetching metals:", error)
+      console.error("Error fetching metals:", error);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchData()
-    fetchMetals()
-  }, [fetchData, fetchMetals])
+    fetchData();
+    fetchMetals();
+  }, [fetchData, fetchMetals]);
 
-  const getTableName = (tabId) => {
-    switch (tabId) {
-      case 'current': return 'currentMoney'
-      case 'expected': return 'expectedMoney'
-      case 'payables': return 'payables'
-      case 'recurring': return 'recurring'
-      case 'held': return 'heldMoney'
-      default: return 'currentMoney'
-    }
-  }
+  const summary = useMemo(
+    () => ({
+      cash: data.currentMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
+      expected: data.expectedMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
+      owe: data.payables.reduce((sum, item) => sum + (item.amount || 0), 0),
+      metals: metals.values.total || 0,
+    }),
+    [data, metals.values.total]
+  );
+
+  const recurringByType = useMemo(
+    () =>
+      recurringTypes.reduce((groups, type) => {
+        groups[type] = data.recurring.filter((item) => item.type === type);
+        return groups;
+      }, {}),
+    [data.recurring]
+  );
+
+  const getTableName = (tab) => {
+    if (tab === "current") return "currentMoney";
+    if (tab === "expected") return "expectedMoney";
+    if (tab === "payables") return "payables";
+    if (tab === "recurring") return "recurring";
+    if (tab === "held") return "heldMoney";
+    return "currentMoney";
+  };
+
+  const resetForm = (tab = activeTab) => {
+    setFormData(getInitialForm(tab));
+  };
+
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    setEditingId(null);
+    setShowAddForm(false);
+    setExpandedMetaIds([]);
+    resetForm(tab);
+  };
+
+  const toggleExpandedMeta = (id) => {
+    setExpandedMetaIds((previous) =>
+      previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
+    );
+  };
 
   const handleAdd = async () => {
-    const table = getTableName(activeTab)
+    const table = getTableName(activeTab);
+
     try {
       const response = await fetch("/api/accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ table, ...formData }),
-      })
-      if (response.ok) {
-        setFormData({})
-        setShowAddForm(false)
-        fetchData()
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add item");
       }
+
+      setShowAddForm(false);
+      resetForm();
+      await fetchData();
     } catch (error) {
-      console.error("Error adding:", error)
+      console.error("Error adding account item:", error);
     }
-  }
+  };
 
   const handleUpdate = async (id) => {
-    const table = getTableName(activeTab)
+    const table = getTableName(activeTab);
+
     try {
       const response = await fetch("/api/accounts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ table, id, ...formData }),
-      })
-      if (response.ok) {
-        setEditingId(null)
-        setFormData({})
-        fetchData()
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update item");
       }
+
+      setEditingId(null);
+      setShowAddForm(false);
+      resetForm();
+      await fetchData();
     } catch (error) {
-      console.error("Error updating:", error)
+      console.error("Error updating account item:", error);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    const table = getTableName(activeTab)
+    const table = getTableName(activeTab);
+
     try {
       const response = await fetch(`/api/accounts?table=${table}&id=${id}`, {
         method: "DELETE",
-      })
-      if (response.ok) {
-        fetchData()
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete item");
       }
+
+      await fetchData();
     } catch (error) {
-      console.error("Error deleting:", error)
+      console.error("Error deleting account item:", error);
     }
-  }
+  };
+
+  const handleShift = async (direction, id) => {
+    const table = getTableName(activeTab);
+
+    try {
+      const response = await fetch("/api/accounts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table, id, direction }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to move dated item");
+      }
+
+      await fetchData();
+    } catch (error) {
+      console.error("Error shifting dated item:", error);
+    }
+  };
+
+  const handleComplete = async (table, id) => {
+    const completionKey = `${table}:${id}`;
+    setCompletingId(completionKey);
+
+    try {
+      const response = await fetch("/api/accounts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "complete",
+          table,
+          id,
+          date: getTodayBeirut(),
+          scope: "personal",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to complete item");
+      }
+
+      setExpandedMetaIds((previous) =>
+        previous.filter((entryId) => entryId !== `${table}:${id}` && entryId !== id)
+      );
+      await fetchData();
+    } catch (error) {
+      console.error("Error completing scheduled item:", error);
+    } finally {
+      setCompletingId(null);
+    }
+  };
 
   const startEdit = (item) => {
-    setEditingId(item.id)
-    setFormData({ ...item })
-    setShowAddForm(false)
-  }
-
-  const cancelEdit = () => {
-    setEditingId(null)
-    setFormData({})
-  }
-
-  const startAdd = () => {
-    setShowAddForm(true)
-    setEditingId(null)
-    // Set default values based on active tab
-    if (activeTab === 'recurring') {
-      setFormData({ target: '', type: 'Personal', amount: '' })
-    } else if (activeTab === 'current') {
-      setFormData({ location: '', amount: '', notes: '' })
-    } else if (activeTab === 'expected') {
-      setFormData({ source: '', expected_date: getTodayBeirut(), amount: '', notes: '' })
-    } else if (activeTab === 'payables') {
-      setFormData({ source: '', pay_date: getTodayBeirut(), amount: '', notes: '' })
-    } else if (activeTab === 'held') {
-      setFormData({ person: '', amount: '', notes: '' })
-    }
-  }
-
-  const cancelAdd = () => {
-    setShowAddForm(false)
-    setFormData({})
-  }
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr + 'T12:00:00')
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
+    setEditingId(item.id);
+    setShowAddForm(false);
+    setFormData({ ...item });
+  };
 
   const handleMetalsUpdate = async () => {
     try {
@@ -191,22 +303,23 @@ export default function Accounts() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(metalsForm),
-      })
-      if (response.ok) {
-        setMetalsEditing(false)
-        fetchMetals()
-      }
-    } catch (error) {
-      console.error("Error updating metals:", error)
-    }
-  }
+      });
 
-  const handlePricesUpdate = async () => {
-    // Convert gold per oz to per gram prices
-    // 1 troy oz = 31.1035 grams
-    const gold24kPerGram = pricesForm.gold_per_oz / 31.1035
-    const gold21kPerGram = gold24kPerGram * (21 / 24) // 21k is 87.5% of 24k
-    
+      if (!response.ok) {
+        throw new Error("Failed to update holdings");
+      }
+
+      setMetalsEditing(false);
+      await fetchMetals();
+    } catch (error) {
+      console.error("Error updating metals:", error);
+    }
+  };
+
+  const handleManualPricesUpdate = async () => {
+    const gold24kPerGram = pricesForm.gold_per_oz / 31.1035;
+    const gold21kPerGram = gold24kPerGram * (21 / 24);
+
     try {
       const response = await fetch("/api/metals", {
         method: "PATCH",
@@ -214,775 +327,706 @@ export default function Accounts() {
         body: JSON.stringify({
           gold_24k_price_per_gram: gold24kPerGram,
           gold_21k_price_per_gram: gold21kPerGram,
-          silver_price_per_kg: pricesForm.silver_per_kg
+          silver_price_per_kg: pricesForm.silver_per_kg,
+          fromApi: false,
         }),
-      })
-      if (response.ok) {
-        setPricesEditing(false)
-        fetchMetals()
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update prices");
       }
+
+      setPricesEditing(false);
+      await fetchMetals();
     } catch (error) {
-      console.error("Error updating prices:", error)
+      console.error("Error updating prices:", error);
     }
-  }
+  };
 
-  const calculateTotal = (items) => {
-    return items.reduce((sum, item) => sum + (item.amount || 0), 0)
-  }
+  const handleRefreshLivePrices = async () => {
+    setRefreshingLivePrices(true);
 
-  const getRecurringByType = (type) => {
-    return data.recurring.filter(r => r.type === type)
-  }
+    try {
+      const [goldResponse, silverResponse] = await Promise.all([
+        fetch("https://api.gold-api.com/price/XAU"),
+        fetch("https://api.gold-api.com/price/XAG"),
+      ]);
 
-  const renderCurrentMoneyTable = () => {
-    const items = data.currentMoney
+      if (!goldResponse.ok || !silverResponse.ok) {
+        throw new Error("Failed to fetch live prices");
+      }
+
+      const goldPayload = await goldResponse.json();
+      const silverPayload = await silverResponse.json();
+      const gold24kPerGram = (goldPayload.price || 0) / 31.1035;
+      const gold21kPerGram = gold24kPerGram * (21 / 24);
+      const silverPerKg = (silverPayload.price || 0) * troyOuncesPerKg;
+
+      const saveResponse = await fetch("/api/metals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gold_24k_price_per_gram: gold24kPerGram,
+          gold_21k_price_per_gram: gold21kPerGram,
+          silver_price_per_kg: silverPerKg,
+          fromApi: true,
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error("Failed to save live prices");
+      }
+
+      await fetchMetals();
+    } catch (error) {
+      console.error("Error refreshing live prices:", error);
+    } finally {
+      setRefreshingLivePrices(false);
+    }
+  };
+
+  const renderFormFields = () => {
+    if (activeTab === "current") {
+      return (
+        <>
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Where is the money?"
+            value={formData.location || ""}
+            onChange={(event) => setFormData({ ...formData, location: event.target.value })}
+          />
+          <input
+            type="number"
+            className={styles.formInput}
+            placeholder="Amount"
+            value={formData.amount || ""}
+            onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+          />
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Notes"
+            value={formData.notes || ""}
+            onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
+          />
+        </>
+      );
+    }
+
+    if (activeTab === "expected") {
+      return (
+        <>
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Source"
+            value={formData.source || ""}
+            onChange={(event) => setFormData({ ...formData, source: event.target.value })}
+          />
+          <input
+            type="date"
+            className={styles.formInput}
+            value={formData.expected_date || ""}
+            onChange={(event) => setFormData({ ...formData, expected_date: event.target.value })}
+          />
+          <input
+            type="number"
+            className={styles.formInput}
+            placeholder="Amount"
+            value={formData.amount || ""}
+            onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+          />
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Notes"
+            value={formData.notes || ""}
+            onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
+          />
+        </>
+      );
+    }
+
+    if (activeTab === "payables") {
+      return (
+        <>
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Pay to"
+            value={formData.source || ""}
+            onChange={(event) => setFormData({ ...formData, source: event.target.value })}
+          />
+          <input
+            type="date"
+            className={styles.formInput}
+            value={formData.pay_date || ""}
+            onChange={(event) => setFormData({ ...formData, pay_date: event.target.value })}
+          />
+          <input
+            type="number"
+            className={styles.formInput}
+            placeholder="Amount"
+            value={formData.amount || ""}
+            onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+          />
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Notes"
+            value={formData.notes || ""}
+            onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
+          />
+        </>
+      );
+    }
+
+    if (activeTab === "recurring") {
+      return (
+        <>
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Target"
+            value={formData.target || ""}
+            onChange={(event) => setFormData({ ...formData, target: event.target.value })}
+          />
+          <select
+            className={styles.formInput}
+            value={formData.type || "Personal"}
+            onChange={(event) => setFormData({ ...formData, type: event.target.value })}
+          >
+            {recurringTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            className={styles.formInput}
+            placeholder="Amount"
+            value={formData.amount || ""}
+            onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+          />
+        </>
+      );
+    }
+
     return (
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
-          <div className={styles.colLocation}>Where</div>
-          <div className={styles.colAmount}>Amount</div>
-          <div className={styles.colNotes}>Notes</div>
-          <div className={styles.colActions}></div>
-        </div>
-        {items.map(item => (
-          editingId === item.id ? (
-            <div key={item.id} className={styles.editRow}>
-              <input
-                type="text"
-                value={formData.location || ''}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Location"
-                className={styles.editInput}
-              />
-              <input
-                type="number"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                placeholder="Amount"
-                className={styles.editInput}
-              />
-              <input
-                type="text"
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notes"
-                className={styles.editInput}
-              />
-              <div className={styles.editActions}>
-                <button onClick={() => handleUpdate(item.id)} className={styles.saveBtn}>✓</button>
-                <button onClick={cancelEdit} className={styles.cancelBtn}>×</button>
-              </div>
-            </div>
-          ) : (
-            <div key={item.id} className={styles.tableRow}>
-              <div className={styles.colLocation}>{item.location}</div>
-              <div className={styles.colAmount}>${item.amount?.toLocaleString()}</div>
-              <div className={styles.colNotes}>{item.notes || '—'}</div>
-              <div className={styles.colActions}>
-                <button onClick={() => startEdit(item)} className={styles.editBtn}>✏️</button>
-                <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn}>🗑️</button>
-              </div>
-            </div>
-          )
-        ))}
-        {showAddForm && (
-          <div className={styles.addRow}>
-            <input
-              type="text"
-              value={formData.location || ''}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="Where is the money?"
-              className={styles.editInput}
-              autoFocus
-            />
-            <input
-              type="number"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              placeholder="Amount"
-              className={styles.editInput}
-            />
-            <input
-              type="text"
-              value={formData.notes || ''}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Notes (optional)"
-              className={styles.editInput}
-            />
-            <div className={styles.editActions}>
-              <button onClick={handleAdd} className={styles.saveBtn}>✓</button>
-              <button onClick={cancelAdd} className={styles.cancelBtn}>×</button>
-            </div>
-          </div>
-        )}
-        <div className={styles.totalRow}>
-          <div className={styles.totalLabel}>Total</div>
-          <div className={styles.totalAmount}>${calculateTotal(items).toLocaleString()}</div>
+      <>
+        <input
+          type="text"
+          className={styles.formInput}
+          placeholder="Person"
+          value={formData.person || ""}
+          onChange={(event) => setFormData({ ...formData, person: event.target.value })}
+        />
+        <input
+          type="number"
+          className={styles.formInput}
+          placeholder="Amount"
+          value={formData.amount || ""}
+          onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+        />
+        <input
+          type="text"
+          className={styles.formInput}
+          placeholder="Notes"
+          value={formData.notes || ""}
+          onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
+        />
+      </>
+    );
+  };
+
+  const renderForm = () => {
+    if (!showAddForm && editingId === null) return null;
+
+    return (
+      <div className={styles.formCard}>
+        <div className={styles.formGrid}>{renderFormFields()}</div>
+        <div className={styles.formActions}>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={() => (editingId ? handleUpdate(editingId) : handleAdd())}
+          >
+            {editingId ? "Save changes" : "Add item"}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => {
+              setEditingId(null);
+              setShowAddForm(false);
+              resetForm();
+            }}
+          >
+            Cancel
+          </button>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
-  const renderExpectedMoneyTable = () => {
-    const items = data.expectedMoney
+  const renderItemCard = (item, options) => {
+    const isEditing = editingId === item.id;
+    const canRevealMeta = Boolean(options.meta);
+    const detailId = options.detailId ?? item.id;
+    const isMetaExpanded = expandedMetaIds.includes(detailId);
+    const completionKey = options.completeAction ? `${options.completeAction.table}:${item.id}` : null;
+    const isCompleting = completionKey ? completingId === completionKey : false;
+    if (isEditing) {
+      return null;
+    }
+
     return (
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
-          <div className={styles.colSource}>Source</div>
-          <div className={styles.colDate}>Expected</div>
-          <div className={styles.colAmount}>Amount</div>
-          <div className={styles.colNotes}>Notes</div>
-          <div className={styles.colActions}></div>
-        </div>
-        {items.map(item => (
-          editingId === item.id ? (
-            <div key={item.id} className={styles.editRow}>
-              <input
-                type="text"
-                value={formData.source || ''}
-                onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                placeholder="Source"
-                className={styles.editInput}
-              />
-              <input
-                type="date"
-                value={formData.expected_date || ''}
-                onChange={(e) => setFormData({ ...formData, expected_date: e.target.value })}
-                className={styles.editInput}
-              />
-              <input
-                type="number"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                placeholder="Amount"
-                className={styles.editInput}
-              />
-              <input
-                type="text"
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notes"
-                className={styles.editInput}
-              />
-              <div className={styles.editActions}>
-                <button onClick={() => handleUpdate(item.id)} className={styles.saveBtn}>✓</button>
-                <button onClick={cancelEdit} className={styles.cancelBtn}>×</button>
+      <article
+        key={item.id}
+        className={`${styles.itemCard} ${isMetaExpanded ? styles.itemCardExpanded : ""}`}
+      >
+        {canRevealMeta ? (
+          <button
+            type="button"
+            className={styles.itemToggle}
+            onClick={() => toggleExpandedMeta(detailId)}
+            aria-expanded={isMetaExpanded}
+          >
+            <div className={styles.itemMain}>
+              <div className={styles.itemLine}>
+                <span className={styles.itemTitle}>{options.title}</span>
+                <span className={styles.itemMeta}>{options.meta}</span>
+                <span className={styles.mobileReveal}>
+                  {isMetaExpanded ? "Hide" : "Details"}
+                </span>
               </div>
             </div>
-          ) : (
-            <div key={item.id} className={styles.tableRow}>
-              <div className={styles.colSource}>{item.source}</div>
-              <div className={styles.colDate}>{formatDate(item.expected_date)}</div>
-              <div className={styles.colAmount}>${item.amount?.toLocaleString()}</div>
-              <div className={styles.colNotes}>{item.notes || '—'}</div>
-              <div className={styles.colActions}>
-                <button onClick={() => startEdit(item)} className={styles.editBtn}>✏️</button>
-                <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn}>🗑️</button>
-              </div>
-            </div>
-          )
-        ))}
-        {showAddForm && (
-          <div className={styles.addRow}>
-            <input
-              type="text"
-              value={formData.source || ''}
-              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-              placeholder="Who's paying you?"
-              className={styles.editInput}
-              autoFocus
-            />
-            <input
-              type="date"
-              value={formData.expected_date || ''}
-              onChange={(e) => setFormData({ ...formData, expected_date: e.target.value })}
-              className={styles.editInput}
-            />
-            <input
-              type="number"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              placeholder="Amount"
-              className={styles.editInput}
-            />
-            <input
-              type="text"
-              value={formData.notes || ''}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Notes (optional)"
-              className={styles.editInput}
-            />
-            <div className={styles.editActions}>
-              <button onClick={handleAdd} className={styles.saveBtn}>✓</button>
-              <button onClick={cancelAdd} className={styles.cancelBtn}>×</button>
+          </button>
+        ) : (
+          <div className={styles.itemMain}>
+            <div className={styles.itemLine}>
+              <span className={styles.itemTitle}>{options.title}</span>
             </div>
           </div>
         )}
-        <div className={styles.totalRow}>
-          <div className={styles.totalLabel}>Total Expected</div>
-          <div className={styles.totalAmount}>${calculateTotal(items).toLocaleString()}</div>
+        <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
+        <div className={styles.rowActions}>
+          {options.canShift ? (
+            <>
+              <button
+                type="button"
+                className={styles.iconButton}
+                onClick={() => handleShift("up", item.id)}
+                aria-label="Move up"
+                title="Move up"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                className={styles.iconButton}
+                onClick={() => handleShift("down", item.id)}
+                aria-label="Move down"
+                title="Move down"
+              >
+                ↓
+              </button>
+            </>
+          ) : null}
+          <button type="button" className={styles.actionButton} onClick={() => startEdit(item)}>
+            <span className={styles.mobileIcon} aria-hidden="true">✎</span>
+            <span className={styles.buttonLabel}>Edit</span>
+          </button>
+          <button type="button" className={styles.deleteButton} onClick={() => handleDelete(item.id)}>
+            <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
+            <span className={styles.buttonLabel}>Delete</span>
+          </button>
         </div>
-      </div>
-    )
-  }
-
-  const renderPayablesTable = () => {
-    const items = data.payables
-    return (
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
-          <div className={styles.colSource}>Pay To</div>
-          <div className={styles.colDate}>Due</div>
-          <div className={styles.colAmount}>Amount</div>
-          <div className={styles.colNotes}>Notes</div>
-          <div className={styles.colActions}></div>
-        </div>
-        {items.map(item => (
-          editingId === item.id ? (
-            <div key={item.id} className={styles.editRow}>
-              <input
-                type="text"
-                value={formData.source || ''}
-                onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                placeholder="Pay to"
-                className={styles.editInput}
-              />
-              <input
-                type="date"
-                value={formData.pay_date || ''}
-                onChange={(e) => setFormData({ ...formData, pay_date: e.target.value })}
-                className={styles.editInput}
-              />
-              <input
-                type="number"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                placeholder="Amount"
-                className={styles.editInput}
-              />
-              <input
-                type="text"
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notes"
-                className={styles.editInput}
-              />
-              <div className={styles.editActions}>
-                <button onClick={() => handleUpdate(item.id)} className={styles.saveBtn}>✓</button>
-                <button onClick={cancelEdit} className={styles.cancelBtn}>×</button>
-              </div>
-            </div>
-          ) : (
-            <div key={item.id} className={styles.tableRow}>
-              <div className={styles.colSource}>{item.source}</div>
-              <div className={styles.colDate}>{formatDate(item.pay_date)}</div>
-              <div className={styles.colAmount}>${item.amount?.toLocaleString()}</div>
-              <div className={styles.colNotes}>{item.notes || '—'}</div>
-              <div className={styles.colActions}>
-                <button onClick={() => startEdit(item)} className={styles.editBtn}>✏️</button>
-                <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn}>🗑️</button>
-              </div>
-            </div>
-          )
-        ))}
-        {showAddForm && (
-          <div className={styles.addRow}>
-            <input
-              type="text"
-              value={formData.source || ''}
-              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-              placeholder="Who to pay?"
-              className={styles.editInput}
-              autoFocus
-            />
-            <input
-              type="date"
-              value={formData.pay_date || ''}
-              onChange={(e) => setFormData({ ...formData, pay_date: e.target.value })}
-              className={styles.editInput}
-            />
-            <input
-              type="number"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              placeholder="Amount"
-              className={styles.editInput}
-            />
-            <input
-              type="text"
-              value={formData.notes || ''}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Notes (optional)"
-              className={styles.editInput}
-            />
-            <div className={styles.editActions}>
-              <button onClick={handleAdd} className={styles.saveBtn}>✓</button>
-              <button onClick={cancelAdd} className={styles.cancelBtn}>×</button>
-            </div>
+        {canRevealMeta && isMetaExpanded ? (
+          <div className={styles.itemDetail}>
+            <strong className={styles.itemDetailTitle}>{options.title}</strong>
+            <span className={styles.itemDetailText}>{options.meta}</span>
+            {options.completeAction ? (
+              <button
+                type="button"
+                className={styles.completeButton}
+                onClick={() => handleComplete(options.completeAction.table, item.id)}
+                disabled={isCompleting}
+              >
+                {isCompleting ? `${options.completeAction.label}...` : options.completeAction.label}
+              </button>
+            ) : null}
           </div>
-        )}
-        <div className={styles.totalRow}>
-          <div className={styles.totalLabel}>Total Owed</div>
-          <div className={styles.totalAmount}>${calculateTotal(items).toLocaleString()}</div>
-        </div>
-      </div>
-    )
-  }
+        ) : null}
+      </article>
+    );
+  };
 
-  const renderRecurringTable = () => {
-    return (
-      <div className={styles.recurringContainer}>
-        {RECURRING_TYPES.map(type => {
-          const items = getRecurringByType(type)
-          const typeColors = {
-            Family: '#ec4899',
-            Home: '#f59e0b', 
-            Personal: '#8b5cf6'
-          }
-          return (
-            <div key={type} className={styles.recurringSection}>
-              <div className={styles.recurringHeader} style={{ borderColor: typeColors[type] }}>
-                <span className={styles.recurringType}>{type}</span>
-                <span className={styles.recurringTotal}>${calculateTotal(items).toLocaleString()}/mo</span>
-              </div>
-              {items.map(item => (
-                editingId === item.id ? (
-                  <div key={item.id} className={styles.editRow}>
-                    <input
-                      type="text"
-                      value={formData.target || ''}
-                      onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-                      placeholder="Target"
-                      className={styles.editInput}
-                    />
-                    <select
-                      value={formData.type || type}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      className={styles.editSelect}
-                    >
-                      {RECURRING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                    <input
-                      type="number"
-                      value={formData.amount || ''}
-                      onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                      placeholder="Amount"
-                      className={styles.editInput}
-                    />
-                    <div className={styles.editActions}>
-                      <button onClick={() => handleUpdate(item.id)} className={styles.saveBtn}>✓</button>
-                      <button onClick={cancelEdit} className={styles.cancelBtn}>×</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div key={item.id} className={styles.recurringRow}>
-                    <div className={styles.recurringTarget}>{item.target}</div>
-                    <div className={styles.recurringAmount}>${item.amount?.toLocaleString()}</div>
-                    <div className={styles.colActions}>
-                      <button onClick={() => startEdit(item)} className={styles.editBtn}>✏️</button>
-                      <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn}>🗑️</button>
-                    </div>
-                  </div>
-                )
-              ))}
-            </div>
-          )
-        })}
-        {showAddForm && (
-          <div className={styles.addRow}>
-            <input
-              type="text"
-              value={formData.target || ''}
-              onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-              placeholder="What's the payment for?"
-              className={styles.editInput}
-              autoFocus
-            />
-            <select
-              value={formData.type || 'Personal'}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className={styles.editSelect}
-            >
-              {RECURRING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <input
-              type="number"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              placeholder="Monthly amount"
-              className={styles.editInput}
-            />
-            <div className={styles.editActions}>
-              <button onClick={handleAdd} className={styles.saveBtn}>✓</button>
-              <button onClick={cancelAdd} className={styles.cancelBtn}>×</button>
-            </div>
-          </div>
-        )}
-        <div className={styles.totalRow}>
-          <div className={styles.totalLabel}>Total Monthly</div>
-          <div className={styles.totalAmount}>${calculateTotal(data.recurring).toLocaleString()}/mo</div>
-        </div>
-      </div>
-    )
-  }
+  const renderStandardList = (items, mapper, canShift = false) => (
+    <div className={styles.cardList}>
+      {items.map((item) =>
+        renderItemCard(
+          item,
+          mapper(item, {
+            canShift,
+          })
+        )
+      )}
+      {items.length === 0 && <div className={styles.emptyState}>Nothing here yet.</div>}
+    </div>
+  );
 
-  const renderHeldMoneyTable = () => {
-    const items = data.heldMoney
-    return (
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
-          <div className={styles.colLocation}>For</div>
-          <div className={styles.colAmount}>Amount</div>
-          <div className={styles.colNotes}>Notes</div>
-          <div className={styles.colActions}></div>
-        </div>
-        {items.map(item => (
-          editingId === item.id ? (
-            <div key={item.id} className={styles.editRow}>
-              <input
-                type="text"
-                value={formData.person || ''}
-                onChange={(e) => setFormData({ ...formData, person: e.target.value })}
-                placeholder="Person"
-                className={styles.editInput}
-              />
-              <input
-                type="number"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                placeholder="Amount"
-                className={styles.editInput}
-              />
-              <input
-                type="text"
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notes"
-                className={styles.editInput}
-              />
-              <div className={styles.editActions}>
-                <button onClick={() => handleUpdate(item.id)} className={styles.saveBtn}>✓</button>
-                <button onClick={cancelEdit} className={styles.cancelBtn}>×</button>
-              </div>
-            </div>
-          ) : (
-            <div key={item.id} className={styles.tableRow}>
-              <div className={styles.colLocation}>{item.person}</div>
-              <div className={styles.colAmount}>${item.amount?.toLocaleString()}</div>
-              <div className={styles.colNotes}>{item.notes || '—'}</div>
-              <div className={styles.colActions}>
-                <button onClick={() => startEdit(item)} className={styles.editBtn}>✏️</button>
-                <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn}>🗑️</button>
-              </div>
-            </div>
-          )
-        ))}
-        {showAddForm && (
-          <div className={styles.addRow}>
-            <input
-              type="text"
-              value={formData.person || ''}
-              onChange={(e) => setFormData({ ...formData, person: e.target.value })}
-              placeholder="Holding for who?"
-              className={styles.editInput}
-              autoFocus
-            />
-            <input
-              type="number"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              placeholder="Amount"
-              className={styles.editInput}
-            />
-            <input
-              type="text"
-              value={formData.notes || ''}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Notes (optional)"
-              className={styles.editInput}
-            />
-            <div className={styles.editActions}>
-              <button onClick={handleAdd} className={styles.saveBtn}>✓</button>
-              <button onClick={cancelAdd} className={styles.cancelBtn}>×</button>
-            </div>
-          </div>
-        )}
-        {items.length === 0 && !showAddForm && (
-          <div className={styles.emptyRow}>
-            <span>No money held for others</span>
-          </div>
-        )}
-      </div>
-    )
-  }
+  const renderCurrentTab = () => {
+    if (activeTab === "current") {
+      return renderStandardList(data.currentMoney, (item) => ({
+        title: item.location,
+        meta: item.notes || "",
+        canShift: true,
+      }));
+    }
 
-  const renderMetalsTable = () => {
-    const { holdings, prices, values } = metals
+    if (activeTab === "expected") {
+      return renderStandardList(
+        data.expectedMoney,
+        (item) => ({
+          title: item.source,
+          meta: joinParts(formatDate(item.expected_date), item.notes),
+          detailId: `expectedMoney:${item.id}`,
+          canShift: true,
+          completeAction: {
+            table: "expectedMoney",
+            label: "Received",
+          },
+        }),
+        true
+      );
+    }
+
+    if (activeTab === "payables") {
+      return renderStandardList(
+        data.payables,
+        (item) => ({
+          title: item.source,
+          meta: joinParts(formatDate(item.pay_date), item.notes),
+          detailId: `payables:${item.id}`,
+          canShift: true,
+          completeAction: {
+            table: "payables",
+            label: "Paid",
+          },
+        }),
+        true
+      );
+    }
+
+    if (activeTab === "held") {
+      return renderStandardList(data.heldMoney, (item) => ({
+        title: item.person,
+        meta: joinParts(item.notes, item.created_at ? formatDate(item.created_at.slice(0, 10)) : ""),
+      }));
+    }
+
+    if (activeTab === "recurring") {
+      return (
+        <div className={styles.groupList}>
+          {recurringTypes.map((type) => (
+            <section key={type} className={styles.groupCard}>
+              <div className={styles.groupHeader}>
+                <h3 className={styles.groupTitle}>
+                  {type} · ${formatMoney(recurringByType[type].reduce((sum, item) => sum + (item.amount || 0), 0))}/mo
+                </h3>
+              </div>
+
+              <div className={styles.groupRows}>
+                {recurringByType[type]
+                  .filter((item) => item.id !== editingId)
+                  .map((item) => (
+                    <article key={item.id} className={styles.groupRow}>
+                      <div className={styles.itemMain}>
+                        <div className={styles.itemLine}>
+                          <span className={styles.itemTitle}>{item.target}</span>
+                        </div>
+                      </div>
+                      <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
+                      <div className={styles.rowActions}>
+                        <button
+                          type="button"
+                          className={styles.actionButton}
+                          onClick={() => startEdit(item)}
+                        >
+                          <span className={styles.mobileIcon} aria-hidden="true">✎</span>
+                          <span className={styles.buttonLabel}>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
+                          <span className={styles.buttonLabel}>Delete</span>
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                {recurringByType[type].length === 0 && (
+                  <div className={styles.emptyState}>No items.</div>
+                )}
+              </div>
+            </section>
+          ))}
+        </div>
+      );
+    }
+
     return (
-      <div className={styles.metalsContainer}>
+      <section className={styles.metalsCard}>
         <div className={styles.metalsHeader}>
-          <span className={styles.metalsTitle}>Precious Metals Holdings</span>
-          {!metalsEditing ? (
-            <button onClick={() => setMetalsEditing(true)} className={styles.editMetalsBtn}>
-              ✏️ Edit Holdings
-            </button>
-          ) : (
-            <div className={styles.editActions}>
-              <button onClick={handleMetalsUpdate} className={styles.saveBtn}>✓</button>
-              <button onClick={() => { setMetalsEditing(false); setMetalsForm(holdings); }} className={styles.cancelBtn}>×</button>
-            </div>
-          )}
+          <h2 className={styles.metalsValue}>${formatMoney(metals.values.total || 0)}</h2>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={handleRefreshLivePrices}
+            disabled={refreshingLivePrices}
+          >
+            {refreshingLivePrices ? "Refreshing..." : "Refresh live prices"}
+          </button>
         </div>
 
-        {/* Price Editor - shows when editing prices */}
+        <div className={styles.metalsRows}>
+          {[
+            {
+              label: "Gold 24K",
+              quantityKey: "gold_24k_grams",
+              quantitySuffix: "g",
+              price: metals.prices.gold_24k_per_gram,
+              value: metals.values.gold_24k,
+            },
+            {
+              label: "Gold 21K",
+              quantityKey: "gold_21k_grams",
+              quantitySuffix: "g",
+              price: metals.prices.gold_21k_per_gram,
+              value: metals.values.gold_21k,
+            },
+            {
+              label: "Silver",
+              quantityKey: "silver_kg",
+              quantitySuffix: "kg",
+              price: metals.prices.silver_per_kg,
+              value: metals.values.silver,
+            },
+          ].map((metal) => (
+            <div
+              key={metal.label}
+              className={`${styles.metalRow} ${
+                expandedMetaIds.includes(`metal:${metal.quantityKey}`) ? styles.itemCardExpanded : ""
+              }`}
+            >
+              <button
+                type="button"
+                className={styles.itemToggle}
+                onClick={() => toggleExpandedMeta(`metal:${metal.quantityKey}`)}
+                aria-expanded={expandedMetaIds.includes(`metal:${metal.quantityKey}`)}
+              >
+                <div className={styles.itemMain}>
+                  <div className={styles.itemLine}>
+                    <span className={styles.itemTitle}>{metal.label}</span>
+                    <span className={styles.itemMeta}>${metal.price?.toFixed(2)} / {metal.quantitySuffix}</span>
+                    <span className={styles.mobileReveal}>
+                      {expandedMetaIds.includes(`metal:${metal.quantityKey}`) ? "Hide" : "Details"}
+                    </span>
+                  </div>
+                </div>
+              </button>
+              {metalsEditing ? (
+                <input
+                  type="number"
+                  className={styles.inlineInput}
+                  step="0.01"
+                  value={metalsForm[metal.quantityKey] || ""}
+                  onChange={(event) =>
+                    setMetalsForm({
+                      ...metalsForm,
+                      [metal.quantityKey]: parseFloat(event.target.value) || 0,
+                    })
+                  }
+                />
+              ) : (
+                <span className={styles.itemMetaValue}>
+                  {(metals.holdings[metal.quantityKey] || 0).toFixed(2)}
+                  {metal.quantitySuffix}
+                </span>
+              )}
+              <strong className={styles.itemAmount}>${formatMoney(metal.value || 0)}</strong>
+              {expandedMetaIds.includes(`metal:${metal.quantityKey}`) ? (
+                <div className={styles.itemDetail}>
+                  <strong className={styles.itemDetailTitle}>{metal.label}</strong>
+                  <span className={styles.itemDetailText}>
+                    ${metal.price?.toFixed(2)} / {metal.quantitySuffix}
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+
+        <div className={styles.cardActions}>
+          {!metalsEditing ? (
+            <button type="button" className={styles.actionButton} onClick={() => setMetalsEditing(true)}>
+              Edit holdings
+            </button>
+          ) : (
+            <>
+              <button type="button" className={styles.actionButton} onClick={handleMetalsUpdate}>
+                Save holdings
+              </button>
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={() => {
+                  setMetalsEditing(false);
+                  setMetalsForm(metals.holdings);
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          )}
+          {!pricesEditing ? (
+            <button type="button" className={styles.actionButton} onClick={() => setPricesEditing(true)}>
+              Manual prices
+            </button>
+          ) : null}
+        </div>
+
         {pricesEditing && (
-          <div className={styles.priceEditorBox}>
-            <div className={styles.priceInputRow}>
-              <label>Gold ($/oz)</label>
+          <div className={styles.formCard}>
+            <div className={styles.formGrid}>
               <input
                 type="number"
-                value={pricesForm.gold_per_oz || ''}
-                onChange={(e) => setPricesForm({ ...pricesForm, gold_per_oz: parseFloat(e.target.value) || 0 })}
-                className={styles.priceInputLarge}
-                step="1"
-                placeholder="2650"
+                className={styles.formInput}
+                placeholder="Gold per oz"
+                value={pricesForm.gold_per_oz || ""}
+                onChange={(event) =>
+                  setPricesForm({ ...pricesForm, gold_per_oz: parseFloat(event.target.value) || 0 })
+                }
               />
-            </div>
-            <div className={styles.priceInputRow}>
-              <label>Silver ($/kg)</label>
               <input
                 type="number"
-                value={pricesForm.silver_per_kg || ''}
-                onChange={(e) => setPricesForm({ ...pricesForm, silver_per_kg: parseFloat(e.target.value) || 0 })}
-                className={styles.priceInputLarge}
-                step="1"
-                placeholder="950"
+                className={styles.formInput}
+                placeholder="Silver per kg"
+                value={pricesForm.silver_per_kg || ""}
+                onChange={(event) =>
+                  setPricesForm({ ...pricesForm, silver_per_kg: parseFloat(event.target.value) || 0 })
+                }
               />
             </div>
-            <div className={styles.priceCalcPreview}>
-              <span>24K: ${(pricesForm.gold_per_oz / 31.1035).toFixed(2)}/g</span>
-              <span>21K: ${((pricesForm.gold_per_oz / 31.1035) * 0.875).toFixed(2)}/g</span>
+            <div className={styles.formActions}>
+              <button type="button" className={styles.primaryButton} onClick={handleManualPricesUpdate}>
+                Save prices
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => {
+                  setPricesEditing(false);
+                  setPricesForm({
+                    gold_per_oz: Math.round((metals.prices.gold_24k_per_gram || 85) * 31.1035),
+                    silver_per_kg: metals.prices.silver_per_kg || 950,
+                  });
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}
 
-        <div className={styles.metalRows}>
-          {/* Gold 24K */}
-          <div className={styles.metalRow}>
-            <div className={styles.metalInfo}>
-              <span className={styles.metalIcon}>🥇</span>
-              <div className={styles.metalDetails}>
-                <span className={styles.metalName}>Gold 24K</span>
-                <span className={styles.metalPrice}>${prices.gold_24k_per_gram?.toFixed(2)}/gram</span>
-              </div>
-            </div>
-            {metalsEditing ? (
-              <input
-                type="number"
-                value={metalsForm.gold_24k_grams || ''}
-                onChange={(e) => setMetalsForm({ ...metalsForm, gold_24k_grams: parseFloat(e.target.value) || 0 })}
-                placeholder="0"
-                className={styles.metalInput}
-                step="0.01"
-              />
-            ) : (
-              <span className={styles.metalGrams}>{holdings.gold_24k_grams?.toFixed(2)}g</span>
-            )}
-            <span className={styles.metalValue}>${values.gold_24k?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-          </div>
-
-          {/* Gold 21K */}
-          <div className={styles.metalRow}>
-            <div className={styles.metalInfo}>
-              <span className={styles.metalIcon}>🏅</span>
-              <div className={styles.metalDetails}>
-                <span className={styles.metalName}>Gold 21K</span>
-                <span className={styles.metalPrice}>${prices.gold_21k_per_gram?.toFixed(2)}/gram</span>
-              </div>
-            </div>
-            {metalsEditing ? (
-              <input
-                type="number"
-                value={metalsForm.gold_21k_grams || ''}
-                onChange={(e) => setMetalsForm({ ...metalsForm, gold_21k_grams: parseFloat(e.target.value) || 0 })}
-                placeholder="0"
-                className={styles.metalInput}
-                step="0.01"
-              />
-            ) : (
-              <span className={styles.metalGrams}>{holdings.gold_21k_grams?.toFixed(2)}g</span>
-            )}
-            <span className={styles.metalValue}>${values.gold_21k?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-          </div>
-
-          {/* Silver */}
-          <div className={styles.metalRow}>
-            <div className={styles.metalInfo}>
-              <span className={styles.metalIcon}>🥈</span>
-              <div className={styles.metalDetails}>
-                <span className={styles.metalName}>Silver</span>
-                <span className={styles.metalPrice}>${prices.silver_per_kg?.toFixed(2)}/kg</span>
-              </div>
-            </div>
-            {metalsEditing ? (
-              <input
-                type="number"
-                value={metalsForm.silver_kg || ''}
-                onChange={(e) => setMetalsForm({ ...metalsForm, silver_kg: parseFloat(e.target.value) || 0 })}
-                placeholder="0"
-                className={styles.metalInput}
-                step="0.01"
-              />
-            ) : (
-              <span className={styles.metalGrams}>{holdings.silver_kg?.toFixed(2)}kg</span>
-            )}
-            <span className={styles.metalValue}>${values.silver?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-          </div>
-        </div>
-
-        <div className={styles.metalsTotalRow}>
-          <span className={styles.metalsTotalLabel}>Total Metal Value</span>
-          <span className={styles.metalsTotalValue}>${values.total?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-        </div>
-
-        <div className={styles.pricesFooter}>
-          {!pricesEditing ? (
-            <button onClick={() => setPricesEditing(true)} className={styles.editPricesBtn}>
-              💰 Manual Prices
-            </button>
-          ) : (
-            <div className={styles.priceEditActions}>
-              <button onClick={handlePricesUpdate} className={styles.saveBtn}>✓ Save Prices</button>
-              <button onClick={() => { setPricesEditing(false); setPricesForm(prices); }} className={styles.cancelBtn}>× Cancel</button>
-            </div>
-          )}
-          {!pricesEditing && (
-            <span className={styles.pricesUpdatedText}>
-              {prices.source === 'goldprice.org' && '🌐 '}
-              {prices.source === 'cached' && '💾 '}
-              {prices.source === 'default' && '📊 '}
-              {prices.last_updated 
-                ? `Updated: ${new Date(prices.last_updated).toLocaleString()}`
-                : 'Using default prices'
-              }
-              {prices.source === 'goldprice.org' && ' (live)'}
-            </span>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  const renderActiveTable = () => {
-    switch (activeTab) {
-      case 'current': return renderCurrentMoneyTable()
-      case 'metals': return renderMetalsTable()
-      case 'expected': return renderExpectedMoneyTable()
-      case 'payables': return renderPayablesTable()
-      case 'recurring': return renderRecurringTable()
-      case 'held': return renderHeldMoneyTable()
-      default: return null
-    }
-  }
+        <p className={styles.footerMeta}>
+          Last metal refresh:{" "}
+          {metals.prices.last_updated
+            ? new Date(metals.prices.last_updated).toLocaleString()
+            : "manual only so far"}
+        </p>
+      </section>
+    );
+  };
 
   if (loading) {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner}></div>
       </div>
-    )
+    );
   }
 
-  const activeTabData = TABS.find(t => t.id === activeTab)
+  const activeTabMeta = tabs.find((tab) => tab.id === activeTab);
+  const canAdd = activeTab !== "metals";
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.logo}>Accounts</h1>
-          <button className={styles.menuBtn} onClick={() => router.push('/lifestyle')}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
-        <div className={styles.summary}>
-          <div className={styles.summaryItem}>
+        <h1 className={styles.title}>Accounts</h1>
+
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Cash</span>
-            <span className={styles.summaryValue} style={{ color: '#10b981' }}>
-              ${calculateTotal(data.currentMoney).toLocaleString()}
-            </span>
+            <strong>${formatMoney(summary.cash)}</strong>
           </div>
-          <div className={styles.summaryDivider}>|</div>
-          <div className={styles.summaryItem}>
+          <div className={styles.summaryCard}>
+            <span className={styles.summaryLabel}>Expected</span>
+            <strong>${formatMoney(summary.expected)}</strong>
+          </div>
+          <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Metals</span>
-            <span className={styles.summaryValue} style={{ color: '#d97706' }}>
-              ${(metals.values?.total || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </span>
+            <strong>${formatMoney(summary.metals)}</strong>
           </div>
-          <div className={styles.summaryDivider}>|</div>
-          <div className={styles.summaryItem}>
+          <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Owe</span>
-            <span className={styles.summaryValue} style={{ color: '#ef4444' }}>
-              ${calculateTotal(data.payables).toLocaleString()}
-            </span>
+            <strong>${formatMoney(summary.owe)}</strong>
           </div>
         </div>
       </header>
 
-      {/* Tabs */}
       <div className={styles.tabs}>
-        {TABS.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`${styles.tab} ${activeTab === tab.id ? styles.activeTab : ''}`}
-            onClick={() => {
-              setActiveTab(tab.id)
-              setEditingId(null)
-              setShowAddForm(false)
-              setFormData({})
-            }}
-            style={activeTab === tab.id ? { borderColor: tab.color, color: tab.color } : {}}
+            type="button"
+            className={`${styles.tabButton} ${activeTab === tab.id ? styles.activeTab : ""}`}
+            onClick={() => selectTab(tab.id)}
           >
-            <span className={styles.tabIcon}>{tab.icon}</span>
-            <span className={styles.tabName}>{tab.name}</span>
+            <span>{tab.name}</span>
           </button>
         ))}
       </div>
 
-      {/* Active Table */}
-      <section className={styles.tableSection}>
-        <div className={styles.tableTitle}>
-          <span style={{ color: activeTabData?.color }}>{activeTabData?.icon}</span>
-          <span>{activeTabData?.name}</span>
-          {activeTab !== 'metals' && (
-            <button onClick={startAdd} className={styles.addButton}>+ Add</button>
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>{activeTabMeta?.name}</h2>
+
+          {canAdd && (
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => {
+                setShowAddForm(true);
+                setEditingId(null);
+                resetForm();
+              }}
+            >
+              Add
+            </button>
           )}
         </div>
-        {renderActiveTable()}
+
+        {renderForm()}
+        {renderCurrentTab()}
       </section>
 
-      {/* Bottom Navigation */}
-      <nav className={styles.bottomNav}>
-        <button className={styles.navItem} onClick={() => router.push('/dashboard')}>
-          <span className={styles.navIcon}>🏠</span>
-          <span>Home</span>
-        </button>
-        <button className={`${styles.navItem} ${styles.active}`}>
-          <span className={styles.navIcon}>💰</span>
-          <span>Accounts</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/lifestyle')}>
-          <span className={styles.navIcon}>🌙</span>
-          <span>Lifestyle</span>
-        </button>
-        <button className={styles.navItem} onClick={() => router.push('/analytics')}>
-          <span className={styles.navIcon}>📊</span>
-          <span>Analytics</span>
-        </button>
-      </nav>
+      <BottomNav active="accounts" />
     </div>
-  )
+  );
 }
-

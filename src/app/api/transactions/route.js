@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getAllTransactions, addTransaction, getTransactionsByDateRange } from '@/lib/db';
+import {
+  getAllTransactions,
+  addTransaction,
+  getTransactionsByDateRange,
+  bulkDeleteTransactions,
+} from '@/lib/db';
 
 export async function GET(request) {
   if (!(await isAuthenticated())) {
@@ -33,7 +38,7 @@ export async function POST(request) {
 
   try {
     const data = await request.json();
-    const { amount, category, type, notes, date } = data;
+    const { amount, category, type, scope, notes, date, created_at } = data;
 
     if (!amount || !category || !type || !date) {
       return NextResponse.json(
@@ -42,7 +47,15 @@ export async function POST(request) {
       );
     }
 
-    const result = addTransaction({ amount: parseFloat(amount), category, type, notes, date });
+    const result = addTransaction({
+      amount: parseFloat(amount),
+      category,
+      type,
+      scope,
+      notes,
+      date,
+      created_at,
+    });
     return NextResponse.json({ success: true, id: result.lastInsertRowid });
   } catch (error) {
     console.error('Error adding transaction:', error);
@@ -50,3 +63,22 @@ export async function POST(request) {
   }
 }
 
+export async function PATCH(request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { action, ids } = await request.json();
+
+    if (action !== 'bulkDelete' || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'Invalid bulk action' }, { status: 400 });
+    }
+
+    bulkDeleteTransactions(ids.map((id) => Number(id)).filter(Boolean));
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error applying bulk transaction action:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

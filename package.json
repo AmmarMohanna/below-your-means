@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src",
     "db:init": "node scripts/init-db.js"
   },
   "dependencies": {

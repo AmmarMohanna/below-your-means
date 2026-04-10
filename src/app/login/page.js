@@ -39,7 +39,6 @@ export default function Login() {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.logo}>BelowYourMeans</h1>
-        <p className={styles.tagline}>Personal expense tracking</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <input

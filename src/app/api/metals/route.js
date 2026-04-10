@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { isAuthenticated } from '@/lib/auth';
 import { getMetals, updateMetals, updateMetalPrices } from '@/lib/db';
 
 // GET metals data with stored prices (no external API calls)
 export async function GET() {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -27,7 +25,7 @@ export async function GET() {
       gold_21k_per_gram: metals.gold_21k_price_per_gram || 74.4,
       silver_per_kg: metals.silver_price_per_kg || 950,
       last_updated: metals.prices_fetched_at || metals.updated_at,
-      source: 'manual'
+      source: metals.prices_fetched_at ? 'gold-api.com' : 'manual'
     };
     
     // Calculate totals
@@ -58,8 +56,7 @@ export async function GET() {
 
 // PUT update metals holdings
 export async function PUT(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -82,20 +79,24 @@ export async function PUT(request) {
 
 // PATCH update metal prices manually
 export async function PATCH(request) {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const body = await request.json();
-    const { gold_24k_price_per_gram, gold_21k_price_per_gram, silver_price_per_kg } = body;
+    const {
+      gold_24k_price_per_gram,
+      gold_21k_price_per_gram,
+      silver_price_per_kg,
+      fromApi = false,
+    } = body;
     
     updateMetalPrices({
       gold_24k_price_per_gram: gold_24k_price_per_gram || 85,
       gold_21k_price_per_gram: gold_21k_price_per_gram || 74.4,
       silver_price_per_kg: silver_price_per_kg || 950,
-      fromApi: true
+      fromApi,
     });
 
     return NextResponse.json({ success: true });

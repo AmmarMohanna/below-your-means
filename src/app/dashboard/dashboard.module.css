@@ -1,17 +1,14 @@
 .container {
   min-height: 100vh;
-  max-width: 500px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
-  background: var(--bg);
-  padding-bottom: 80px;
+  padding: 20px var(--page-gutter) var(--page-bottom-space);
 }
 
 .loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  place-items: center;
   min-height: 100vh;
-  background: var(--bg);
 }
 
 .spinner {
@@ -19,448 +16,720 @@
   height: 32px;
   border: 3px solid var(--border);
   border-top-color: var(--primary);
-  border-radius: 50%;
+  border-radius: 999px;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Header */
 .header {
-  padding: 16px 20px;
-  background: var(--bg);
-}
-
-.headerContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-style: italic;
-}
-
-.menuBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-}
-
-.menuBtn span {
-  width: 20px;
-  height: 2px;
-  background: var(--text-primary);
-  border-radius: 1px;
-}
-
-.monthInfo {
-  margin-top: 8px;
-}
-
-.monthTotal {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-right: 8px;
-}
-
-.monthName {
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-/* Add Form */
-.addForm {
-  background: var(--card-bg);
-  margin: 0 16px;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 2px solid var(--border);
-}
-
-.categorySelect {
-  margin-bottom: 12px;
-}
-
-.select {
-  width: 100%;
-  padding: 16px 18px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  background: var(--card-bg);
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230d9488' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-}
-
-.descInput {
-  width: 100%;
-  padding: 16px 18px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-  background: var(--card-bg);
-  margin-bottom: 12px;
-}
-
-.descInput::placeholder {
-  color: var(--text-secondary);
-}
-
-.amountRow {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.dateBtn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 18px;
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  min-width: 80px;
-  position: relative;
-  overflow: hidden;
-}
-
-.dateBtnLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-transform: uppercase;
-}
-
-.dateBtnValue {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.dateInput {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  background: transparent;
-  border: none;
-  text-align: center;
-  width: 100%;
-  max-width: 100px;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  padding: 0;
-}
-
-.dateInput::-webkit-calendar-picker-indicator {
-  background: transparent;
-  cursor: pointer;
-}
-
-.dateInput::-webkit-date-and-time-value {
-  text-align: center;
-}
-
-.amountInput {
-  flex: 1;
-  padding: 16px 18px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-align: center;
-  color: var(--text-primary);
-  background: var(--card-bg);
-  min-width: 0;
-}
-
-.amountInput::placeholder {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.currency {
-  padding: 14px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.addBtn {
-  width: 52px;
-  height: 52px;
-  border: none;
-  border-radius: 12px;
-  background: var(--accent);
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 300;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.addBtn:hover:not(:disabled) {
-  background: var(--primary-dark);
-  transform: scale(1.02);
-}
-
-.addBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Today Section */
-.todaySection {
-  margin: 20px 16px;
-}
-
-.todayHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  gap: 16px;
   margin-bottom: 16px;
-}
-
-.todayTotal {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--primary);
-  display: block;
-}
-
-.todayTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 4px 0;
-}
-
-.todayDate {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--primary);
-}
-
-.dayNav {
-  display: flex;
-  gap: 8px;
-}
-
-.navBtn {
-  width: 40px;
-  height: 40px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  background: var(--card-bg);
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--primary);
-  transition: all 0.2s;
-}
-
-.navBtn:hover {
-  background: var(--primary-light);
-  border-color: var(--primary);
-}
-
-/* Transaction List */
-.transactionList {
-  background: var(--card-bg);
-  border-radius: 16px;
-  overflow: hidden;
-  border: 2px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.emptyState {
-  padding: 48px 24px;
+  justify-items: center;
   text-align: center;
 }
 
-.emptyIcon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 12px;
+.title {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
 
-.emptyState p {
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.emptyHint {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
-.transaction {
-  display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+.summaryStrip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
-.transaction:last-child {
-  border-bottom: none;
+.summaryChip {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #fbfffd, #daf0e8);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  text-align: center;
 }
 
-.transactionIcon {
-  font-size: 1.25rem;
-  width: 40px;
-  height: 40px;
-  background: var(--bg);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.summaryLabel {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
-.transactionInfo {
-  flex: 1;
+.summaryValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.entryCard {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.toggleBlock,
+.dateField,
+.amountField {
+  display: grid;
+  gap: 8px;
   min-width: 0;
 }
 
-.transactionNote {
-  display: block;
+.toggleLabel,
+.fieldLabel,
+.dateLabel {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
   font-weight: 600;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.segment {
+  min-height: 42px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--card-solid);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmentActive {
+  border-color: rgba(13, 148, 136, 0.3);
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.18), rgba(13, 148, 136, 0.12));
+  color: var(--primary-strong);
+}
+
+.textInput,
+.dateInput,
+.amountInput {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--field-bg);
   color: var(--text-primary);
   font-size: 1rem;
+}
+
+.dateInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--field-bg);
+  overflow: hidden;
+}
+
+.dateInputValue {
+  width: 100%;
+  padding-right: 14px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.transactionCategory {
-  display: block;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-weight: 500;
-  margin-top: 2px;
+.dateInputIcon {
+  position: absolute;
+  right: 12px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  pointer-events: none;
 }
 
-.transactionAmount {
+.dateInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.textInput::placeholder,
+.amountInput::placeholder {
+  color: var(--text-muted);
+}
+
+.amountRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.amountRow > * {
+  min-width: 0;
+}
+
+.amountInputWrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--field-bg);
+  cursor: text;
+}
+
+.currency {
+  color: var(--text-muted);
+  font-size: 0.8rem;
   font-weight: 600;
+}
+
+.amountInput {
+  min-height: auto;
+  padding-right: 0;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.saveButton {
+  min-width: 104px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(15, 159, 141, 0.24);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reminderPanel {
+  margin-bottom: 16px;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.reminderPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.reminderPanelTitle {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.enableAlertsBtn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  background: #fff;
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reminderList {
+  display: grid;
+  gap: 6px;
+}
+
+.reminderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.reminderItemTitle {
+  color: #78350f;
+  font-size: 0.88rem;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.reminderActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.reminderDoneBtn,
+.reminderPauseBtn {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  background: #fff;
+  color: #92400e;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.daySection {
+  display: grid;
+  gap: 12px;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dayTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.dayActions {
+  display: flex;
+  gap: 8px;
+}
+
+.navButton {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--card-solid);
+  color: var(--text-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.daySummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dayMetric,
+.selectionToggle,
+.bulkBar {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+}
+
+.dayMetric {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.dayMetric strong {
   font-size: 1rem;
 }
 
-.transactionAmount.expense {
+.metricLabel {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.incomeMetric strong {
+  color: var(--primary-strong);
+}
+
+.selectionToggle {
+  padding: 0 14px;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--card-solid);
+}
+
+.bulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.bulkDeleteButton {
+  min-height: 38px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--danger-light);
+  color: var(--danger);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bulkDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.transactionList {
+  display: grid;
+  gap: 10px;
+}
+
+.emptyState {
+  padding: 22px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+.transactionCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.transactionCardExpanded {
+  border-color: rgba(15, 118, 110, 0.2);
+}
+
+.transactionLeading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transactionIcon,
+.selectCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.transactionIcon {
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.selectCircle {
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: transparent;
+  cursor: pointer;
+}
+
+.selectCircleActive {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.transactionToggle {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.transactionToggle:disabled {
+  cursor: default;
+}
+
+.transactionBody {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transactionTitle {
+  min-width: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transactionReveal {
+  display: none;
+  flex-shrink: 0;
+  color: var(--primary-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.transactionAmount {
+  white-space: nowrap;
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.amountExpense {
   color: var(--text-primary);
 }
 
-.transactionAmount.income {
-  color: var(--primary);
+.amountIncome {
+  color: var(--primary-strong);
 }
 
-.deleteBtn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: none;
+.transactionDetail {
+  grid-column: 1 / -1;
+  padding-top: 2px;
   color: var(--text-muted);
-  font-size: 1.25rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-  opacity: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
 }
 
-.transaction:hover .deleteBtn {
-  opacity: 1;
+.transactionDetail strong,
+.transactionDetail span {
+  display: block;
 }
 
-.deleteBtn:hover {
-  background: var(--danger-light);
-  color: var(--danger);
+.transactionDetail strong {
+  color: var(--text-primary);
 }
 
-/* Bottom Navigation */
-.bottomNav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-around;
-  padding: 12px 0;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 8px 16px;
-  transition: color 0.2s;
-  border-radius: 8px;
-}
-
-.navItem.active {
-  color: var(--primary);
-  background: var(--primary-light);
-}
-
-.navItem:hover {
-  color: var(--primary);
-}
-
-.navIcon {
-  font-size: 1.4rem;
-}
-
-/* Mobile adjustments */
-@media (max-width: 400px) {
+@media (max-width: 760px) {
   .amountRow {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr 1fr;
   }
-  
-  .dateBtn {
-    order: -1;
-    flex: 0 0 100%;
-    margin-bottom: 8px;
-    flex-direction: row;
+
+  .saveButton {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .daySummary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .selectionToggle {
+    min-height: 44px;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .amountRow {
+    grid-template-columns: 1fr;
+  }
+
+  .reminderItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reminderActions {
+    justify-content: flex-end;
+  }
+
+  .transactionCard {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .container {
+    padding-inline: 12px;
+  }
+
+  .summaryStrip {
     gap: 8px;
-    justify-content: center;
+  }
+
+  .summaryChip {
+    padding: 12px 10px;
+    border-radius: 16px;
+  }
+
+  .summaryLabel {
+    font-size: 0.72rem;
+  }
+
+  .summaryValue {
+    font-size: 0.96rem;
+  }
+
+  .entryCard {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .amountRow {
+    gap: 8px;
+  }
+
+  .dateInput {
+    font-size: 16px;
+  }
+
+  .dateInputWrap {
+    padding-inline: 10px;
+  }
+
+  .dateInputValue {
+    font-size: 0.9rem;
+  }
+
+  .dayHeader {
+    gap: 8px;
+  }
+
+  .dayTitle {
+    min-width: 0;
+    font-size: 0.98rem;
+  }
+
+  .dayActions {
+    gap: 6px;
+  }
+
+  .navButton {
+    width: 34px;
+    height: 34px;
+  }
+
+  .daySummary {
+    gap: 8px;
+  }
+
+  .dayMetric {
+    padding: 10px 8px;
+  }
+
+  .dayMetric strong {
+    font-size: 0.92rem;
+  }
+
+  .metricLabel {
+    font-size: 0.68rem;
+  }
+
+  .selectionToggle {
+    padding-inline: 10px;
+    font-size: 0.82rem;
+  }
+
+  .transactionList {
+    gap: 8px;
+  }
+
+  .transactionCard {
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 15px;
+  }
+
+  .transactionIcon,
+  .selectCircle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.82rem;
+  }
+
+  .transactionTitle {
+    font-size: 0.9rem;
+  }
+
+  .transactionAmount {
+    font-size: 0.88rem;
+  }
+
+  .transactionReveal {
+    display: inline;
+  }
+
+  .transactionDetail {
+    font-size: 0.78rem;
   }
 }
