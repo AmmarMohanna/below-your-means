@@ -2,9 +2,9 @@ name: CI and Deploy
 
 on:
   pull_request:
-    branches: [codex-ux-hardening-iphone17]
+    branches: [main]
   push:
-    branches: [codex-ux-hardening-iphone17]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
     name: Deploy to Hetzner
     needs: ci
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/codex-ux-hardening-iphone17'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: production
     concurrency:
       group: production-deploy
@@ -56,4 +56,4 @@ jobs:
 
             cd "$APP_DIR"
             git fetch --prune origin
-            bash scripts/deploy-safe.sh "$APP_DIR" "origin/codex-ux-hardening-iphone17"
+            bash scripts/deploy-safe.sh "$APP_DIR" "origin/main"

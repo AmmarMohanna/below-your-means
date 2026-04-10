@@ -227,8 +227,8 @@ ssh root@YOUR_SERVER_IP "cd ~/below-your-means && docker compose restart"
 This repo includes two GitHub Actions workflows:
 
 - `.github/workflows/ci-cd.yml`
-  - Runs lint + build on PRs and pushes to `codex-ux-hardening-iphone17`
-  - Deploys to Hetzner on `codex-ux-hardening-iphone17` pushes
+  - Runs lint + build on PRs and pushes to `main`
+  - Deploys to Hetzner on `main` pushes
 - `.github/workflows/backup-db.yml`
   - Runs a daily DB backup on your server
   - Can also be triggered manually
@@ -257,8 +257,8 @@ Make sure your server has the latest scripts at least once:
 ```bash
 ssh root@YOUR_SERVER_IP
 cd ~/below-your-means
-git checkout codex-ux-hardening-iphone17
-git pull --ff-only origin codex-ux-hardening-iphone17
+git checkout main
+git pull --ff-only origin main
 ```
 
 Before enabling deploys, verify the same key pair works outside GitHub Actions:
@@ -284,7 +284,7 @@ Every deploy runs `scripts/deploy-safe.sh`, which:
 ```bash
 ssh root@YOUR_SERVER_IP
 cd ~/below-your-means
-bash scripts/deploy-safe.sh "$PWD" "origin/codex-ux-hardening-iphone17"
+bash scripts/deploy-safe.sh "$PWD" "origin/main"
 ```
 
 ---
@@ -394,7 +394,7 @@ docker compose up -d --build
 | Stop | `docker compose down` |
 | Logs | `docker compose logs -f` |
 | Restart | `docker compose restart` |
-| Update (safe) | `bash scripts/deploy-safe.sh "$PWD" "origin/codex-ux-hardening-iphone17"` |
+| Update (safe) | `bash scripts/deploy-safe.sh "$PWD" "origin/main"` |
 | Backup | `bash scripts/backup-db.sh "$PWD"` |
 
 ---
