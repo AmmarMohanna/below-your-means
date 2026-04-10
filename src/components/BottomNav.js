@@ -8,7 +8,6 @@ const navItems = [
   { key: "dashboard", label: "Home", icon: "🏠", href: "/dashboard" },
   { key: "accounts", label: "Money", icon: "💰", href: "/accounts" },
   { key: "lifestyle", label: "Life", icon: "🌙", href: "/lifestyle" },
-  { key: "todo", label: "Todo", icon: "✅", href: "/todo" },
   { key: "settings", label: "Settings", icon: "⚙️", href: "/settings" },
 ];
 

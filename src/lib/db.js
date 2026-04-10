@@ -210,14 +210,6 @@ function initializeSchema() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS todo_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0, 1)),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       table_name TEXT NOT NULL,
@@ -238,7 +230,6 @@ function initializeSchema() {
     CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
     CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_reminders_active_due ON reminders(is_active, next_due_at);
-    CREATE INDEX IF NOT EXISTS idx_todo_completed_created ON todo_items(completed, created_at DESC);
   `);
 
   try {
@@ -889,45 +880,6 @@ export function resumeReminder(id) {
 
 export function deleteReminder(id) {
   return deleteRow('reminders', id);
-}
-
-// Todo operations
-export function getAllTodoItems() {
-  return getDb()
-    .prepare('SELECT * FROM todo_items ORDER BY completed ASC, created_at DESC, id DESC')
-    .all();
-}
-
-export function addTodoItem({ title }) {
-  return insertRow('todo_items', {
-    title,
-    completed: 0,
-    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
-  });
-}
-
-export function updateTodoItem(id, { title, completed }) {
-  const todo = getRowById('todo_items', id);
-  if (!todo) {
-    throw new Error('Todo item not found');
-  }
-
-  const completedValue =
-    completed === undefined
-      ? todo.completed
-      : completed === true || completed === 1 || completed === '1'
-        ? 1
-        : 0;
-
-  return updateRow('todo_items', id, {
-    title: title ?? todo.title,
-    completed: completedValue,
-    updated_at: getDb().prepare('SELECT CURRENT_TIMESTAMP AS now').get().now,
-  });
-}
-
-export function deleteTodoItem(id) {
-  return deleteRow('todo_items', id);
 }
 
 // Audit operations
