@@ -33,13 +33,9 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - Daily averages
 
 ### ⚙️ Settings & Data
-- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym, reminders, todo) as multi-sheet Excel file
+- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym, reminders) as multi-sheet Excel file
 - Password-protected access
 - Simple logout
-
-### ✅ Todo Page
-- Dedicated todo page for quick add/check/edit/delete
-- Clean mobile + desktop layout
 
 ### 📱 PWA Support
 - Install on iPhone/Android for native app experience
