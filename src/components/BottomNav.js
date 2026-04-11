@@ -15,7 +15,7 @@ export default function BottomNav({ active }) {
   const router = useRouter();
 
   return (
-    <nav className={styles.bottomNav}>
+    <nav className={styles.bottomNav} style={{ "--nav-item-count": navItems.length }}>
       {navItems.map((item) => (
         <button
           key={item.key}
