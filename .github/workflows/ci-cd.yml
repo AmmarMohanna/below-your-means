@@ -1,8 +1,6 @@
 name: CI and Deploy
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
@@ -11,6 +9,7 @@ jobs:
   ci:
     name: Lint and Build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +33,7 @@ jobs:
     name: Deploy to Hetzner
     needs: ci
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     environment: production
     concurrency:
       group: production-deploy

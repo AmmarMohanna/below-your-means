@@ -9,6 +9,7 @@ jobs:
   backup:
     name: Create SQLite Backup on Server
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     concurrency:
       group: production-backups
       cancel-in-progress: false

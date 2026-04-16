@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR="${1:-$PWD}"
-TARGET_REF="${2:-origin/codex-ux-hardening-iphone17}"
+TARGET_REF="${2:-origin/main}"
 TARGET_BRANCH="${3:-${TARGET_REF#origin/}}"
 PREV_SHA=""
 
