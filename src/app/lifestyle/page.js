@@ -18,7 +18,7 @@ const PRAYERS = [
 ];
 
 export default function Lifestyle() {
-  const [activeTab, setActiveTab] = useState("gym");
+  const [activeTab, setActiveTab] = useState("prayers");
   const [prayers, setPrayers] = useState({
     soboh: 0,
     dohor: 0,
