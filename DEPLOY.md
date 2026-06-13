@@ -1,4 +1,6 @@
-# 🚀 Secure Deployment Guide
+# 🚀 Legacy Hetzner Deployment Guide
+
+This file is the legacy VPS/Docker guide. The Cloudflare migration branch uses **[CLOUDFLARE.md](CLOUDFLARE.md)** for the current Worker and D1 deployment path.
 
 Complete guide for deploying BelowYourMeans securely to a Hetzner VPS (or any Linux server).
 

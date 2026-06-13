@@ -1,0 +1,4 @@
+APP_PASSWORD=changeme123
+SESSION_SECRET=replace-with-openssl-rand-hex-32
+NEXTJS_ENV=development
+SECURE_COOKIES=false

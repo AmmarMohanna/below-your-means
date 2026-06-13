@@ -19,9 +19,9 @@ export async function GET() {
   }
 
   try {
-    const prayers = getPrayers();
-    const gymPayments = getAllGymPayments();
-    const gymSessions = getAllGymSessions();
+    const prayers = await getPrayers();
+    const gymPayments = await getAllGymPayments();
+    const gymSessions = await getAllGymSessions();
 
     // Calculate remaining sessions
     const totalPaid = gymPayments.reduce((sum, p) => sum + p.sessions, 0);
@@ -55,10 +55,10 @@ export async function POST(request) {
 
     switch (type) {
       case "gymPayment":
-        addGymPayment(data);
+        await addGymPayment(data);
         break;
       case "gymSession":
-        addGymSession(data);
+        await addGymSession(data);
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });
@@ -85,9 +85,9 @@ export async function PUT(request) {
     const { type, prayer, delta, prayers } = body;
 
     if (type === "prayer" && prayer && delta !== undefined) {
-      updatePrayer(prayer, delta);
+      await updatePrayer(prayer, delta);
     } else if (type === "setPrayers" && prayers) {
-      setPrayers(prayers);
+      await setPrayers(prayers);
     } else {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
@@ -122,10 +122,10 @@ export async function DELETE(request) {
 
     switch (type) {
       case "gymPayment":
-        deleteGymPayment(id);
+        await deleteGymPayment(id);
         break;
       case "gymSession":
-        deleteGymSession(id);
+        await deleteGymSession(id);
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });

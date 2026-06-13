@@ -5,14 +5,14 @@ export async function POST(request) {
   try {
     const { password } = await request.json();
     
-    if (!verifyPassword(password)) {
+    if (!(await verifyPassword(password))) {
       return NextResponse.json(
         { error: 'Invalid password' },
         { status: 401 }
       );
     }
 
-    const sessionValue = createSessionValue();
+    const sessionValue = await createSessionValue();
     const cookieConfig = getSessionCookieConfig(sessionValue);
     
     const response = NextResponse.json({ success: true });
@@ -27,4 +27,3 @@ export async function POST(request) {
     );
   }
 }
-

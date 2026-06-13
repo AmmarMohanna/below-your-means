@@ -4,14 +4,25 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-lint",
+    "build": "next build",
     "start": "next start",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "d1:export-sql": "node scripts/export-d1-sql.js",
+    "d1:import:local": "npm run d1:export-sql && wrangler d1 execute below-your-means --local --file data/d1-import.sql",
+    "d1:import:remote": "npm run d1:export-sql && wrangler d1 execute below-your-means --remote --file data/d1-import.sql",
+    "d1:migrate:local": "wrangler d1 migrations apply below-your-means --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply below-your-means --remote",
     "lint": "eslint src",
-    "db:init": "node scripts/init-db.js"
+    "db:init": "npm run d1:migrate:local",
+    "seed:demo": "node scripts/seed-demo.js && wrangler d1 execute below-your-means --local --file data/d1-demo-seed.sql",
+    "seed:demo:remote": "node scripts/seed-demo.js && wrangler d1 execute below-your-means --remote --file data/d1-demo-seed.sql"
   },
   "dependencies": {
     "@fontsource/raleway": "^5.1.1",
-    "better-sqlite3": "^11.10.0",
+    "@opennextjs/cloudflare": "^1.19.11",
     "cookie": "^1.1.1",
     "next": "15.5.19",
     "react": "19.0.1",
@@ -21,6 +32,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "eslint": "^9",
-    "eslint-config-next": "15.5.19"
+    "eslint-config-next": "15.5.19",
+    "better-sqlite3": "^11.10.0",
+    "wrangler": "^4.100.0"
   }
 }

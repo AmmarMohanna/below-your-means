@@ -1,8 +1,8 @@
 # 💰 BelowYourMeans
 
-A personal life management app designed for self-hosting. Track expenses, manage finances, log prayers, and monitor fitness — all on your own server.
+A personal life management app designed for self-hosting. Track expenses, manage finances, log prayers, and monitor fitness.
 
-**🐳 Docker-first • 📱 PWA Ready • 🔒 Self-hosted**
+**☁️ Cloudflare Worker • 📱 PWA Ready • 🔒 Password protected**
 
 ---
 
@@ -47,7 +47,8 @@ A personal life management app designed for self-hosting. Track expenses, manage
 
 ### Prerequisites
 
-- Docker & Docker Compose
+- Node.js
+- Wrangler login for remote Cloudflare deploys
 
 ### Run Locally
 
@@ -56,42 +57,40 @@ A personal life management app designed for self-hosting. Track expenses, manage
 git clone https://github.com/AmmarMohanna/below-your-means.git
 cd below-your-means
 
-# Start development server
-docker compose -f docker-compose.dev.yml up --build
+# Install dependencies
+npm install
 
-# Open http://localhost:3000
-# Default password: changeme123
+# Configure local Worker secrets
+cp .dev.vars.example .dev.vars
+
+# Initialize local D1
+npm run d1:migrate:local
+
+# Optional: load demo data
+npm run seed:demo
+
+# Start Cloudflare Worker preview
+npm run preview
+
+# Open http://localhost:8787
 ```
 
 ---
 
 ## 🖥️ Deploy to Production
 
-See **[DEPLOY.md](DEPLOY.md)** for complete step-by-step instructions:
+See **[CLOUDFLARE.md](CLOUDFLARE.md)** for the Cloudflare Worker and D1 deployment guide.
 
-- First-time deployment to Hetzner/VPS
-- Automated CI/CD with GitHub Actions
-- Changing password
-- Backup & restore
+The older **[DEPLOY.md](DEPLOY.md)** remains as the legacy Hetzner/VPS guide while the migration is validated.
 
 **Quick deploy:**
 
 ```bash
-# On your server
-git clone https://github.com/AmmarMohanna/below-your-means.git
-cd below-your-means
-
-# Set up data directory
-mkdir -p data
-chown -R 1001:1001 data
-
-# Create .env
-echo "APP_PASSWORD=your-secure-password" > .env
-echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
-echo "SECURE_COOKIES=false" >> .env
-
-# Launch
-docker compose up -d --build
+npx wrangler login
+npm run d1:migrate:remote
+npx wrangler secret put APP_PASSWORD
+npx wrangler secret put SESSION_SECRET
+npm run deploy
 ```
 
 ---
@@ -102,7 +101,6 @@ docker compose up -d --build
 |----------|----------|-------------|
 | `APP_PASSWORD` | Yes | Password to access the app |
 | `SESSION_SECRET` | Yes | Secret for session encryption |
-| `SECURE_COOKIES` | No | Set to `false` for HTTP (default: true for HTTPS) |
 
 ---
 
@@ -121,10 +119,10 @@ below-your-means/
 │   │   └── api/            # Backend routes
 │   └── lib/                # Database & auth utilities
 ├── public/                 # PWA manifest & icons
-├── data/                   # SQLite database (gitignored)
-├── Dockerfile              # Production build
-├── docker-compose.yml      # Production config
-└── DEPLOY.md               # Deployment guide
+├── migrations/             # D1 schema migrations
+├── wrangler.jsonc          # Cloudflare Worker/D1 config
+├── open-next.config.ts     # OpenNext Cloudflare config
+└── CLOUDFLARE.md           # Cloudflare deployment guide
 ```
 
 ---
@@ -132,14 +130,11 @@ below-your-means/
 ## 📝 Backup
 
 ```bash
-# Create safe backup on server
-bash scripts/backup-db.sh "$PWD"
-
-# Download archive to local machine
-scp root@YOUR_SERVER:~/below-your-means/backups/belowyourmeans-*.tar.gz ~/Desktop/
-
 # Export via app
-# Settings → Export Data → Downloads Excel file with all data
+# Settings -> Export Excel or Download JSON
+
+# Export local SQLite into D1 import SQL for migration
+npm run d1:export-sql
 ```
 
 ---
@@ -147,11 +142,12 @@ scp root@YOUR_SERVER:~/below-your-means/backups/belowyourmeans-*.tar.gz ~/Deskto
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **Database**: SQLite (better-sqlite3)
+- **Runtime**: Cloudflare Workers via OpenNext
+- **Database**: Cloudflare D1
 - **Styling**: CSS Modules
 - **Auth**: Password + session cookies (HMAC-verified)
 - **Export**: xlsx library for Excel files
-- **Deployment**: Docker
+- **Deployment**: Wrangler
 
 ---
 

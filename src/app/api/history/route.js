@@ -11,7 +11,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Number(searchParams.get('limit') || 20);
-    const entries = getRecentAuditEntries(limit);
+    const entries = await getRecentAuditEntries(limit);
     return NextResponse.json(entries);
   } catch (error) {
     console.error('Error fetching history:', error);
@@ -30,7 +30,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing auditId' }, { status: 400 });
     }
 
-    undoAuditEntry(Number(auditId));
+    await undoAuditEntry(Number(auditId));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error undoing history item:', error);
