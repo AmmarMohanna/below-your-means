@@ -66,9 +66,6 @@ cp .dev.vars.example .dev.vars
 # Initialize local D1
 npm run d1:migrate:local
 
-# Optional: load demo data
-npm run seed:demo
-
 # Start Cloudflare Worker preview
 npm run preview
 
