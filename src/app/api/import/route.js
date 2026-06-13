@@ -19,7 +19,7 @@ export async function POST(request) {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const summary = importWorkbookBuffer(Buffer.from(arrayBuffer));
+    const summary = await importWorkbookBuffer(Buffer.from(arrayBuffer));
     return NextResponse.json({ success: true, ...summary });
   } catch (error) {
     console.error('Error importing workbook:', error);

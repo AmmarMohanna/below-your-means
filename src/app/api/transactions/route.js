@@ -19,9 +19,9 @@ export async function GET(request) {
 
     let transactions;
     if (startDate && endDate) {
-      transactions = getTransactionsByDateRange(startDate, endDate);
+      transactions = await getTransactionsByDateRange(startDate, endDate);
     } else {
-      transactions = getAllTransactions();
+      transactions = await getAllTransactions();
     }
 
     return NextResponse.json(transactions);
@@ -47,7 +47,7 @@ export async function POST(request) {
       );
     }
 
-    const result = addTransaction({
+    const result = await addTransaction({
       amount: parseFloat(amount),
       category,
       type,
@@ -75,7 +75,7 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'Invalid bulk action' }, { status: 400 });
     }
 
-    bulkDeleteTransactions(ids.map((id) => Number(id)).filter(Boolean));
+    await bulkDeleteTransactions(ids.map((id) => Number(id)).filter(Boolean));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error applying bulk transaction action:', error);

@@ -16,7 +16,7 @@ export async function GET() {
   }
 
   try {
-    const reminders = getAllReminders();
+    const reminders = await getAllReminders();
     return NextResponse.json(reminders);
   } catch (error) {
     console.error("Error fetching reminders:", error);
@@ -41,7 +41,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "interval_hours must be a positive integer" }, { status: 400 });
     }
 
-    const result = addReminder({ title, interval_hours: intervalHours });
+    const result = await addReminder({ title, interval_hours: intervalHours });
     return NextResponse.json({ success: true, id: result.lastInsertRowid });
   } catch (error) {
     console.error("Error creating reminder:", error);
@@ -65,13 +65,13 @@ export async function PUT(request) {
 
     switch (action) {
       case "done":
-        markReminderDone(id);
+        await markReminderDone(id);
         break;
       case "pause":
-        pauseReminder(id);
+        await pauseReminder(id);
         break;
       case "resume":
-        resumeReminder(id);
+        await resumeReminder(id);
         break;
       case "update": {
         const title = typeof body.title === "string" ? body.title.trim() : undefined;
@@ -86,7 +86,7 @@ export async function PUT(request) {
           return NextResponse.json({ error: "interval_hours must be a positive integer" }, { status: 400 });
         }
 
-        updateReminder(id, {
+        await updateReminder(id, {
           title,
           interval_hours: intervalHours,
           is_active: body.is_active,
@@ -118,7 +118,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "Valid reminder id is required" }, { status: 400 });
     }
 
-    deleteReminder(id);
+    await deleteReminder(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting reminder:", error);

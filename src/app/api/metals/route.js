@@ -9,7 +9,7 @@ export async function GET() {
   }
 
   try {
-    let metals = getMetals() || { 
+    let metals = (await getMetals()) || {
       gold_24k_grams: 0, 
       gold_21k_grams: 0, 
       silver_kg: 0,
@@ -64,7 +64,7 @@ export async function PUT(request) {
     const body = await request.json();
     const { gold_24k_grams, gold_21k_grams, silver_kg } = body;
     
-    updateMetals({
+    await updateMetals({
       gold_24k_grams: gold_24k_grams || 0,
       gold_21k_grams: gold_21k_grams || 0,
       silver_kg: silver_kg || 0
@@ -92,7 +92,7 @@ export async function PATCH(request) {
       fromApi = false,
     } = body;
     
-    updateMetalPrices({
+    await updateMetalPrices({
       gold_24k_price_per_gram: gold_24k_price_per_gram || 85,
       gold_21k_price_per_gram: gold_21k_price_per_gram || 74.4,
       silver_price_per_kg: silver_price_per_kg || 950,

@@ -9,11 +9,10 @@ export async function DELETE(request, { params }) {
 
   try {
     const { id } = await params;
-    deleteTransaction(parseInt(id));
+    await deleteTransaction(parseInt(id));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting transaction:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

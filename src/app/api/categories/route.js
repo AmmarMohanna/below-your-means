@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const categories = getAllCategories();
+    const categories = await getAllCategories();
     return NextResponse.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -28,11 +28,10 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 });
     }
 
-    const result = addCategory(name.trim());
+    const result = await addCategory(name.trim());
     return NextResponse.json({ success: true, id: result.lastInsertRowid });
   } catch (error) {
     console.error('Error adding category:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
