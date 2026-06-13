@@ -16,9 +16,7 @@
     "d1:migrate:local": "wrangler d1 migrations apply below-your-means --local",
     "d1:migrate:remote": "wrangler d1 migrations apply below-your-means --remote",
     "lint": "eslint src",
-    "db:init": "npm run d1:migrate:local",
-    "seed:demo": "node scripts/seed-demo.js && wrangler d1 execute below-your-means --local --file data/d1-demo-seed.sql",
-    "seed:demo:remote": "node scripts/seed-demo.js && wrangler d1 execute below-your-means --remote --file data/d1-demo-seed.sql"
+    "db:init": "npm run d1:migrate:local"
   },
   "dependencies": {
     "@fontsource/raleway": "^5.1.1",

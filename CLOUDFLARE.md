@@ -39,12 +39,6 @@ Load either real data from `data/belowyourmeans.db`:
 npm run d1:import:local
 ```
 
-Or load demo data:
-
-```bash
-npm run seed:demo
-```
-
 Run the Worker preview:
 
 ```bash
@@ -108,22 +102,6 @@ Keep Hetzner live until the Cloudflare deployment has been tested with the migra
 4. Deploy the Worker and test the live Cloudflare URL before changing DNS.
 
 The import SQL resets app tables before inserting the exported data. Take a fresh Hetzner backup first and keep it until the Cloudflare app is confirmed.
-
-## Demo Data
-
-For local D1:
-
-```bash
-npm run seed:demo
-```
-
-For remote D1:
-
-```bash
-npm run seed:demo:remote
-```
-
-Do not run the remote demo seed against production data.
 
 ## iPhone PWA Checks
 
