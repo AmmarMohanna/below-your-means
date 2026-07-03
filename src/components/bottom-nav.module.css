@@ -4,7 +4,7 @@
   bottom: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--nav-item-count, 4), minmax(0, 1fr));
   gap: 6px;
   width: min(calc(100vw - 20px), var(--app-max-width));
   transform: translateX(-50%);

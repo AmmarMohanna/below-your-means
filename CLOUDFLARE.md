@@ -69,6 +69,8 @@ Apply schema migrations:
 npm run d1:migrate:remote
 ```
 
+Only run remote migrations when intentionally changing schema. A normal deploy does not mutate D1 data.
+
 Set Worker secrets:
 
 ```bash
@@ -82,11 +84,11 @@ Deploy:
 npm run deploy
 ```
 
-## Data Migration From Hetzner
+## Data Import
 
-Keep Hetzner live until the Cloudflare deployment has been tested with the migrated data.
+Only run data import commands when intentionally replacing Cloudflare D1 data.
 
-1. Export or copy the current SQLite database to `data/belowyourmeans.db`.
+1. Put the SQLite export at `data/belowyourmeans.db`.
 2. Generate D1-compatible import SQL:
 
    ```bash
@@ -101,7 +103,7 @@ Keep Hetzner live until the Cloudflare deployment has been tested with the migra
 
 4. Deploy the Worker and test the live Cloudflare URL before changing DNS.
 
-The import SQL resets app tables before inserting the exported data. Take a fresh Hetzner backup first and keep it until the Cloudflare app is confirmed.
+The import SQL resets app tables before inserting the exported data. Do not run it during a normal deploy.
 
 ## iPhone PWA Checks
 
@@ -116,4 +118,4 @@ The app already ships `public/manifest.json`, Apple web-app metadata, and SVG ic
 
 ## Rollback
 
-If anything fails after switching traffic, point DNS back to Hetzner and keep using the existing SQLite deployment. D1 Time Travel can help recover remote D1 state, but the primary rollback plan is to keep the Hetzner database untouched until Cloudflare is proven.
+If a deploy fails, roll back to a previous Worker version from the Cloudflare dashboard or Wrangler. D1 Time Travel can help recover remote D1 state if a separate migration or import caused data issues.

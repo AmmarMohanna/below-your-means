@@ -33,13 +33,9 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - Daily averages
 
 ### ⚙️ Settings & Data
-- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym, reminders, todo) as multi-sheet Excel file
+- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym, reminders) as multi-sheet Excel file
 - Password-protected access
 - Simple logout
-
-### ✅ Todo Page
-- Dedicated todo page for quick add/check/edit/delete
-- Clean mobile + desktop layout
 
 ### 📱 PWA Support
 - Install on iPhone/Android for native app experience
@@ -82,17 +78,14 @@ npm run preview
 
 See **[CLOUDFLARE.md](CLOUDFLARE.md)** for the Cloudflare Worker and D1 deployment guide.
 
-The older **[DEPLOY.md](DEPLOY.md)** remains as the legacy Hetzner/VPS guide while the migration is validated.
-
 **Quick deploy:**
 
 ```bash
 npx wrangler login
-npm run d1:migrate:remote
-npx wrangler secret put APP_PASSWORD
-npx wrangler secret put SESSION_SECRET
 npm run deploy
 ```
+
+Deploying does not run D1 migrations or data imports. Run those commands only when intentionally changing schema or migrating data.
 
 ---
 
