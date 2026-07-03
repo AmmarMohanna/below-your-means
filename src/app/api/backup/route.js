@@ -1,38 +1,26 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-
 import { NextResponse } from 'next/server';
 
 import { isAuthenticated } from '@/lib/auth';
-import { createDatabaseSnapshot } from '@/lib/db';
+import { getDatabaseBackup } from '@/lib/db';
 
 export async function GET() {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let snapshotPath = '';
-
   try {
-    const fileName = `belowyourmeans-backup-${new Date().toISOString().slice(0, 10)}.db`;
-    snapshotPath = path.join(os.tmpdir(), fileName);
-    createDatabaseSnapshot(snapshotPath);
+    const backup = await getDatabaseBackup();
+    const fileName = `belowyourmeans-d1-backup-${new Date().toISOString().slice(0, 10)}.json`;
 
-    const fileBuffer = fs.readFileSync(snapshotPath);
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(JSON.stringify(backup, null, 2), {
       status: 200,
       headers: {
-        'Content-Type': 'application/octet-stream',
+        'Content-Type': 'application/json',
         'Content-Disposition': `attachment; filename="${fileName}"`,
       },
     });
   } catch (error) {
     console.error('Error creating backup:', error);
     return NextResponse.json({ error: 'Failed to create backup' }, { status: 500 });
-  } finally {
-    if (snapshotPath && fs.existsSync(snapshotPath)) {
-      fs.rmSync(snapshotPath);
-    }
   }
 }

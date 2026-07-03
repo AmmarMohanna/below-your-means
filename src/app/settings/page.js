@@ -297,7 +297,7 @@ export default function Settings() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `belowyourmeans-backup-${new Date().toISOString().slice(0, 10)}.db`;
+      link.download = `belowyourmeans-d1-backup-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -313,7 +313,7 @@ export default function Settings() {
     if (!selectedFile) return;
 
     const confirmed = window.confirm(
-      "This will replace the current app data with the selected Excel export. A database backup will be created first. Continue?"
+      "This will replace the current app data with the selected Excel export. Export Excel or download a backup first if you want an extra rollback point. Continue?"
     );
 
     if (!confirmed) return;
@@ -335,9 +335,7 @@ export default function Settings() {
       }
 
       const result = await response.json();
-      setImportMessage(
-        `Restore complete. Safety backup created at ${result.backupPath.split("/").slice(-2).join("/")}.`
-      );
+      setImportMessage(result.backupLabel || "Restore complete.");
       setSelectedFile(null);
       await fetchHistory();
       router.refresh();
@@ -404,14 +402,14 @@ export default function Settings() {
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Download DB</h2>
+            <h2 className={styles.cardTitle}>Download Backup</h2>
             <button
               type="button"
               className={styles.primaryButton}
               onClick={handleDownloadBackup}
               disabled={downloadingBackup}
             >
-              {downloadingBackup ? "Creating..." : "Download DB"}
+              {downloadingBackup ? "Creating..." : "Download JSON"}
             </button>
           </div>
         </div>

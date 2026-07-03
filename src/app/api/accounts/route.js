@@ -33,11 +33,11 @@ export async function GET() {
   }
 
   try {
-    const currentMoney = getAllCurrentMoney();
-    const expectedMoney = getAllExpectedMoney();
-    const payables = getAllPayables();
-    const recurring = getAllRecurring();
-    const heldMoney = getAllHeldMoney();
+    const currentMoney = await getAllCurrentMoney();
+    const expectedMoney = await getAllExpectedMoney();
+    const payables = await getAllPayables();
+    const recurring = await getAllRecurring();
+    const heldMoney = await getAllHeldMoney();
 
     return NextResponse.json({
       currentMoney,
@@ -65,19 +65,19 @@ export async function POST(request) {
     let result;
     switch (table) {
       case 'currentMoney':
-        result = addCurrentMoney(data);
+        result = await addCurrentMoney(data);
         break;
       case 'expectedMoney':
-        result = addExpectedMoney(data);
+        result = await addExpectedMoney(data);
         break;
       case 'payables':
-        result = addPayable(data);
+        result = await addPayable(data);
         break;
       case 'recurring':
-        result = addRecurring(data);
+        result = await addRecurring(data);
         break;
       case 'heldMoney':
-        result = addHeldMoney(data);
+        result = await addHeldMoney(data);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -102,19 +102,19 @@ export async function PUT(request) {
 
     switch (table) {
       case 'currentMoney':
-        updateCurrentMoney(id, data);
+        await updateCurrentMoney(id, data);
         break;
       case 'expectedMoney':
-        updateExpectedMoney(id, data);
+        await updateExpectedMoney(id, data);
         break;
       case 'payables':
-        updatePayable(id, data);
+        await updatePayable(id, data);
         break;
       case 'recurring':
-        updateRecurring(id, data);
+        await updateRecurring(id, data);
         break;
       case 'heldMoney':
-        updateHeldMoney(id, data);
+        await updateHeldMoney(id, data);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -144,19 +144,19 @@ export async function DELETE(request) {
 
     switch (table) {
       case 'currentMoney':
-        deleteCurrentMoney(id);
+        await deleteCurrentMoney(id);
         break;
       case 'expectedMoney':
-        deleteExpectedMoney(id);
+        await deleteExpectedMoney(id);
         break;
       case 'payables':
-        deletePayable(id);
+        await deletePayable(id);
         break;
       case 'recurring':
-        deleteRecurring(id);
+        await deleteRecurring(id);
         break;
       case 'heldMoney':
-        deleteHeldMoney(id);
+        await deleteHeldMoney(id);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -185,10 +185,10 @@ export async function PATCH(request) {
     if (action === 'complete') {
       switch (table) {
         case 'expectedMoney':
-          completeExpectedMoney(Number(id), { date, scope });
+          await completeExpectedMoney(Number(id), { date, scope });
           break;
         case 'payables':
-          completePayable(Number(id), { date, scope });
+          await completePayable(Number(id), { date, scope });
           break;
         default:
           return NextResponse.json({ error: 'Invalid completion table' }, { status: 400 });
@@ -201,7 +201,7 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'Missing table, id, or direction' }, { status: 400 });
     }
 
-    shiftDatedAccountItem(table, Number(id), direction);
+    await shiftDatedAccountItem(table, Number(id), direction);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error shifting dated item:', error);

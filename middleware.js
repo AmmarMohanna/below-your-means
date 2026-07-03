@@ -1,22 +1,7 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { verifySessionValue } from './src/lib/session';
 
-// Force Node.js runtime (Edge runtime doesn't support Node crypto)
-export const runtime = 'nodejs';
-
-// Verify session value matches current password
-// When password changes, old sessions become invalid
-function isValidSession(sessionValue) {
-  if (!sessionValue) return false;
-  
-  const secret = process.env.SESSION_SECRET || 'default-session-secret';
-  const password = process.env.APP_PASSWORD || '';
-  const expectedValue = crypto.createHmac('sha256', secret).update('authenticated:' + password).digest('hex');
-  
-  return sessionValue === expectedValue;
-}
-
-export function middleware(request) {
+export async function middleware(request) {
   const sessionCookie = request.cookies.get('bym_session');
   const { pathname } = request.nextUrl;
 
@@ -30,7 +15,7 @@ export function middleware(request) {
   }
 
   // Check if session is VALID (not just exists)
-  const hasValidSession = isValidSession(sessionCookie?.value);
+  const hasValidSession = await verifySessionValue(sessionCookie?.value);
 
   // If on login page and has valid session, redirect to dashboard
   if (pathname === '/login' && hasValidSession) {
