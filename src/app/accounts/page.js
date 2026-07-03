@@ -36,6 +36,47 @@ function formatDate(dateText) {
   });
 }
 
+function getMonthKey(dateText) {
+  if (!dateText || !/^\d{4}-\d{2}/.test(dateText)) return "undated";
+  return dateText.slice(0, 7);
+}
+
+function formatMonthLabel(monthKey) {
+  if (monthKey === "undated") return "No date";
+  const [year, month] = monthKey.split("-").map(Number);
+  const date = new Date(year, month - 1, 1, 12);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function groupItemsByMonth(items, dateField) {
+  const groups = new Map();
+  const sortedItems = [...items].sort((first, second) => {
+    const dateCompare = (first[dateField] || "").localeCompare(second[dateField] || "");
+    if (dateCompare !== 0) return dateCompare;
+    return (first.id || 0) - (second.id || 0);
+  });
+
+  for (const item of sortedItems) {
+    const monthKey = getMonthKey(item[dateField]);
+    if (!groups.has(monthKey)) {
+      groups.set(monthKey, {
+        monthKey,
+        items: [],
+      });
+    }
+    groups.get(monthKey).items.push(item);
+  }
+
+  return Array.from(groups.values());
+}
+
+function formatItemCount(count) {
+  return `${count} ${count === 1 ? "item" : "items"}`;
+}
+
 function joinParts(...parts) {
   return parts.filter(Boolean).join(" • ");
 }
@@ -86,6 +127,7 @@ export default function Accounts() {
   const [pricesEditing, setPricesEditing] = useState(false);
   const [refreshingLivePrices, setRefreshingLivePrices] = useState(false);
   const [completingId, setCompletingId] = useState(null);
+  const [monthGroupOverrides, setMonthGroupOverrides] = useState({});
 
   const fetchData = useCallback(async () => {
     try {
@@ -174,6 +216,13 @@ export default function Accounts() {
     setExpandedMetaIds((previous) =>
       previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
     );
+  };
+
+  const toggleMonthGroup = (groupId, isOpen) => {
+    setMonthGroupOverrides((previous) => ({
+      ...previous,
+      [groupId]: !isOpen,
+    }));
   };
 
   const handleAdd = async () => {
@@ -585,7 +634,9 @@ export default function Accounts() {
     return (
       <article
         key={item.id}
-        className={`${styles.itemCard} ${isMetaExpanded ? styles.itemCardExpanded : ""}`}
+        className={`${options.variant === "groupRow" ? styles.groupRow : styles.itemCard} ${
+          isMetaExpanded ? styles.itemCardExpanded : ""
+        }`}
       >
         {canRevealMeta ? (
           <button
@@ -678,6 +729,63 @@ export default function Accounts() {
     </div>
   );
 
+  const renderMonthGroupedList = (items, dateField, mapper, groupPrefix) => {
+    const currentMonthKey = getMonthKey(getTodayBeirut());
+    const groups = groupItemsByMonth(items, dateField);
+
+    if (items.length === 0) {
+      return (
+        <div className={styles.groupList}>
+          <div className={styles.emptyState}>Nothing here yet.</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.groupList}>
+        {groups.map((group) => {
+          const groupId = `${groupPrefix}:${group.monthKey}`;
+          const isOpen = monthGroupOverrides[groupId] ?? group.monthKey === currentMonthKey;
+          const total = group.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+          return (
+            <section key={groupId} className={styles.groupCard}>
+              <div className={`${styles.groupHeader} ${styles.monthGroupHeader}`}>
+                <button
+                  type="button"
+                  className={styles.monthGroupButton}
+                  onClick={() => toggleMonthGroup(groupId, isOpen)}
+                  aria-expanded={isOpen}
+                >
+                  <span className={styles.monthGroupMain}>
+                    <span className={styles.monthGroupTitle}>{formatMonthLabel(group.monthKey)}</span>
+                    <span className={styles.monthGroupMeta}>{formatItemCount(group.items.length)}</span>
+                  </span>
+                  <strong className={styles.monthGroupAmount}>${formatMoney(total)}</strong>
+                  <span className={styles.monthGroupChevron} aria-hidden="true">
+                    {isOpen ? "⌃" : "⌄"}
+                  </span>
+                </button>
+              </div>
+
+              {isOpen ? (
+                <div className={`${styles.groupRows} ${styles.monthGroupRows}`}>
+                  {group.items.map((item) =>
+                    renderItemCard(item, {
+                      ...mapper(item),
+                      canShift: true,
+                      variant: "groupRow",
+                    })
+                  )}
+                </div>
+              ) : null}
+            </section>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderCurrentTab = () => {
     if (activeTab === "current") {
       return renderStandardList(data.currentMoney, (item) => ({
@@ -688,8 +796,9 @@ export default function Accounts() {
     }
 
     if (activeTab === "expected") {
-      return renderStandardList(
+      return renderMonthGroupedList(
         data.expectedMoney,
+        "expected_date",
         (item) => ({
           title: item.source,
           meta: joinParts(formatDate(item.expected_date), item.notes),
@@ -700,13 +809,14 @@ export default function Accounts() {
             label: "Received",
           },
         }),
-        true
+        "expectedMoney"
       );
     }
 
     if (activeTab === "payables") {
-      return renderStandardList(
+      return renderMonthGroupedList(
         data.payables,
+        "pay_date",
         (item) => ({
           title: item.source,
           meta: joinParts(formatDate(item.pay_date), item.notes),
@@ -717,7 +827,7 @@ export default function Accounts() {
             label: "Paid",
           },
         }),
-        true
+        "payables"
       );
     }
 
