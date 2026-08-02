@@ -338,7 +338,10 @@ if (metalsSheet.length > 0) {
   `).run(gold24k, gold21k, silver, gold24kPrice, gold21kPrice, silverPrice);
 }
 
-const longTermSavingsSheet = getSheetData('Long-term Savings');
+const longTermSavingsSheet = [
+  ...getSheetData('Savings'),
+  ...getSheetData('Long-term Savings'),
+];
 const aubPensionRow = longTermSavingsSheet.find((row) => row['Account'] === 'AUB Pension');
 if (aubPensionRow) {
   console.log(`🏦 Importing AUB pension data...`);

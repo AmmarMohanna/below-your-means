@@ -10,7 +10,7 @@ import styles from "./accounts.module.css";
 
 const tabs = [
   { id: "current", name: "Current" },
-  { id: "metals", name: "Long-term Savings" },
+  { id: "metals", name: "Savings" },
   { id: "expected", name: "Expected" },
   { id: "payables", name: "Payables" },
   { id: "recurring", name: "Monthly" },
@@ -1162,7 +1162,7 @@ export default function Accounts() {
             <strong>${formatMoney(summary.expected)}</strong>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryLabel}>Long-term Savings</span>
+            <span className={styles.summaryLabel}>Savings</span>
             <strong>${formatMoney(summary.longTermSavings)}</strong>
           </div>
           <div className={styles.summaryCard}>

@@ -160,6 +160,6 @@ db.exec(`
 `);
 
 console.log('Database initialized successfully!');
-console.log('Tables created for transactions, accounts, long-term savings, lifestyle, and audit history.');
+console.log('Tables created for transactions, accounts, savings, lifestyle, and audit history.');
 
 db.close();

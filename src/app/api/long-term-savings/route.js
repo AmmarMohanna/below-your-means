@@ -19,7 +19,7 @@ export async function PUT(request) {
     await updateLongTermSavings({ aub_pension_amount: amount });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error updating long-term savings:', error);
-    return NextResponse.json({ error: 'Failed to update long-term savings' }, { status: 500 });
+    console.error('Error updating savings:', error);
+    return NextResponse.json({ error: 'Failed to update savings' }, { status: 500 });
   }
 }

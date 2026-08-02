@@ -229,7 +229,7 @@ export default function Settings() {
             ["Metals", metals.values?.total || 0],
             ["Total", metals.longTermSavings.total || 0],
           ]),
-          "Long-term Savings"
+          "Savings"
         );
       }
 

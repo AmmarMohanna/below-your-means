@@ -261,7 +261,10 @@ export async function importWorkbookBuffer(buffer) {
       );
     }
 
-    const longTermSavingsRows = getSheetData(workbook, 'Long-term Savings');
+    const longTermSavingsRows = [
+      ...getSheetData(workbook, 'Savings'),
+      ...getSheetData(workbook, 'Long-term Savings'),
+    ];
     const aubPensionRow = longTermSavingsRows.find((row) => row.Account === 'AUB Pension');
     if (aubPensionRow) {
       await runSql(
