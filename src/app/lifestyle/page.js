@@ -336,20 +336,6 @@ export default function Lifestyle() {
 
       {activeTab === "prayers" && (
         <section className={styles.prayerSection}>
-          <div className={styles.inspirationCard}>
-            <div className={styles.dhikr}>
-              <span className={styles.dhikrItem}>الله أكبر ×34</span>
-              <span className={styles.dhikrDivider}>•</span>
-              <span className={styles.dhikrItem}>الحمد لله ×33</span>
-              <span className={styles.dhikrDivider}>•</span>
-              <span className={styles.dhikrItem}>سبحان الله ×33</span>
-            </div>
-            <div className={styles.dailyReminders}>
-              <div className={styles.reminder}>📌 Keep your important items visible</div>
-              <div className={styles.reminder}>✅ Press Done to restart each timer</div>
-            </div>
-          </div>
-
           <div className={styles.missedHeader}>
             <span className={styles.missedLabel}>Missed Prayers</span>
             <span className={styles.missedNote}>10 years +</span>

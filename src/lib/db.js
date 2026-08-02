@@ -474,6 +474,17 @@ export async function updateMetals({ gold_24k_grams, gold_21k_grams, silver_kg }
   });
 }
 
+export async function getLongTermSavings() {
+  return firstSql('SELECT * FROM long_term_savings WHERE id = 1');
+}
+
+export async function updateLongTermSavings({ aub_pension_amount }) {
+  return updateSingletonRow('long_term_savings', {
+    aub_pension_amount,
+    updated_at: await getCurrentTimestamp(),
+  });
+}
+
 export async function updateMetalPrices({
   gold_24k_price_per_gram,
   gold_21k_price_per_gram,
@@ -712,6 +723,7 @@ export async function getDatabaseBackup() {
     'recurring',
     'held_money',
     'metals',
+    'long_term_savings',
     'prayers',
     'gym_payments',
     'gym_sessions',

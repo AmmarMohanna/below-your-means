@@ -41,6 +41,7 @@ async function resetImportTarget() {
     'DELETE FROM reminders',
     'DELETE FROM transactions',
     'DELETE FROM metals',
+    'DELETE FROM long_term_savings',
     'DELETE FROM prayers',
     `
       INSERT OR REPLACE INTO metals (
@@ -55,6 +56,14 @@ async function resetImportTarget() {
         updated_at
       )
       VALUES (1, 0, 0, 0, 85, 74.4, 950, NULL, CURRENT_TIMESTAMP)
+    `,
+    `
+      INSERT OR REPLACE INTO long_term_savings (
+        id,
+        aub_pension_amount,
+        updated_at
+      )
+      VALUES (1, 0, CURRENT_TIMESTAMP)
     `,
     `
       INSERT OR REPLACE INTO prayers (
@@ -184,7 +193,7 @@ export async function importWorkbookBuffer(buffer) {
     const recurring = getSheetData(workbook, 'Recurring Monthly');
     for (const item of recurring) {
       const type = item.Type;
-      if (!['Family', 'Home', 'Personal'].includes(type)) {
+      if (!['Family', 'Home', 'Personal', 'Subscription', 'Donations'].includes(type)) {
         continue;
       }
 
@@ -249,6 +258,20 @@ export async function importWorkbookBuffer(buffer) {
           WHERE id = 1
         `,
         [gold24k, gold21k, silverKg, gold24kPrice, gold21kPrice, silverPrice]
+      );
+    }
+
+    const longTermSavingsRows = getSheetData(workbook, 'Long-term Savings');
+    const aubPensionRow = longTermSavingsRows.find((row) => row.Account === 'AUB Pension');
+    if (aubPensionRow) {
+      await runSql(
+        `
+          UPDATE long_term_savings
+          SET aub_pension_amount = ?,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = 1
+        `,
+        [parseFloat(aubPensionRow.Amount) || 0]
       );
     }
 

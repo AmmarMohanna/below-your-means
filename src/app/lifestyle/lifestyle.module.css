@@ -88,48 +88,6 @@
   color: var(--primary);
 }
 
-.inspirationCard {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  text-align: center;
-  border: 2px solid #d97706;
-}
-
-.dhikr {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  margin-bottom: 8px;
-  font-family: 'Amiri', serif, system-ui;
-}
-
-.dhikrItem {
-  font-size: 0.9rem;
-  color: #92400e;
-  font-weight: 600;
-}
-
-.dhikrDivider {
-  color: #d97706;
-}
-
-.dailyReminders {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.reminder {
-  font-size: 0.8rem;
-  color: #78350f;
-  font-family: 'Amiri', serif, system-ui;
-}
-
 .missedHeader {
   display: flex;
   justify-content: space-between;
@@ -643,15 +601,6 @@
 @media (max-width: 400px) {
   .prayerGrid {
     grid-template-columns: 1fr;
-  }
-
-  .dhikr {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .dhikrDivider {
-    display: none;
   }
 
   .reminderTopRow {

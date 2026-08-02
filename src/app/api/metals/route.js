@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getMetals, updateMetals, updateMetalPrices } from '@/lib/db';
+import {
+  getLongTermSavings,
+  getMetals,
+  updateMetals,
+  updateMetalPrices,
+} from '@/lib/db';
 
 // GET metals data with stored prices (no external API calls)
 export async function GET() {
@@ -18,6 +23,7 @@ export async function GET() {
       silver_price_per_kg: 950,
       prices_fetched_at: null
     };
+    const longTermSavings = (await getLongTermSavings()) || { aub_pension_amount: 0 };
     
     // Build response with stored prices
     const prices = {
@@ -46,6 +52,10 @@ export async function GET() {
         gold_21k: gold21kValue,
         silver: silverValue,
         total: totalValue
+      },
+      longTermSavings: {
+        aub_pension_amount: longTermSavings.aub_pension_amount || 0,
+        total: totalValue + (longTermSavings.aub_pension_amount || 0),
       }
     });
   } catch (error) {

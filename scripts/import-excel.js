@@ -97,7 +97,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS recurring (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     target TEXT NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal')),
+    type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal', 'Subscription', 'Donations')),
     amount REAL NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -123,6 +123,14 @@ db.exec(`
   );
   
   INSERT OR IGNORE INTO metals (id) VALUES (1);
+
+  CREATE TABLE IF NOT EXISTS long_term_savings (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    aub_pension_amount REAL NOT NULL DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  INSERT OR IGNORE INTO long_term_savings (id) VALUES (1);
 
   CREATE TABLE IF NOT EXISTS prayers (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -265,7 +273,7 @@ if (recurring.length > 0) {
   `);
   for (const r of recurring) {
     const type = r['Type'];
-    if (!['Family', 'Home', 'Personal'].includes(type)) {
+    if (!['Family', 'Home', 'Personal', 'Subscription', 'Donations'].includes(type)) {
       console.log(`   ⚠️  Skipped recurring with invalid type: ${type}`);
       continue;
     }
@@ -328,6 +336,17 @@ if (metalsSheet.length > 0) {
       silver_price_per_kg = ?
     WHERE id = 1
   `).run(gold24k, gold21k, silver, gold24kPrice, gold21kPrice, silverPrice);
+}
+
+const longTermSavingsSheet = getSheetData('Long-term Savings');
+const aubPensionRow = longTermSavingsSheet.find((row) => row['Account'] === 'AUB Pension');
+if (aubPensionRow) {
+  console.log(`🏦 Importing AUB pension data...`);
+  db.prepare(`
+    UPDATE long_term_savings
+    SET aub_pension_amount = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = 1
+  `).run(parseFloat(aubPensionRow['Amount']) || 0);
 }
 
 // Import Prayers (single row)

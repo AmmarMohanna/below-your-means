@@ -10,14 +10,14 @@ import styles from "./accounts.module.css";
 
 const tabs = [
   { id: "current", name: "Current" },
-  { id: "metals", name: "Metals" },
+  { id: "metals", name: "Long-term Savings" },
   { id: "expected", name: "Expected" },
   { id: "payables", name: "Payables" },
   { id: "recurring", name: "Monthly" },
   { id: "held", name: "Held" },
 ];
 
-const recurringTypes = ["Family", "Home", "Personal"];
+const recurringTypes = ["Family", "Home", "Personal", "Subscription", "Donations"];
 const troyOuncesPerKg = 32.1507465686;
 
 function formatMoney(value) {
@@ -118,12 +118,15 @@ export default function Accounts() {
     values: { gold_24k: 0, gold_21k: 0, silver: 0, total: 0 },
   });
   const [metalsForm, setMetalsForm] = useState({ gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 });
+  const [pensionAmount, setPensionAmount] = useState(0);
+  const [pensionForm, setPensionForm] = useState(0);
   const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 });
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(getInitialForm("current"));
   const [metalsEditing, setMetalsEditing] = useState(false);
+  const [pensionEditing, setPensionEditing] = useState(false);
   const [pricesEditing, setPricesEditing] = useState(false);
   const [refreshingLivePrices, setRefreshingLivePrices] = useState(false);
   const [completingId, setCompletingId] = useState(null);
@@ -158,6 +161,8 @@ export default function Accounts() {
       const result = await response.json();
       setMetals(result);
       setMetalsForm(result.holdings);
+      setPensionAmount(result.longTermSavings?.aub_pension_amount || 0);
+      setPensionForm(result.longTermSavings?.aub_pension_amount || 0);
       setPricesForm({
         gold_per_oz: Math.round((result.prices.gold_24k_per_gram || 85) * 31.1035),
         silver_per_kg: result.prices.silver_per_kg || 950,
@@ -177,9 +182,9 @@ export default function Accounts() {
       cash: data.currentMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       expected: data.expectedMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       owe: data.payables.reduce((sum, item) => sum + (item.amount || 0), 0),
-      metals: metals.values.total || 0,
+      longTermSavings: (metals.values.total || 0) + pensionAmount,
     }),
-    [data, metals.values.total]
+    [data, metals.values.total, pensionAmount]
   );
 
   const recurringByType = useMemo(
@@ -362,6 +367,25 @@ export default function Accounts() {
       await fetchMetals();
     } catch (error) {
       console.error("Error updating metals:", error);
+    }
+  };
+
+  const handlePensionUpdate = async () => {
+    try {
+      const response = await fetch("/api/long-term-savings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aub_pension_amount: pensionForm }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update AUB pension");
+      }
+
+      setPensionEditing(false);
+      await fetchMetals();
+    } catch (error) {
+      console.error("Error updating AUB pension:", error);
     }
   };
 
@@ -891,7 +915,54 @@ export default function Accounts() {
     }
 
     return (
-      <section className={styles.metalsCard}>
+      <div className={styles.longTermList}>
+        <section className={styles.groupCard}>
+          <div className={styles.groupHeader}>
+            <div className={styles.itemMain}>
+              <h3 className={styles.groupTitle}>AUB Pension</h3>
+              <p className={styles.itemMeta}>Pension balance</p>
+            </div>
+            {pensionEditing ? (
+              <input
+                type="number"
+                className={styles.inlineInput}
+                min="0"
+                step="0.01"
+                aria-label="AUB Pension balance"
+                value={pensionForm || ""}
+                onChange={(event) => setPensionForm(parseFloat(event.target.value) || 0)}
+              />
+            ) : (
+              <strong className={styles.itemAmount}>${formatMoney(pensionAmount)}</strong>
+            )}
+          </div>
+
+          <div className={styles.cardActions}>
+            {!pensionEditing ? (
+              <button type="button" className={styles.actionButton} onClick={() => setPensionEditing(true)}>
+                Edit pension
+              </button>
+            ) : (
+              <>
+                <button type="button" className={styles.actionButton} onClick={handlePensionUpdate}>
+                  Save pension
+                </button>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => {
+                    setPensionEditing(false);
+                    setPensionForm(pensionAmount);
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.metalsCard}>
         <div className={styles.metalsHeader}>
           <h2 className={styles.metalsValue}>${formatMoney(metals.values.total || 0)}</h2>
           <button
@@ -1060,7 +1131,8 @@ export default function Accounts() {
             ? new Date(metals.prices.last_updated).toLocaleString()
             : "manual only so far"}
         </p>
-      </section>
+        </section>
+      </div>
     );
   };
 
@@ -1090,8 +1162,8 @@ export default function Accounts() {
             <strong>${formatMoney(summary.expected)}</strong>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryLabel}>Metals</span>
-            <strong>${formatMoney(summary.metals)}</strong>
+            <span className={styles.summaryLabel}>Long-term Savings</span>
+            <strong>${formatMoney(summary.longTermSavings)}</strong>
           </div>
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Owe</span>

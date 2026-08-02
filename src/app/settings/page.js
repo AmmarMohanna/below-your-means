@@ -31,6 +31,10 @@ function formatHistoryTitle(entry) {
     return record.person || "Held money";
   }
 
+  if (entry.table_name === "long_term_savings") {
+    return "AUB Pension";
+  }
+
   if (entry.table_name === "gym_payments" || entry.table_name === "gym_sessions") {
     return record.notes || record.date || "Gym";
   }
@@ -213,6 +217,19 @@ export default function Settings() {
             ["Total Metal Value", "", "", "", `$${metals.values?.total?.toFixed(2) || 0}`],
           ]),
           "Metals"
+        );
+      }
+
+      if (metals.longTermSavings) {
+        XLSX.utils.book_append_sheet(
+          workbook,
+          XLSX.utils.aoa_to_sheet([
+            ["Account", "Amount"],
+            ["AUB Pension", metals.longTermSavings.aub_pension_amount || 0],
+            ["Metals", metals.values?.total || 0],
+            ["Total", metals.longTermSavings.total || 0],
+          ]),
+          "Long-term Savings"
         );
       }
 

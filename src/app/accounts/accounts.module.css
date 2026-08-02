@@ -232,6 +232,7 @@
 
 .cardList,
 .groupList,
+.longTermList,
 .groupRows,
 .metalsRows {
   display: grid;
@@ -240,8 +241,13 @@
 
 .cardList,
 .groupList,
+.longTermList,
 .metalsCard {
   width: min(100%, 980px);
+}
+
+.longTermList > * {
+  width: 100%;
 }
 
 .itemCard,

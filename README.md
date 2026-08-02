@@ -17,9 +17,9 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - **Current Money** — Where your money is (bank, cash, etc.)
 - **Expected Money** — Incoming payments with due dates
 - **Payables** — What you owe and when
-- **Recurring** — Monthly payments by type (Family, Home, Personal)
+- **Recurring** — Monthly payments by type (Family, Home, Personal, Subscription, Donations)
 - **Held Money** — Money you're holding for others
-- **Metals** — Gold (24K, 21K) and silver with live price fetching
+- **Long-term Savings** — AUB Pension plus gold (24K, 21K) and silver with live price fetching
 
 ### 🌙 Lifestyle — Personal Habits
 - **Prayer Tracker** — Track missed prayers (Soboh, Dohor, Aaser, Maghreb, Ishaa, Ayaat) with +/- counters
@@ -33,7 +33,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - Daily averages
 
 ### ⚙️ Settings & Data
-- **Excel Export** — Download all data (transactions, accounts, metals, prayers, gym, reminders) as multi-sheet Excel file
+- **Excel Export** — Download all data (transactions, accounts, long-term savings, prayers, gym, reminders) as multi-sheet Excel file
 - Password-protected access
 - Simple logout
 
@@ -105,7 +105,7 @@ below-your-means/
 ├── src/
 │   ├── app/
 │   │   ├── dashboard/      # Home - expense tracking
-│   │   ├── accounts/       # Financial accounts & metals
+│   │   ├── accounts/       # Financial accounts & long-term savings
 │   │   ├── lifestyle/      # Prayers & gym tracking
 │   │   ├── analytics/      # Spending reports
 │   │   ├── settings/       # Export & logout
