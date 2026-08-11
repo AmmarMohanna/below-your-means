@@ -10,11 +10,11 @@ import styles from "./accounts.module.css";
 
 const tabs = [
   { id: "current", name: "Current" },
-  { id: "metals", name: "Savings" },
   { id: "expected", name: "Expected" },
   { id: "payables", name: "Payables" },
   { id: "recurring", name: "Monthly" },
-  { id: "held", name: "Held" },
+  { id: "metals", name: "Savings" },
+  { id: "projects", name: "Projects" },
 ];
 
 const recurringTypes = ["Family", "Home", "Personal", "Subscription", "Donations"];
@@ -90,6 +90,10 @@ function getInitialForm(tab) {
     return { location: "", amount: "", notes: "" };
   }
 
+  if (tab === "projects") {
+    return { description: "", estimated_amount: "", target_date: "" };
+  }
+
   if (tab === "expected") {
     return { source: "", expected_date: getTodayBeirut(), amount: "", notes: "" };
   }
@@ -107,10 +111,10 @@ export default function Accounts() {
   const [expandedMetaIds, setExpandedMetaIds] = useState([]);
   const [data, setData] = useState({
     currentMoney: [],
+    projects: [],
     expectedMoney: [],
     payables: [],
     recurring: [],
-    heldMoney: [],
   });
   const [metals, setMetals] = useState({
     holdings: { gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 },
@@ -197,12 +201,17 @@ export default function Accounts() {
     [data.recurring]
   );
 
+  const projectTotal = useMemo(
+    () => data.projects.reduce((sum, item) => sum + (item.estimated_amount || 0), 0),
+    [data.projects]
+  );
+
   const getTableName = (tab) => {
     if (tab === "current") return "currentMoney";
+    if (tab === "projects") return "projects";
     if (tab === "expected") return "expectedMoney";
     if (tab === "payables") return "payables";
     if (tab === "recurring") return "recurring";
-    if (tab === "held") return "heldMoney";
     return "currentMoney";
   };
 
@@ -488,6 +497,43 @@ export default function Accounts() {
       );
     }
 
+    if (activeTab === "projects") {
+      return (
+        <>
+          <input
+            type="text"
+            className={styles.formInput}
+            placeholder="Project description"
+            value={formData.description || ""}
+            onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+          />
+          <input
+            type="number"
+            className={styles.formInput}
+            min="0"
+            step="0.01"
+            placeholder="Estimated amount"
+            value={formData.estimated_amount ?? ""}
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                estimated_amount: event.target.value === "" ? "" : Number(event.target.value),
+              })
+            }
+          />
+          <label className={styles.formField}>
+            <span className={styles.formLabel}>Optional date</span>
+            <input
+              type="date"
+              className={styles.formInput}
+              value={formData.target_date || ""}
+              onChange={(event) => setFormData({ ...formData, target_date: event.target.value })}
+            />
+          </label>
+        </>
+      );
+    }
+
     if (activeTab === "expected") {
       return (
         <>
@@ -588,35 +634,18 @@ export default function Accounts() {
       );
     }
 
-    return (
-      <>
-        <input
-          type="text"
-          className={styles.formInput}
-          placeholder="Person"
-          value={formData.person || ""}
-          onChange={(event) => setFormData({ ...formData, person: event.target.value })}
-        />
-        <input
-          type="number"
-          className={styles.formInput}
-          placeholder="Amount"
-          value={formData.amount || ""}
-          onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
-        />
-        <input
-          type="text"
-          className={styles.formInput}
-          placeholder="Notes"
-          value={formData.notes || ""}
-          onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
-        />
-      </>
-    );
+    return null;
   };
 
   const renderForm = () => {
     if (!showAddForm && editingId === null) return null;
+
+    const projectFormInvalid =
+      activeTab === "projects" &&
+      (!formData.description?.trim() ||
+        formData.estimated_amount === "" ||
+        !Number.isFinite(Number(formData.estimated_amount)) ||
+        Number(formData.estimated_amount) < 0);
 
     return (
       <div className={styles.formCard}>
@@ -626,6 +655,7 @@ export default function Accounts() {
             type="button"
             className={styles.primaryButton}
             onClick={() => (editingId ? handleUpdate(editingId) : handleAdd())}
+            disabled={projectFormInvalid}
           >
             {editingId ? "Save changes" : "Add item"}
           </button>
@@ -687,7 +717,9 @@ export default function Accounts() {
             </div>
           </div>
         )}
-        <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
+        <strong className={styles.itemAmount}>
+          ${formatMoney(options.amount ?? item.amount ?? 0)}
+        </strong>
         <div className={styles.rowActions}>
           {options.canShift ? (
             <>
@@ -820,6 +852,23 @@ export default function Accounts() {
       }));
     }
 
+    if (activeTab === "projects") {
+      return (
+        <div className={styles.projectList}>
+          <section className={styles.projectSummaryCard}>
+            <span className={styles.summaryLabel}>{formatItemCount(data.projects.length)}</span>
+            <strong>${formatMoney(projectTotal)} estimated</strong>
+          </section>
+          {renderStandardList(data.projects, (item) => ({
+            title: item.description,
+            amount: item.estimated_amount,
+            meta: item.target_date ? `Target ${formatDate(item.target_date)}` : "",
+            canShift: true,
+          }))}
+        </div>
+      );
+    }
+
     if (activeTab === "expected") {
       return renderMonthGroupedList(
         data.expectedMoney,
@@ -854,13 +903,6 @@ export default function Accounts() {
         }),
         "payables"
       );
-    }
-
-    if (activeTab === "held") {
-      return renderStandardList(data.heldMoney, (item) => ({
-        title: item.person,
-        meta: joinParts(item.notes, item.created_at ? formatDate(item.created_at.slice(0, 10)) : ""),
-      }));
     }
 
     if (activeTab === "recurring") {

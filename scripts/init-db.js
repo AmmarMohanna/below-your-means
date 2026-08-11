@@ -78,12 +78,14 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
-  CREATE TABLE IF NOT EXISTS held_money (
+  CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    person TEXT NOT NULL,
-    amount REAL NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    description TEXT NOT NULL CHECK(length(trim(description)) > 0),
+    estimated_amount REAL NOT NULL CHECK(estimated_amount >= 0),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    target_date TEXT DEFAULT NULL,
+    sort_order INTEGER
   );
 
   CREATE TABLE IF NOT EXISTS metals (

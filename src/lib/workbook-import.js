@@ -32,10 +32,10 @@ async function resetImportTarget() {
     'DELETE FROM budgets',
     'DELETE FROM categories',
     'DELETE FROM current_money',
+    'DELETE FROM projects',
     'DELETE FROM expected_money',
     'DELETE FROM payables',
     'DELETE FROM recurring',
-    'DELETE FROM held_money',
     'DELETE FROM gym_payments',
     'DELETE FROM gym_sessions',
     'DELETE FROM reminders',
@@ -86,10 +86,10 @@ async function resetImportTarget() {
         'budgets',
         'categories',
         'current_money',
+        'projects',
         'expected_money',
         'payables',
         'recurring',
-        'held_money',
         'gym_payments',
         'gym_sessions',
         'reminders',
@@ -112,10 +112,10 @@ export async function importWorkbookBuffer(buffer) {
     imported: {
       transactions: 0,
       currentMoney: 0,
+      projects: 0,
       expectedMoney: 0,
       payables: 0,
       recurring: 0,
-      heldMoney: 0,
       gymPayments: 0,
       gymSessions: 0,
       reminders: 0,
@@ -155,6 +155,28 @@ export async function importWorkbookBuffer(buffer) {
       );
     }
     summary.imported.currentMoney = currentMoney.length;
+
+    const projects = getSheetData(workbook, 'Projects');
+    for (const [index, item] of projects.entries()) {
+      const description = String(item.Description || '').trim();
+      const estimatedAmount = Number(item['Estimated Amount']);
+      const targetDate = item.Date ? String(item.Date) : null;
+      const rank = Number(item.Rank);
+      const sortOrder = Number.isFinite(rank) ? rank : index;
+
+      if (!description || !Number.isFinite(estimatedAmount) || estimatedAmount < 0) {
+        continue;
+      }
+
+      await runSql(
+        `
+          INSERT INTO projects (description, estimated_amount, target_date, sort_order)
+          VALUES (?, ?, ?, ?)
+        `,
+        [description, estimatedAmount, targetDate, sortOrder]
+      );
+      summary.imported.projects += 1;
+    }
 
     const expectedMoney = getSheetData(workbook, 'Expected Money');
     for (const item of expectedMoney) {
@@ -206,18 +228,6 @@ export async function importWorkbookBuffer(buffer) {
       );
     }
     summary.imported.recurring = recurring.length;
-
-    const heldMoney = getSheetData(workbook, 'Held Money');
-    for (const item of heldMoney) {
-      await runSql(
-        `
-          INSERT INTO held_money (person, amount, notes)
-          VALUES (?, ?, ?)
-        `,
-        [item['For Person'] || 'Unknown', parseFloat(item.Amount) || 0, item.Notes || null]
-      );
-    }
-    summary.imported.heldMoney = heldMoney.length;
 
     const metalsRows = getSheetData(workbook, 'Metals');
     if (metalsRows.length > 0) {

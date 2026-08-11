@@ -375,20 +375,59 @@ export async function deleteRecurring(id) {
   return deleteRow('recurring', id);
 }
 
-export async function getAllHeldMoney() {
-  return allSql('SELECT * FROM held_money ORDER BY created_at DESC, id DESC');
+export async function getAllProjects() {
+  return allSql('SELECT * FROM projects ORDER BY sort_order ASC, created_at DESC, id DESC');
 }
 
-export async function addHeldMoney({ person, amount, notes }) {
-  return insertRow('held_money', { person, amount, notes });
+export async function addProject({ description, estimated_amount, target_date }) {
+  const firstProject = await firstSql('SELECT MIN(sort_order) AS sort_order FROM projects');
+  const sortOrder = Number(firstProject?.sort_order ?? 0) - 1;
+
+  return insertRow('projects', {
+    description: String(description || '').trim(),
+    estimated_amount: Number(estimated_amount),
+    target_date: target_date ? String(target_date) : null,
+    sort_order: sortOrder,
+  });
 }
 
-export async function updateHeldMoney(id, { person, amount, notes }) {
-  return updateRow('held_money', id, { person, amount, notes });
+export async function updateProject(id, { description, estimated_amount, target_date }) {
+  return updateRow('projects', id, {
+    description: String(description || '').trim(),
+    estimated_amount: Number(estimated_amount),
+    target_date: target_date ? String(target_date) : null,
+    updated_at: await getCurrentTimestamp(),
+  });
 }
 
-export async function deleteHeldMoney(id) {
-  return deleteRow('held_money', id);
+export async function deleteProject(id) {
+  return deleteRow('projects', id);
+}
+
+export async function shiftProject(id, direction) {
+  const projects = await getAllProjects();
+  const currentIndex = projects.findIndex((project) => project.id === Number(id));
+  if (currentIndex === -1) {
+    throw new Error('Project not found');
+  }
+
+  const targetIndex = direction === 'up' ? currentIndex - 1 : direction === 'down' ? currentIndex + 1 : -1;
+  if (targetIndex < 0 || targetIndex >= projects.length) {
+    return { changes: 0 };
+  }
+
+  const currentProject = projects[currentIndex];
+  const targetProject = projects[targetIndex];
+  await updateRow('projects', currentProject.id, {
+    sort_order: targetProject.sort_order,
+    updated_at: await getCurrentTimestamp(),
+  });
+  await updateRow('projects', targetProject.id, {
+    sort_order: currentProject.sort_order,
+    updated_at: await getCurrentTimestamp(),
+  });
+
+  return { changes: 2 };
 }
 
 export async function shiftDatedAccountItem(kind, id, direction) {
@@ -718,10 +757,10 @@ export async function getDatabaseBackup() {
     'categories',
     'budgets',
     'current_money',
+    'projects',
     'expected_money',
     'payables',
     'recurring',
-    'held_money',
     'metals',
     'long_term_savings',
     'prayers',

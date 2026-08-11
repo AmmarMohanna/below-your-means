@@ -27,8 +27,8 @@ function formatHistoryTitle(entry) {
     return record.target || "Recurring";
   }
 
-  if (entry.table_name === "held_money") {
-    return record.person || "Held money";
+  if (entry.table_name === "projects") {
+    return record.description || "Project";
   }
 
   if (entry.table_name === "long_term_savings") {
@@ -138,6 +138,22 @@ export default function Settings() {
         );
       }
 
+      if (accounts.projects?.length > 0) {
+        XLSX.utils.book_append_sheet(
+          workbook,
+          XLSX.utils.aoa_to_sheet([
+            ["Description", "Estimated Amount", "Date", "Rank"],
+            ...accounts.projects.map((item, index) => [
+              item.description,
+              item.estimated_amount,
+              item.target_date || "",
+              item.sort_order ?? index,
+            ]),
+          ]),
+          "Projects"
+        );
+      }
+
       if (accounts.expectedMoney?.length > 0) {
         XLSX.utils.book_append_sheet(
           workbook,
@@ -173,17 +189,6 @@ export default function Settings() {
             ...accounts.recurring.map((item) => [item.target, item.type, item.amount]),
           ]),
           "Recurring Monthly"
-        );
-      }
-
-      if (accounts.heldMoney?.length > 0) {
-        XLSX.utils.book_append_sheet(
-          workbook,
-          XLSX.utils.aoa_to_sheet([
-            ["For Person", "Amount", "Notes"],
-            ...accounts.heldMoney.map((item) => [item.person, item.amount, item.notes || ""]),
-          ]),
-          "Held Money"
         );
       }
 

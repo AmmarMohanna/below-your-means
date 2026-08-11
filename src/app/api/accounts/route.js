@@ -17,10 +17,11 @@ import {
   addRecurring,
   updateRecurring,
   deleteRecurring,
-  getAllHeldMoney,
-  addHeldMoney,
-  updateHeldMoney,
-  deleteHeldMoney,
+  getAllProjects,
+  addProject,
+  updateProject,
+  deleteProject,
+  shiftProject,
   shiftDatedAccountItem,
   completeExpectedMoney,
   completePayable,
@@ -34,17 +35,17 @@ export async function GET() {
 
   try {
     const currentMoney = await getAllCurrentMoney();
+    const projects = await getAllProjects();
     const expectedMoney = await getAllExpectedMoney();
     const payables = await getAllPayables();
     const recurring = await getAllRecurring();
-    const heldMoney = await getAllHeldMoney();
 
     return NextResponse.json({
       currentMoney,
+      projects,
       expectedMoney,
       payables,
       recurring,
-      heldMoney,
     });
   } catch (error) {
     console.error('Error fetching accounts:', error);
@@ -76,8 +77,8 @@ export async function POST(request) {
       case 'recurring':
         result = await addRecurring(data);
         break;
-      case 'heldMoney':
-        result = await addHeldMoney(data);
+      case 'projects':
+        result = await addProject(data);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -113,8 +114,8 @@ export async function PUT(request) {
       case 'recurring':
         await updateRecurring(id, data);
         break;
-      case 'heldMoney':
-        await updateHeldMoney(id, data);
+      case 'projects':
+        await updateProject(id, data);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -155,8 +156,8 @@ export async function DELETE(request) {
       case 'recurring':
         await deleteRecurring(id);
         break;
-      case 'heldMoney':
-        await deleteHeldMoney(id);
+      case 'projects':
+        await deleteProject(id);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -201,7 +202,11 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'Missing table, id, or direction' }, { status: 400 });
     }
 
-    await shiftDatedAccountItem(table, Number(id), direction);
+    if (table === 'projects') {
+      await shiftProject(Number(id), direction);
+    } else {
+      await shiftDatedAccountItem(table, Number(id), direction);
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error shifting dated item:', error);

@@ -102,12 +102,14 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
-  CREATE TABLE IF NOT EXISTS held_money (
+  CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    person TEXT NOT NULL,
-    amount REAL NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    description TEXT NOT NULL CHECK(length(trim(description)) > 0),
+    estimated_amount REAL NOT NULL CHECK(estimated_amount >= 0),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    target_date TEXT DEFAULT NULL,
+    sort_order INTEGER
   );
 
   CREATE TABLE IF NOT EXISTS metals (
@@ -285,18 +287,29 @@ if (recurring.length > 0) {
   }
 }
 
-// Import Held Money
-const heldMoney = getSheetData('Held Money');
-if (heldMoney.length > 0) {
-  console.log(`🤝 Importing ${heldMoney.length} held money entries...`);
-  const insertHeld = db.prepare(`
-    INSERT INTO held_money (person, amount, notes) VALUES (?, ?, ?)
+// Import Projects
+const projects = getSheetData('Projects');
+if (projects.length > 0) {
+  console.log(`Importing ${projects.length} projects...`);
+  const insertProject = db.prepare(`
+    INSERT INTO projects (description, estimated_amount, target_date, sort_order)
+    VALUES (?, ?, ?, ?)
   `);
-  for (const h of heldMoney) {
-    insertHeld.run(
-      h['For Person'] || 'Unknown',
-      parseFloat(h['Amount']) || 0,
-      h['Notes'] || null
+  for (const [index, project] of projects.entries()) {
+    const description = String(project['Description'] || '').trim();
+    const estimatedAmount = Number(project['Estimated Amount']);
+    const targetDate = project['Date'] ? String(project['Date']) : null;
+    const rank = Number(project['Rank']);
+
+    if (!description || !Number.isFinite(estimatedAmount) || estimatedAmount < 0) {
+      continue;
+    }
+
+    insertProject.run(
+      description,
+      estimatedAmount,
+      targetDate,
+      Number.isFinite(rank) ? rank : index
     );
   }
 }
