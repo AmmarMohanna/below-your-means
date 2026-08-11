@@ -182,6 +182,7 @@ export default function Accounts() {
       cash: data.currentMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       expected: data.expectedMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       owe: data.payables.reduce((sum, item) => sum + (item.amount || 0), 0),
+      monthly: data.recurring.reduce((sum, item) => sum + (item.amount || 0), 0),
       longTermSavings: (metals.values.total || 0) + pensionAmount,
     }),
     [data, metals.values.total, pensionAmount]
@@ -1188,6 +1189,10 @@ export default function Accounts() {
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>{activeTabMeta?.name}</h2>
+
+          {activeTab === "recurring" && (
+            <p className={styles.sectionTotal}>Total · ${formatMoney(summary.monthly)}/mo</p>
+          )}
 
           {canAdd && (
             <button

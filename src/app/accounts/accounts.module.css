@@ -123,6 +123,12 @@
   font-weight: 700;
 }
 
+.sectionTotal {
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
 .primaryButton,
 .secondaryButton,
 .actionButton,
