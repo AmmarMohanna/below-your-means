@@ -28,16 +28,12 @@ export default function Lifestyle() {
     ayaat: 0,
     fasting: 0,
   });
-  const [gymPayments, setGymPayments] = useState([]);
   const [gymSessions, setGymSessions] = useState([]);
-  const [remainingSessions, setRemainingSessions] = useState(0);
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddPayment, setShowAddPayment] = useState(false);
   const [showAddSession, setShowAddSession] = useState(false);
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [editingReminderId, setEditingReminderId] = useState(null);
-  const [paymentForm, setPaymentForm] = useState({ date: "", sessions: "", notes: "" });
   const [sessionForm, setSessionForm] = useState({ date: "", notes: "" });
   const [reminderForm, setReminderForm] = useState({
     title: "",
@@ -68,9 +64,7 @@ export default function Lifestyle() {
       if (result.prayers) {
         setPrayers(result.prayers);
       }
-      setGymPayments(result.gymPayments || []);
       setGymSessions(result.gymSessions || []);
-      setRemainingSessions(result.remainingSessions || 0);
       setReminders(remindersData || []);
     } catch (error) {
       console.error("Error:", error);
@@ -101,30 +95,6 @@ export default function Lifestyle() {
     } catch (error) {
       console.error("Error:", error);
       fetchData();
-    }
-  };
-
-  const handleAddPayment = async () => {
-    if (!paymentForm.date || !paymentForm.sessions) return;
-
-    try {
-      const response = await fetch("/api/lifestyle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "gymPayment",
-          date: paymentForm.date,
-          sessions: parseInt(paymentForm.sessions, 10),
-          notes: paymentForm.notes,
-        }),
-      });
-      if (response.ok) {
-        setPaymentForm({ date: "", sessions: "", notes: "" });
-        setShowAddPayment(false);
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error:", error);
     }
   };
 
@@ -161,19 +131,6 @@ export default function Lifestyle() {
           date: getTodayBeirut(),
           notes: "",
         }),
-      });
-      if (response.ok) {
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const handleDeletePayment = async (id) => {
-    try {
-      const response = await fetch(`/api/lifestyle?type=gymPayment&id=${id}`, {
-        method: "DELETE",
       });
       if (response.ok) {
         fetchData();
@@ -301,6 +258,26 @@ export default function Lifestyle() {
     return reminder.is_active && new Date(reminder.next_due_at).getTime() <= Date.now();
   };
 
+  const today = getTodayBeirut();
+  const trainingDates = new Set(gymSessions.map((session) => session.date));
+  const trainedToday = trainingDates.has(today);
+  const currentMonth = today.slice(0, 7);
+  const daysThisMonth = [...trainingDates].filter((date) => date.startsWith(currentMonth)).length;
+  const todayDate = new Date(`${today}T12:00:00`);
+  const mondayOffset = (todayDate.getDay() + 6) % 7;
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(todayDate);
+    date.setDate(todayDate.getDate() - mondayOffset + index);
+    const dateKey = date.toLocaleDateString("en-CA");
+    return {
+      date: dateKey,
+      label: date.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2),
+      day: date.getDate(),
+      trained: trainingDates.has(dateKey),
+      isToday: dateKey === today,
+    };
+  });
+
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -315,7 +292,7 @@ export default function Lifestyle() {
         <p className={styles.eyebrow}>Lifestyle</p>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>أُلفة</h1>
-          <p className={styles.subtitle}>Prayers, fasting, and gym tracking without clutter.</p>
+          <p className={styles.subtitle}>Prayers, fasting, and training days without clutter.</p>
         </div>
       </header>
 
@@ -509,84 +486,42 @@ export default function Lifestyle() {
       {activeTab === "gym" && (
         <section className={styles.gymSection}>
           <div className={styles.sessionsSummary}>
-            <div className={styles.sessionsRemaining}>
-              <span className={styles.sessionsNumber}>{remainingSessions}</span>
-              <span className={styles.sessionsLabel}>Sessions Remaining</span>
+            <div className={styles.trainingOverview}>
+              <div className={styles.trainingStat}>
+                <span className={styles.sessionsNumber}>{daysThisMonth}</span>
+                <span className={styles.sessionsLabel}>Days this month</span>
+              </div>
+              <div className={styles.trainingDivider} />
+              <div className={styles.trainingStat}>
+                <span className={styles.sessionsNumber}>{trainingDates.size}</span>
+                <span className={styles.sessionsLabel}>Total training days</span>
+              </div>
             </div>
-            <button className={styles.quickWorkoutBtn} onClick={handleQuickWorkout}>
-              💪 I Worked Out Today
+            <div className={styles.weekStrip} aria-label="Training days this week">
+              {weekDays.map((day) => (
+                <div
+                  key={day.date}
+                  className={`${styles.weekDay} ${day.trained ? styles.trainedDay : ""} ${day.isToday ? styles.today : ""}`}
+                  title={`${day.date}${day.trained ? " — trained" : ""}`}
+                >
+                  <span>{day.label}</span>
+                  <strong>{day.day}</strong>
+                  <i aria-hidden="true">{day.trained ? "✓" : ""}</i>
+                </div>
+              ))}
+            </div>
+            <button
+              className={styles.quickWorkoutBtn}
+              onClick={handleQuickWorkout}
+              disabled={trainedToday}
+            >
+              {trainedToday ? "✓ Training logged today" : "+ Log today’s training"}
             </button>
           </div>
 
           <div className={styles.gymCard}>
             <div className={styles.gymCardHeader}>
-              <h3>💳 Payments</h3>
-              <button
-                className={styles.addBtn}
-                onClick={() => {
-                  setShowAddPayment(true);
-                  setPaymentForm({
-                    date: getTodayBeirut(),
-                    sessions: "",
-                    notes: "",
-                  });
-                }}
-              >
-                + Add
-              </button>
-            </div>
-
-            {showAddPayment && (
-              <div className={styles.addForm}>
-                <input
-                  type="date"
-                  value={paymentForm.date}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, date: e.target.value })}
-                  className={styles.formInput}
-                />
-                <input
-                  type="number"
-                  value={paymentForm.sessions}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, sessions: e.target.value })}
-                  placeholder="Sessions"
-                  className={styles.formInput}
-                />
-                <input
-                  type="text"
-                  value={paymentForm.notes}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                  placeholder="Notes"
-                  className={styles.formInput}
-                />
-                <div className={styles.formActions}>
-                  <button onClick={handleAddPayment} className={styles.saveBtn}>
-                    ✓
-                  </button>
-                  <button onClick={() => setShowAddPayment(false)} className={styles.cancelBtn}>
-                    ×
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className={styles.paymentsList}>
-              {gymPayments.map((payment) => (
-                <div key={payment.id} className={styles.paymentItem}>
-                  <span className={styles.paymentDate}>{formatDate(payment.date)}</span>
-                  <span className={styles.paymentSessions}>×{payment.sessions}</span>
-                  {payment.notes && <span className={styles.paymentNotes}>{payment.notes}</span>}
-                  <button className={styles.deleteBtn} onClick={() => handleDeletePayment(payment.id)}>
-                    🗑️
-                  </button>
-                </div>
-              ))}
-              {gymPayments.length === 0 && <div className={styles.emptyState}>No payments yet</div>}
-            </div>
-          </div>
-
-          <div className={styles.gymCard}>
-            <div className={styles.gymCardHeader}>
-              <h3>🏋️ Sessions</h3>
+              <h3>Training days</h3>
               <button
                 className={styles.addBtn}
                 onClick={() => {
@@ -597,7 +532,7 @@ export default function Lifestyle() {
                   });
                 }}
               >
-                + Session
+                + Add day
               </button>
             </div>
 
@@ -637,7 +572,9 @@ export default function Lifestyle() {
                   </button>
                 </div>
               ))}
-              {gymSessions.length === 0 && <div className={styles.emptyState}>No sessions yet</div>}
+              {gymSessions.length === 0 && (
+                <div className={styles.emptyState}>No training days yet. Log your first workout above.</div>
+              )}
             </div>
           </div>
         </section>

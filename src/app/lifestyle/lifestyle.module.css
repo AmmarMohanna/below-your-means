@@ -380,10 +380,24 @@
   text-align: center;
 }
 
-.sessionsRemaining {
+.trainingOverview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+.trainingStat {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.trainingDivider {
+  width: 1px;
+  height: 48px;
+  background: rgba(13, 148, 136, 0.3);
 }
 
 .sessionsNumber {
@@ -398,6 +412,71 @@
   color: var(--text-secondary);
   font-weight: 600;
   margin-top: 4px;
+}
+
+.weekStrip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 22px;
+}
+
+.weekDay {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 13px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(13, 148, 136, 0.18);
+  border-radius: 10px;
+}
+
+.weekDay span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.weekDay strong {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.weekDay i {
+  position: absolute;
+  bottom: -5px;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  color: white;
+  background: transparent;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.trainedDay {
+  background: var(--card-bg);
+  border-color: var(--primary);
+}
+
+.trainedDay strong,
+.today span {
+  color: var(--primary);
+}
+
+.trainedDay i {
+  background: var(--primary);
+}
+
+.today {
+  box-shadow: inset 0 0 0 1px var(--primary);
 }
 
 .quickWorkoutBtn {
@@ -422,6 +501,15 @@
 
 .quickWorkoutBtn:active {
   transform: translateY(0);
+}
+
+.quickWorkoutBtn:disabled,
+.quickWorkoutBtn:disabled:hover {
+  background: var(--card-bg);
+  color: var(--primary);
+  cursor: default;
+  transform: none;
+  box-shadow: none;
 }
 
 .gymCard {
@@ -522,11 +610,11 @@
   color: #dc2626;
 }
 
-.paymentsList, .sessionsList {
+.sessionsList {
   padding: 8px 0;
 }
 
-.paymentItem, .sessionItem {
+.sessionItem {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -535,30 +623,21 @@
   transition: background 0.2s;
 }
 
-.paymentItem:last-child, .sessionItem:last-child {
+.sessionItem:last-child {
   border-bottom: none;
 }
 
-.paymentItem:hover, .sessionItem:hover {
+.sessionItem:hover {
   background: var(--bg);
 }
 
-.paymentDate, .sessionDate {
+.sessionDate {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 0.9rem;
 }
 
-.paymentSessions {
-  background: var(--primary-light);
-  color: var(--primary);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.paymentNotes, .sessionNotes {
+.sessionNotes {
   flex: 1;
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -576,7 +655,6 @@
   transition: all 0.2s;
 }
 
-.paymentItem:hover .deleteBtn,
 .sessionItem:hover .deleteBtn {
   opacity: 1;
 }
@@ -605,5 +683,17 @@
 
   .reminderTopRow {
     flex-direction: column;
+  }
+
+  .sessionsSummary {
+    padding: 20px 14px;
+  }
+
+  .trainingOverview {
+    gap: 14px;
+  }
+
+  .sessionsNumber {
+    font-size: 2.5rem;
   }
 }

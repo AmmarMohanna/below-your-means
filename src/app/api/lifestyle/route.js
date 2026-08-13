@@ -23,16 +23,10 @@ export async function GET() {
     const gymPayments = await getAllGymPayments();
     const gymSessions = await getAllGymSessions();
 
-    // Calculate remaining sessions
-    const totalPaid = gymPayments.reduce((sum, p) => sum + p.sessions, 0);
-    const totalUsed = gymSessions.length;
-    const remainingSessions = totalPaid - totalUsed;
-
     return NextResponse.json({
       prayers,
       gymPayments,
       gymSessions,
-      remainingSessions,
     });
   } catch (error) {
     console.error("Error fetching lifestyle data:", error);
