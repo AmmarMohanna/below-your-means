@@ -23,7 +23,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 
 ### 🌙 Lifestyle — Personal Habits
 - **Prayer Tracker** — Track missed prayers (Soboh, Dohor, Aaser, Maghreb, Ishaa, Ayaat) with +/- counters
-- **Gym Tracker** — Log training days, see weekly and monthly consistency, and quickly record today's workout
+- **Gym Tracker** — Log training days, compare weekly averages, and quickly record today's workout
 - **Custom Reminders** — Add/edit/remove reminders, mark as done to restart timer, pause/resume anytime
 
 ### 📈 Analytics — Insights

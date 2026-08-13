@@ -261,8 +261,25 @@ export default function Lifestyle() {
   const today = getTodayBeirut();
   const trainingDates = new Set(gymSessions.map((session) => session.date));
   const trainedToday = trainingDates.has(today);
-  const currentMonth = today.slice(0, 7);
-  const daysThisMonth = [...trainingDates].filter((date) => date.startsWith(currentMonth)).length;
+  const [currentYear, currentMonth, currentDay] = today.split("-").map(Number);
+  const lastMonthStartDate = new Date(Date.UTC(currentYear, currentMonth - 2, 1));
+  const lastMonthEndDate = new Date(Date.UTC(currentYear, currentMonth - 1, 0));
+  const lastMonthStart = lastMonthStartDate.toISOString().slice(0, 10);
+  const lastMonthEnd = lastMonthEndDate.toISOString().slice(0, 10);
+  const lastMonthTrainingDays = [...trainingDates].filter(
+    (date) => date >= lastMonthStart && date <= lastMonthEnd
+  ).length;
+  const lastMonthWeeklyAverage = (lastMonthTrainingDays * 7) / lastMonthEndDate.getUTCDate();
+  const yearStart = `${currentYear}-01-01`;
+  const thisYearTrainingDays = [...trainingDates].filter(
+    (date) => date >= yearStart && date <= today
+  ).length;
+  const elapsedYearDays = Math.floor(
+    (Date.UTC(currentYear, currentMonth - 1, currentDay) - Date.UTC(currentYear, 0, 1)) /
+      (1000 * 60 * 60 * 24)
+  ) + 1;
+  const thisYearWeeklyAverage = (thisYearTrainingDays * 7) / elapsedYearDays;
+  const formatWeeklyAverage = (average) => average.toFixed(1);
   const todayDate = new Date(`${today}T12:00:00`);
   const mondayOffset = (todayDate.getDay() + 6) % 7;
   const weekDays = Array.from({ length: 7 }, (_, index) => {
@@ -488,13 +505,13 @@ export default function Lifestyle() {
           <div className={styles.sessionsSummary}>
             <div className={styles.trainingOverview}>
               <div className={styles.trainingStat}>
-                <span className={styles.sessionsNumber}>{daysThisMonth}</span>
-                <span className={styles.sessionsLabel}>Days this month</span>
+                <span className={styles.sessionsNumber}>{formatWeeklyAverage(lastMonthWeeklyAverage)}</span>
+                <span className={styles.sessionsLabel}>Days/week last month</span>
               </div>
               <div className={styles.trainingDivider} />
               <div className={styles.trainingStat}>
-                <span className={styles.sessionsNumber}>{trainingDates.size}</span>
-                <span className={styles.sessionsLabel}>Total training days</span>
+                <span className={styles.sessionsNumber}>{formatWeeklyAverage(thisYearWeeklyAverage)}</span>
+                <span className={styles.sessionsLabel}>Days/week this year</span>
               </div>
             </div>
             <div className={styles.weekStrip} aria-label="Training days this week">
