@@ -19,6 +19,7 @@ const orderedTables = [
   'recurring',
   'metals',
   'long_term_savings',
+  'savings_plan',
   'prayers',
   'gym_payments',
   'gym_sessions',
@@ -41,6 +42,7 @@ const resetTables = [
   'transactions',
   'metals',
   'long_term_savings',
+  'savings_plan',
   'prayers',
 ];
 

@@ -81,6 +81,7 @@ db.exec(`
     source TEXT NOT NULL,
     expected_date TEXT NOT NULL,
     amount REAL NOT NULL,
+    planned_save_amount REAL NOT NULL DEFAULT 0 CHECK(planned_save_amount >= 0 AND planned_save_amount <= amount),
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -134,6 +135,15 @@ db.exec(`
 
   INSERT OR IGNORE INTO long_term_savings (id) VALUES (1);
 
+  CREATE TABLE IF NOT EXISTS savings_plan (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    target_amount REAL NOT NULL DEFAULT 0 CHECK(target_amount >= 0),
+    target_date TEXT DEFAULT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  INSERT OR IGNORE INTO savings_plan (id) VALUES (1);
+
   CREATE TABLE IF NOT EXISTS prayers (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     soboh INTEGER DEFAULT 0,
@@ -166,6 +176,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
   CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
   CREATE INDEX IF NOT EXISTS idx_transactions_scope ON transactions(scope);
+  CREATE INDEX IF NOT EXISTS idx_expected_money_planned_savings
+    ON expected_money(expected_date, planned_save_amount);
 `);
 
 // Read Excel file
@@ -202,18 +214,35 @@ if (transactions.length > 0) {
   `);
   for (const t of transactions) {
     try {
+      const type = t['Type'] || 'expense';
+      const amount = parseFloat(t['Amount']) || 0;
+
       insertTx.run(
         t['Date'] || new Date().toISOString().split('T')[0],
         t['Category'] || 'Other',
-        t['Type'] || 'expense',
+        type,
         t['Scope'] === 'business' ? 'business' : 'personal',
-        parseFloat(t['Amount']) || 0,
+        amount,
         t['Notes'] || null
       );
     } catch (e) {
       console.log(`   ⚠️  Skipped invalid transaction: ${e.message}`);
     }
   }
+}
+
+const savingsPlan = getSheetData('Saving Plan');
+if (savingsPlan.length > 0) {
+  const row = savingsPlan[0];
+  const targetAmount = Number(row['Target Amount']);
+  db.prepare(`
+    UPDATE savings_plan
+    SET target_amount = ?, target_date = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = 1
+  `).run(
+    Number.isFinite(targetAmount) && targetAmount >= 0 ? targetAmount : 0,
+    row['Target Date'] ? String(row['Target Date']) : null
+  );
 }
 
 // Import Current Money
@@ -237,13 +266,19 @@ const expectedMoney = getSheetData('Expected Money');
 if (expectedMoney.length > 0) {
   console.log(`📈 Importing ${expectedMoney.length} expected money entries...`);
   const insertEM = db.prepare(`
-    INSERT INTO expected_money (source, expected_date, amount, notes) VALUES (?, ?, ?, ?)
+    INSERT INTO expected_money (source, expected_date, amount, planned_save_amount, notes)
+    VALUES (?, ?, ?, ?, ?)
   `);
   for (const m of expectedMoney) {
+    const amount = parseFloat(m['Amount']) || 0;
+    const plannedSaveAmount = Number(m['Planned Save']);
     insertEM.run(
       m['Source'] || 'Unknown',
       m['Expected Date'] || new Date().toISOString().split('T')[0],
-      parseFloat(m['Amount']) || 0,
+      amount,
+      Number.isFinite(plannedSaveAmount) && plannedSaveAmount >= 0 && plannedSaveAmount <= amount
+        ? plannedSaveAmount
+        : 0,
       m['Notes'] || null
     );
   }

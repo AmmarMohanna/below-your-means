@@ -39,8 +39,9 @@ export async function POST(request) {
   try {
     const data = await request.json();
     const { amount, category, type, scope, notes, date, created_at } = data;
+    const transactionAmount = Number(amount);
 
-    if (!amount || !category || !type || !date) {
+    if (!Number.isFinite(transactionAmount) || transactionAmount <= 0 || !category || !type || !date) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -48,7 +49,7 @@ export async function POST(request) {
     }
 
     const result = await addTransaction({
-      amount: parseFloat(amount),
+      amount: transactionAmount,
       category,
       type,
       scope,

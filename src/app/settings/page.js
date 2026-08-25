@@ -35,6 +35,10 @@ function formatHistoryTitle(entry) {
     return "AUB Pension";
   }
 
+  if (entry.table_name === "savings_plan") {
+    return "Savings goal";
+  }
+
   if (entry.table_name === "gym_payments" || entry.table_name === "gym_sessions") {
     return record.notes || record.date || "Gym";
   }
@@ -91,11 +95,12 @@ export default function Settings() {
     setExporting(true);
 
     try {
-      const [transactionsRes, accountsRes, metalsRes, lifestyleRes, remindersRes] =
+      const [transactionsRes, accountsRes, metalsRes, savingsPlanRes, lifestyleRes, remindersRes] =
         await Promise.all([
         fetch("/api/transactions"),
         fetch("/api/accounts"),
         fetch("/api/metals"),
+        fetch("/api/savings-plan"),
         fetch("/api/lifestyle"),
         fetch("/api/reminders"),
       ]);
@@ -105,6 +110,7 @@ export default function Settings() {
       const transactions = await transactionsRes.json();
       const accounts = accountsRes.ok ? await accountsRes.json() : {};
       const metals = metalsRes.ok ? await metalsRes.json() : {};
+      const savingsPlan = savingsPlanRes.ok ? await savingsPlanRes.json() : {};
       const lifestyle = lifestyleRes.ok ? await lifestyleRes.json() : {};
       const reminders = remindersRes.ok ? await remindersRes.json() : [];
 
@@ -158,11 +164,12 @@ export default function Settings() {
         XLSX.utils.book_append_sheet(
           workbook,
           XLSX.utils.aoa_to_sheet([
-            ["Source", "Expected Date", "Amount", "Notes"],
+            ["Source", "Expected Date", "Amount", "Planned Save", "Notes"],
             ...accounts.expectedMoney.map((item) => [
               item.source,
               item.expected_date,
               item.amount,
+              item.planned_save_amount || 0,
               item.notes || "",
             ]),
           ]),
@@ -235,6 +242,23 @@ export default function Settings() {
             ["Total", metals.longTermSavings.total || 0],
           ]),
           "Savings"
+        );
+      }
+
+      if (savingsPlan.goal) {
+        XLSX.utils.book_append_sheet(
+          workbook,
+          XLSX.utils.aoa_to_sheet([
+            ["Target Amount", "Target Date", "Planned Savings", "Expected Payments", "Planned Rate"],
+            [
+              savingsPlan.goal.target_amount || 0,
+              savingsPlan.goal.target_date || "",
+              savingsPlan.summary?.planned || 0,
+              savingsPlan.summary?.expected || 0,
+              savingsPlan.summary?.planned_rate || 0,
+            ],
+          ]),
+          "Saving Plan"
         );
       }
 

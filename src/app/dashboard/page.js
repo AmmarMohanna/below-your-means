@@ -166,7 +166,8 @@ export default function Dashboard() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) return;
+    const transactionAmount = Number(amount);
+    if (!Number.isFinite(transactionAmount) || transactionAmount <= 0) return;
 
     setIsSubmitting(true);
 
@@ -175,7 +176,7 @@ export default function Dashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: parseFloat(amount),
+          amount: transactionAmount,
           category: getDefaultCategory(type, scope),
           type,
           scope,
@@ -558,7 +559,7 @@ export default function Dashboard() {
                         transaction.category,
                         transaction.scope === "business" ? "Business" : "Personal",
                         formatDisplayDate(new Date(`${transaction.date}T12:00:00`)),
-                      ].join(" • ")}
+                      ].filter(Boolean).join(" • ")}
                     </span>
                   </div>
                 ) : null}

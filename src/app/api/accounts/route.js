@@ -27,6 +27,23 @@ import {
   completePayable,
 } from '@/lib/db';
 
+function validateExpectedPlan(data) {
+  const amount = Number(data.amount);
+  const plannedSaveAmount = Number(data.planned_save_amount);
+
+  if (
+    !Number.isFinite(amount) ||
+    amount < 0 ||
+    !Number.isFinite(plannedSaveAmount) ||
+    plannedSaveAmount < 0 ||
+    plannedSaveAmount > amount
+  ) {
+    return null;
+  }
+
+  return { ...data, amount, planned_save_amount: plannedSaveAmount };
+}
+
 // GET all data for all tables
 export async function GET() {
   if (!(await isAuthenticated())) {
@@ -63,22 +80,30 @@ export async function POST(request) {
     const body = await request.json();
     const { table, ...data } = body;
 
+    const normalizedData = table === 'expectedMoney' ? validateExpectedPlan(data) : data;
+    if (!normalizedData) {
+      return NextResponse.json(
+        { error: 'Planned savings must be between zero and the expected amount' },
+        { status: 400 }
+      );
+    }
+
     let result;
     switch (table) {
       case 'currentMoney':
-        result = await addCurrentMoney(data);
+        result = await addCurrentMoney(normalizedData);
         break;
       case 'expectedMoney':
-        result = await addExpectedMoney(data);
+        result = await addExpectedMoney(normalizedData);
         break;
       case 'payables':
-        result = await addPayable(data);
+        result = await addPayable(normalizedData);
         break;
       case 'recurring':
-        result = await addRecurring(data);
+        result = await addRecurring(normalizedData);
         break;
       case 'projects':
-        result = await addProject(data);
+        result = await addProject(normalizedData);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -101,21 +126,29 @@ export async function PUT(request) {
     const body = await request.json();
     const { table, id, ...data } = body;
 
+    const normalizedData = table === 'expectedMoney' ? validateExpectedPlan(data) : data;
+    if (!normalizedData) {
+      return NextResponse.json(
+        { error: 'Planned savings must be between zero and the expected amount' },
+        { status: 400 }
+      );
+    }
+
     switch (table) {
       case 'currentMoney':
-        await updateCurrentMoney(id, data);
+        await updateCurrentMoney(id, normalizedData);
         break;
       case 'expectedMoney':
-        await updateExpectedMoney(id, data);
+        await updateExpectedMoney(id, normalizedData);
         break;
       case 'payables':
-        await updatePayable(id, data);
+        await updatePayable(id, normalizedData);
         break;
       case 'recurring':
-        await updateRecurring(id, data);
+        await updateRecurring(id, normalizedData);
         break;
       case 'projects':
-        await updateProject(id, data);
+        await updateProject(id, normalizedData);
         break;
       default:
         return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -210,6 +243,10 @@ export async function PATCH(request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error shifting dated item:', error);
-    return NextResponse.json({ error: 'Failed to reorder item' }, { status: 500 });
+    const isValidationError = /not found/i.test(error.message);
+    return NextResponse.json(
+      { error: error.message || 'Failed to update item' },
+      { status: isValidationError ? 400 : 500 }
+    );
   }
 }

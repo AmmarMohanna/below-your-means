@@ -20,6 +20,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - **Recurring** — Monthly payments by type (Family, Home, Personal, Subscription, Donations)
 - **Projects** — Planned projects with estimates, optional dates, and ranking
 - **Savings** — AUB Pension plus gold (24K, 21K) and silver with live price fetching
+- **Saving Plan** — Set a goal and decide how much of each expected payment you plan to save
 
 ### 🌙 Lifestyle — Personal Habits
 - **Prayer Tracker** — Track missed prayers (Soboh, Dohor, Aaser, Maghreb, Ishaa, Ayaat) with +/- counters

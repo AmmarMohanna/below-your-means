@@ -283,12 +283,27 @@ export async function getAllExpectedMoney() {
   return allSql('SELECT * FROM expected_money ORDER BY expected_date ASC, id ASC');
 }
 
-export async function addExpectedMoney({ source, expected_date, amount, notes }) {
-  return insertRow('expected_money', { source, expected_date, amount, notes });
+export async function addExpectedMoney({ source, expected_date, amount, planned_save_amount, notes }) {
+  return insertRow('expected_money', {
+    source,
+    expected_date,
+    amount,
+    planned_save_amount,
+    notes,
+  });
 }
 
-export async function updateExpectedMoney(id, { source, expected_date, amount, notes }) {
-  return updateRow('expected_money', id, { source, expected_date, amount, notes });
+export async function updateExpectedMoney(
+  id,
+  { source, expected_date, amount, planned_save_amount, notes }
+) {
+  return updateRow('expected_money', id, {
+    source,
+    expected_date,
+    amount,
+    planned_save_amount,
+    notes,
+  });
 }
 
 export async function deleteExpectedMoney(id) {
@@ -520,6 +535,55 @@ export async function getLongTermSavings() {
 export async function updateLongTermSavings({ aub_pension_amount }) {
   return updateSingletonRow('long_term_savings', {
     aub_pension_amount,
+    updated_at: await getCurrentTimestamp(),
+  });
+}
+
+export async function getSavingsPlan() {
+  const goal = (await firstSql('SELECT * FROM savings_plan WHERE id = 1')) || {
+    id: 1,
+    target_amount: 0,
+    target_date: null,
+    updated_at: null,
+  };
+  const items = await allSql(
+    `
+      SELECT
+        id,
+        source,
+        expected_date,
+        amount AS expected_amount,
+        planned_save_amount,
+        notes,
+        created_at
+      FROM expected_money
+      ORDER BY expected_date ASC, id ASC
+    `
+  );
+  const summary = items.reduce(
+    (totals, item) => {
+      totals.expected += item.expected_amount || 0;
+      totals.planned += item.planned_save_amount || 0;
+      return totals;
+    },
+    { expected: 0, planned: 0 }
+  );
+
+  return {
+    goal,
+    items,
+    summary: {
+      ...summary,
+      item_count: items.length,
+      planned_rate: summary.expected > 0 ? (summary.planned / summary.expected) * 100 : 0,
+    },
+  };
+}
+
+export async function updateSavingsPlan({ target_amount, target_date }) {
+  return updateSingletonRow('savings_plan', {
+    target_amount,
+    target_date: target_date || null,
     updated_at: await getCurrentTimestamp(),
   });
 }
@@ -763,6 +827,7 @@ export async function getDatabaseBackup() {
     'recurring',
     'metals',
     'long_term_savings',
+    'savings_plan',
     'prayers',
     'gym_payments',
     'gym_sessions',

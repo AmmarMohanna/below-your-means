@@ -57,6 +57,7 @@ db.exec(`
     source TEXT NOT NULL,
     expected_date TEXT NOT NULL,
     amount REAL NOT NULL,
+    planned_save_amount REAL NOT NULL DEFAULT 0 CHECK(planned_save_amount >= 0 AND planned_save_amount <= amount),
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -110,6 +111,15 @@ db.exec(`
 
   INSERT OR IGNORE INTO long_term_savings (id) VALUES (1);
 
+  CREATE TABLE IF NOT EXISTS savings_plan (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    target_amount REAL NOT NULL DEFAULT 0 CHECK(target_amount >= 0),
+    target_date TEXT DEFAULT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  INSERT OR IGNORE INTO savings_plan (id) VALUES (1);
+
   CREATE TABLE IF NOT EXISTS prayers (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     soboh INTEGER DEFAULT 0,
@@ -156,6 +166,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
   CREATE INDEX IF NOT EXISTS idx_budgets_category ON budgets(category);
   CREATE INDEX IF NOT EXISTS idx_expected_money_date ON expected_money(expected_date);
+  CREATE INDEX IF NOT EXISTS idx_expected_money_planned_savings ON expected_money(expected_date, planned_save_amount);
   CREATE INDEX IF NOT EXISTS idx_payables_date ON payables(pay_date);
   CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
   CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);

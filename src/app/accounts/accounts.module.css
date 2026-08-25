@@ -178,7 +178,9 @@
 .formCard,
 .metalsCard,
 .groupCard,
-.itemCard {
+.itemCard,
+.savingsGoalCard,
+.planMetricCard {
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 20px;
@@ -251,6 +253,7 @@
 .groupList,
 .longTermList,
 .projectList,
+.savingsPlanDashboard,
 .groupRows,
 .metalsRows {
   display: grid;
@@ -261,8 +264,108 @@
 .groupList,
 .longTermList,
 .projectList,
+.savingsPlanDashboard,
 .metalsCard {
   width: min(100%, 980px);
+}
+
+.savingsPlanDashboard {
+  display: grid;
+  gap: 12px;
+}
+
+.savingsGoalCard {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+
+.savingsGoalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.savingsGoalValue {
+  margin-top: 3px;
+  font-size: clamp(1.6rem, 5vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.goalForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.goalForm .formActions {
+  grid-column: 1 / -1;
+}
+
+.progressTrack {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(71, 90, 112, 0.16);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 180ms ease;
+}
+
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.progressMeta strong {
+  color: var(--text-primary);
+}
+
+.planMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.planMetricCard {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  text-align: center;
+}
+
+.planMetricCard strong {
+  font-size: 1.05rem;
+}
+
+.planRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+}
+
+.planRow:first-child {
+  border-top: none;
+}
+
+.planExpected {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
 }
 
 .longTermList > * {
@@ -484,8 +587,13 @@
 }
 
 @media (max-width: 680px) {
-  .formGrid {
+  .formGrid,
+  .goalForm {
     grid-template-columns: 1fr;
+  }
+
+  .goalForm .formActions {
+    grid-column: auto;
   }
 }
 
@@ -544,9 +652,30 @@
 
   .formCard,
   .metalsCard,
-  .groupCard {
+  .groupCard,
+  .savingsGoalCard {
     padding: 14px;
     border-radius: 18px;
+  }
+
+  .planMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .planMetricCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    text-align: left;
+  }
+
+  .planRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .planRow .rowActions {
+    grid-column: 1 / -1;
   }
 
   .itemCard,
