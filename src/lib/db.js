@@ -280,30 +280,92 @@ export async function deleteCurrentMoney(id) {
 }
 
 export async function getAllExpectedMoney() {
-  return allSql('SELECT * FROM expected_money ORDER BY expected_date ASC, id ASC');
+  return allSql(
+    `
+      SELECT
+        expected_money.id,
+        expected_money.source,
+        expected_money.expected_date,
+        expected_money.amount,
+        expected_money.notes,
+        expected_money.created_at,
+        COALESCE(savings_plan_items.amount, 0) AS planned_save_amount
+      FROM expected_money
+      LEFT JOIN savings_plan_items
+        ON savings_plan_items.expected_money_id = expected_money.id
+      ORDER BY expected_money.expected_date ASC, expected_money.id ASC
+    `
+  );
 }
 
-export async function addExpectedMoney({ source, expected_date, amount, planned_save_amount, notes }) {
-  return insertRow('expected_money', {
+async function syncExpectedSavingsPlanItem(
+  expectedMoneyId,
+  { source, expected_date, planned_save_amount, notes }
+) {
+  const existingItem = await firstSql(
+    'SELECT * FROM savings_plan_items WHERE expected_money_id = ?',
+    [Number(expectedMoneyId)]
+  );
+  const plannedAmount = Number(planned_save_amount || 0);
+
+  if (plannedAmount <= 0) {
+    if (existingItem) {
+      await deleteRow('savings_plan_items', existingItem.id);
+    }
+    return;
+  }
+
+  const itemData = {
+    expected_money_id: Number(expectedMoneyId),
+    source: String(source || '').trim() || 'Expected income',
+    planned_date: expected_date || null,
+    amount: plannedAmount,
+    notes: notes || null,
+    updated_at: await getCurrentTimestamp(),
+  };
+
+  if (existingItem) {
+    await updateRow('savings_plan_items', existingItem.id, itemData);
+  } else {
+    await insertRow('savings_plan_items', itemData);
+  }
+}
+
+export async function addExpectedMoney({ source, expected_date, amount, planned_save_amount = 0, notes }) {
+  const result = await insertRow('expected_money', {
     source,
     expected_date,
     amount,
+    notes,
+  });
+
+  await syncExpectedSavingsPlanItem(result.lastInsertRowid, {
+    source,
+    expected_date,
     planned_save_amount,
     notes,
   });
+  return result;
 }
 
 export async function updateExpectedMoney(
   id,
   { source, expected_date, amount, planned_save_amount, notes }
 ) {
-  return updateRow('expected_money', id, {
+  const result = await updateRow('expected_money', id, {
     source,
     expected_date,
     amount,
+    notes,
+  });
+
+  await syncExpectedSavingsPlanItem(id, {
+    source,
+    expected_date,
     planned_save_amount,
     notes,
   });
+  return result;
 }
 
 export async function deleteExpectedMoney(id) {
@@ -540,52 +602,58 @@ export async function updateLongTermSavings({ aub_pension_amount }) {
 }
 
 export async function getSavingsPlan() {
-  const goal = (await firstSql('SELECT * FROM savings_plan WHERE id = 1')) || {
-    id: 1,
-    target_amount: 0,
-    target_date: null,
-    updated_at: null,
-  };
   const items = await allSql(
     `
       SELECT
         id,
+        expected_money_id,
         source,
-        expected_date,
-        amount AS expected_amount,
-        planned_save_amount,
+        planned_date,
+        amount,
         notes,
-        created_at
-      FROM expected_money
-      ORDER BY expected_date ASC, id ASC
+        created_at,
+        updated_at
+      FROM savings_plan_items
+      ORDER BY
+        CASE WHEN planned_date IS NULL THEN 1 ELSE 0 END,
+        planned_date ASC,
+        id ASC
     `
   );
-  const summary = items.reduce(
-    (totals, item) => {
-      totals.expected += item.expected_amount || 0;
-      totals.planned += item.planned_save_amount || 0;
-      return totals;
-    },
-    { expected: 0, planned: 0 }
-  );
+  const planned = items.reduce((total, item) => total + (item.amount || 0), 0);
 
   return {
-    goal,
     items,
     summary: {
-      ...summary,
+      planned,
       item_count: items.length,
-      planned_rate: summary.expected > 0 ? (summary.planned / summary.expected) * 100 : 0,
     },
   };
 }
 
-export async function updateSavingsPlan({ target_amount, target_date }) {
-  return updateSingletonRow('savings_plan', {
-    target_amount,
-    target_date: target_date || null,
+export async function addSavingsPlanItem({ source, planned_date, amount, notes }) {
+  return insertRow('savings_plan_items', {
+    expected_money_id: null,
+    source,
+    planned_date: planned_date || null,
+    amount,
+    notes: notes || null,
     updated_at: await getCurrentTimestamp(),
   });
+}
+
+export async function updateSavingsPlanItem(id, { source, planned_date, amount, notes }) {
+  return updateRow('savings_plan_items', Number(id), {
+    source,
+    planned_date: planned_date || null,
+    amount,
+    notes: notes || null,
+    updated_at: await getCurrentTimestamp(),
+  });
+}
+
+export async function deleteSavingsPlanItem(id) {
+  return deleteRow('savings_plan_items', Number(id));
 }
 
 export async function updateMetalPrices({
@@ -828,6 +896,7 @@ export async function getDatabaseBackup() {
     'metals',
     'long_term_savings',
     'savings_plan',
+    'savings_plan_items',
     'prayers',
     'gym_payments',
     'gym_sessions',

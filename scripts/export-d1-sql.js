@@ -15,6 +15,7 @@ const orderedTables = [
   'current_money',
   'projects',
   'expected_money',
+  'savings_plan_items',
   'payables',
   'recurring',
   'metals',
@@ -33,6 +34,7 @@ const resetTables = [
   'categories',
   'current_money',
   'projects',
+  'savings_plan_items',
   'expected_money',
   'payables',
   'recurring',
@@ -94,7 +96,7 @@ for (const tableName of resetTables) {
 }
 
 lines.push(
-  "DELETE FROM sqlite_sequence WHERE name IN ('transactions','budgets','categories','current_money','projects','expected_money','payables','recurring','gym_payments','gym_sessions','reminders','audit_log');",
+  "DELETE FROM sqlite_sequence WHERE name IN ('transactions','budgets','categories','current_money','projects','expected_money','savings_plan_items','payables','recurring','gym_payments','gym_sessions','reminders','audit_log');",
   ''
 );
 

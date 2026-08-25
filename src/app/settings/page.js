@@ -39,6 +39,10 @@ function formatHistoryTitle(entry) {
     return "Savings goal";
   }
 
+  if (entry.table_name === "savings_plan_items") {
+    return record.source || "Savings plan amount";
+  }
+
   if (entry.table_name === "gym_payments" || entry.table_name === "gym_sessions") {
     return record.notes || record.date || "Gym";
   }
@@ -164,12 +168,11 @@ export default function Settings() {
         XLSX.utils.book_append_sheet(
           workbook,
           XLSX.utils.aoa_to_sheet([
-            ["Source", "Expected Date", "Amount", "Planned Save", "Notes"],
+            ["Source", "Expected Date", "Amount", "Notes"],
             ...accounts.expectedMoney.map((item) => [
               item.source,
               item.expected_date,
               item.amount,
-              item.planned_save_amount || 0,
               item.notes || "",
             ]),
           ]),
@@ -245,18 +248,17 @@ export default function Settings() {
         );
       }
 
-      if (savingsPlan.goal) {
+      if (savingsPlan.items?.length > 0) {
         XLSX.utils.book_append_sheet(
           workbook,
           XLSX.utils.aoa_to_sheet([
-            ["Target Amount", "Target Date", "Planned Savings", "Expected Payments", "Planned Rate"],
-            [
-              savingsPlan.goal.target_amount || 0,
-              savingsPlan.goal.target_date || "",
-              savingsPlan.summary?.planned || 0,
-              savingsPlan.summary?.expected || 0,
-              savingsPlan.summary?.planned_rate || 0,
-            ],
+            ["Source", "Planned Date", "Amount", "Notes"],
+            ...savingsPlan.items.map((item) => [
+              item.source,
+              item.planned_date || "",
+              item.amount,
+              item.notes || "",
+            ]),
           ]),
           "Saving Plan"
         );

@@ -29,7 +29,10 @@ import {
 
 function validateExpectedPlan(data) {
   const amount = Number(data.amount);
-  const plannedSaveAmount = Number(data.planned_save_amount);
+  const plannedSaveAmount =
+    data.planned_save_amount === '' || data.planned_save_amount === null || data.planned_save_amount === undefined
+      ? 0
+      : Number(data.planned_save_amount);
 
   if (
     !Number.isFinite(amount) ||

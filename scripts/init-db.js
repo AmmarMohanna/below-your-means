@@ -17,6 +17,7 @@ console.log(`Initializing database at: ${dbPath}`);
 
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
 // Create tables
 db.exec(`
@@ -120,6 +121,18 @@ db.exec(`
 
   INSERT OR IGNORE INTO savings_plan (id) VALUES (1);
 
+  CREATE TABLE IF NOT EXISTS savings_plan_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    expected_money_id INTEGER DEFAULT NULL,
+    source TEXT NOT NULL CHECK(length(trim(source)) > 0),
+    planned_date TEXT DEFAULT NULL,
+    amount REAL NOT NULL CHECK(amount > 0),
+    notes TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (expected_money_id) REFERENCES expected_money(id) ON DELETE SET NULL
+  );
+
   CREATE TABLE IF NOT EXISTS prayers (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     soboh INTEGER DEFAULT 0,
@@ -167,6 +180,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_budgets_category ON budgets(category);
   CREATE INDEX IF NOT EXISTS idx_expected_money_date ON expected_money(expected_date);
   CREATE INDEX IF NOT EXISTS idx_expected_money_planned_savings ON expected_money(expected_date, planned_save_amount);
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_savings_plan_items_expected_money ON savings_plan_items(expected_money_id);
+  CREATE INDEX IF NOT EXISTS idx_savings_plan_items_date ON savings_plan_items(planned_date, id);
   CREATE INDEX IF NOT EXISTS idx_payables_date ON payables(pay_date);
   CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
   CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);

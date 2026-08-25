@@ -33,6 +33,7 @@ async function resetImportTarget() {
     'DELETE FROM categories',
     'DELETE FROM current_money',
     'DELETE FROM projects',
+    'DELETE FROM savings_plan_items',
     'DELETE FROM expected_money',
     'DELETE FROM payables',
     'DELETE FROM recurring',
@@ -97,6 +98,7 @@ async function resetImportTarget() {
         'categories',
         'current_money',
         'projects',
+        'savings_plan_items',
         'expected_money',
         'payables',
         'recurring',
@@ -124,6 +126,7 @@ export async function importWorkbookBuffer(buffer) {
       currentMoney: 0,
       projects: 0,
       expectedMoney: 0,
+      savingsPlan: 0,
       payables: 0,
       recurring: 0,
       gymPayments: 0,
@@ -158,22 +161,27 @@ export async function importWorkbookBuffer(buffer) {
     summary.imported.transactions = transactions.length;
 
     const savingsPlanRows = getSheetData(workbook, 'Saving Plan');
-    if (savingsPlanRows.length > 0) {
-      const row = savingsPlanRows[0];
-      const targetAmount = Number(row['Target Amount']);
+    const hasIndependentSavingsPlan = savingsPlanRows.some(
+      (row) => String(row.Source || '').trim() && Number(row.Amount) > 0
+    );
+    for (const item of savingsPlanRows) {
+      const source = String(item.Source || '').trim();
+      const amount = Number(item.Amount);
+      if (!source || !Number.isFinite(amount) || amount <= 0) continue;
+
       await runSql(
         `
-          UPDATE savings_plan
-          SET target_amount = ?,
-              target_date = ?,
-              updated_at = CURRENT_TIMESTAMP
-          WHERE id = 1
+          INSERT INTO savings_plan_items (source, planned_date, amount, notes)
+          VALUES (?, ?, ?, ?)
         `,
         [
-          Number.isFinite(targetAmount) && targetAmount >= 0 ? targetAmount : 0,
-          row['Target Date'] ? String(row['Target Date']) : null,
+          source,
+          item['Planned Date'] ? String(item['Planned Date']) : null,
+          amount,
+          item.Notes || null,
         ]
       );
+      summary.imported.savingsPlan += 1;
     }
 
     const currentMoney = getSheetData(workbook, 'Current Money');
@@ -214,7 +222,7 @@ export async function importWorkbookBuffer(buffer) {
     for (const item of expectedMoney) {
       const amount = parseFloat(item.Amount) || 0;
       const plannedSaveAmount = Number(item['Planned Save']);
-      await runSql(
+      const expectedResult = await runSql(
         `
           INSERT INTO expected_money (source, expected_date, amount, planned_save_amount, notes)
           VALUES (?, ?, ?, ?, ?)
@@ -223,12 +231,38 @@ export async function importWorkbookBuffer(buffer) {
           item.Source || 'Unknown',
           item['Expected Date'] || new Date().toISOString().slice(0, 10),
           amount,
-          Number.isFinite(plannedSaveAmount) && plannedSaveAmount >= 0 && plannedSaveAmount <= amount
-            ? plannedSaveAmount
-            : 0,
+          0,
           item.Notes || null,
         ]
       );
+
+      if (
+        !hasIndependentSavingsPlan &&
+        Number.isFinite(plannedSaveAmount) &&
+        plannedSaveAmount > 0 &&
+        plannedSaveAmount <= amount
+      ) {
+        await runSql(
+          `
+            INSERT INTO savings_plan_items (
+              expected_money_id,
+              source,
+              planned_date,
+              amount,
+              notes
+            )
+            VALUES (?, ?, ?, ?, ?)
+          `,
+          [
+            expectedResult.lastInsertRowid,
+            item.Source || 'Unknown',
+            item['Expected Date'] || new Date().toISOString().slice(0, 10),
+            plannedSaveAmount,
+            item.Notes || null,
+          ]
+        );
+        summary.imported.savingsPlan += 1;
+      }
     }
     summary.imported.expectedMoney = expectedMoney.length;
 

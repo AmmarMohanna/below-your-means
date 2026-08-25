@@ -13,7 +13,6 @@ const tabs = [
   { id: "expected", name: "Expected" },
   { id: "payables", name: "Payables" },
   { id: "recurring", name: "Monthly" },
-  { id: "plan", name: "Saving Plan" },
   { id: "metals", name: "Savings" },
   { id: "projects", name: "Projects" },
 ];
@@ -112,6 +111,15 @@ function getInitialForm(tab) {
   return { person: "", amount: "", notes: "" };
 }
 
+function getInitialSavingsPlanForm() {
+  return {
+    source: "",
+    planned_date: getTodayBeirut(),
+    amount: "",
+    notes: "",
+  };
+}
+
 export default function Accounts() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("current");
@@ -132,12 +140,12 @@ export default function Accounts() {
   const [pensionAmount, setPensionAmount] = useState(0);
   const [pensionForm, setPensionForm] = useState(0);
   const [savingsPlan, setSavingsPlan] = useState({
-    goal: { target_amount: 0, target_date: null },
     items: [],
-    summary: { expected: 0, planned: 0, item_count: 0, planned_rate: 0 },
+    summary: { planned: 0, item_count: 0 },
   });
-  const [goalForm, setGoalForm] = useState({ target_amount: "", target_date: "" });
-  const [goalEditing, setGoalEditing] = useState(false);
+  const [savingsPlanForm, setSavingsPlanForm] = useState(getInitialSavingsPlanForm);
+  const [savingsPlanEditingId, setSavingsPlanEditingId] = useState(null);
+  const [showSavingsPlanForm, setShowSavingsPlanForm] = useState(false);
   const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 });
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -203,10 +211,6 @@ export default function Accounts() {
 
       const result = await response.json();
       setSavingsPlan(result);
-      setGoalForm({
-        target_amount: result.goal?.target_amount || "",
-        target_date: result.goal?.target_date || "",
-      });
     } catch (error) {
       console.error("Error fetching savings plan:", error);
     }
@@ -393,25 +397,53 @@ export default function Accounts() {
     }
   };
 
-  const handleGoalUpdate = async () => {
-    const targetAmount = Number(goalForm.target_amount || 0);
-    if (!Number.isFinite(targetAmount) || targetAmount < 0) return;
+  const resetSavingsPlanForm = () => {
+    setSavingsPlanForm(getInitialSavingsPlanForm());
+    setSavingsPlanEditingId(null);
+    setShowSavingsPlanForm(false);
+  };
+
+  const handleSavingsPlanSubmit = async () => {
+    const method = savingsPlanEditingId ? "PATCH" : "POST";
+    const payload = savingsPlanEditingId
+      ? { id: savingsPlanEditingId, ...savingsPlanForm }
+      : savingsPlanForm;
 
     try {
       const response = await fetch("/api/savings-plan", {
-        method: "PUT",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          target_amount: targetAmount,
-          target_date: goalForm.target_date || null,
-        }),
+        body: JSON.stringify(payload),
       });
-      if (!response.ok) throw new Error("Failed to update savings goal");
+      if (!response.ok) throw new Error("Failed to save savings plan item");
 
-      setGoalEditing(false);
-      await fetchSavingsPlan();
+      resetSavingsPlanForm();
+      await Promise.all([fetchSavingsPlan(), fetchData()]);
     } catch (error) {
-      console.error("Error updating savings goal:", error);
+      console.error("Error saving savings plan item:", error);
+    }
+  };
+
+  const startSavingsPlanEdit = (item) => {
+    setSavingsPlanEditingId(item.id);
+    setShowSavingsPlanForm(true);
+    setSavingsPlanForm({
+      source: item.source || "",
+      planned_date: item.planned_date || "",
+      amount: item.amount || "",
+      notes: item.notes || "",
+    });
+  };
+
+  const handleSavingsPlanDelete = async (id) => {
+    try {
+      const response = await fetch(`/api/savings-plan?id=${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Failed to delete savings plan item");
+
+      if (savingsPlanEditingId === id) resetSavingsPlanForm();
+      await Promise.all([fetchSavingsPlan(), fetchData()]);
+    } catch (error) {
+      console.error("Error deleting savings plan item:", error);
     }
   };
 
@@ -618,21 +650,24 @@ export default function Accounts() {
             value={formData.amount || ""}
             onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
           />
-          <input
-            type="number"
-            className={styles.formInput}
-            min="0"
-            max={formData.amount || undefined}
-            step="0.01"
-            placeholder="Planned to save"
-            value={formData.planned_save_amount ?? ""}
-            onChange={(event) =>
-              setFormData({
-                ...formData,
-                planned_save_amount: event.target.value === "" ? "" : Number(event.target.value),
-              })
-            }
-          />
+          <label className={styles.formField}>
+            <span className={styles.formLabel}>Add to savings plan (optional)</span>
+            <input
+              type="number"
+              className={styles.formInput}
+              min="0"
+              max={formData.amount || undefined}
+              step="0.01"
+              placeholder="Leave blank for none"
+              value={formData.planned_save_amount ?? ""}
+              onChange={(event) =>
+                setFormData({
+                  ...formData,
+                  planned_save_amount: event.target.value === "" ? "" : Number(event.target.value),
+                })
+              }
+            />
+          </label>
           <input
             type="text"
             className={styles.formInput}
@@ -724,8 +759,8 @@ export default function Accounts() {
         Number(formData.estimated_amount) < 0);
     const expectedFormInvalid =
       activeTab === "expected" &&
-      (formData.planned_save_amount === "" ||
-        !Number.isFinite(Number(formData.planned_save_amount)) ||
+      formData.planned_save_amount !== "" &&
+      (!Number.isFinite(Number(formData.planned_save_amount)) ||
         Number(formData.planned_save_amount) < 0 ||
         Number(formData.planned_save_amount) > Number(formData.amount || 0));
 
@@ -925,150 +960,147 @@ export default function Accounts() {
     );
   };
 
-  const renderSavingsPlanTab = () => {
-    const targetAmount = savingsPlan.goal?.target_amount || 0;
+  const renderSavingsPlanSection = () => {
     const plannedAmount = savingsPlan.summary?.planned || 0;
-    const progress = targetAmount > 0 ? Math.min(100, (plannedAmount / targetAmount) * 100) : 0;
+    const planFormInvalid =
+      !savingsPlanForm.source.trim() ||
+      !Number.isFinite(Number(savingsPlanForm.amount)) ||
+      Number(savingsPlanForm.amount) <= 0;
 
     return (
       <div className={styles.savingsPlanDashboard}>
-        <section className={styles.savingsGoalCard}>
-          <div className={styles.savingsGoalHeader}>
-            <div>
-              <span className={styles.summaryLabel}>Savings goal</span>
-              <h3 className={styles.savingsGoalValue}>
-                {targetAmount > 0 ? `$${formatMoney(targetAmount)}` : "Set your goal"}
-              </h3>
-              {savingsPlan.goal?.target_date ? (
-                <p className={styles.itemMeta}>Target {formatDate(savingsPlan.goal.target_date)}</p>
-              ) : null}
-            </div>
-            {!goalEditing ? (
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => setGoalEditing(true)}
-              >
-                {targetAmount > 0 ? "Edit goal" : "Set goal"}
-              </button>
-            ) : null}
-          </div>
-
-          {goalEditing ? (
-            <div className={styles.goalForm}>
-              <label className={styles.formField}>
-                <span className={styles.formLabel}>Target amount</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className={styles.formInput}
-                  value={goalForm.target_amount}
-                  onChange={(event) =>
-                    setGoalForm({ ...goalForm, target_amount: event.target.value })
-                  }
-                />
-              </label>
-              <label className={styles.formField}>
-                <span className={styles.formLabel}>Target date (optional)</span>
-                <input
-                  type="date"
-                  className={styles.formInput}
-                  value={goalForm.target_date}
-                  onChange={(event) =>
-                    setGoalForm({ ...goalForm, target_date: event.target.value })
-                  }
-                />
-              </label>
-              <div className={styles.formActions}>
-                <button type="button" className={styles.primaryButton} onClick={handleGoalUpdate}>
-                  Save goal
-                </button>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={() => {
-                    setGoalEditing(false);
-                    setGoalForm({
-                      target_amount: savingsPlan.goal?.target_amount || "",
-                      target_date: savingsPlan.goal?.target_date || "",
-                    });
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className={styles.progressTrack} aria-label={`${progress.toFixed(0)}% of goal planned`}>
-                <span className={styles.progressFill} style={{ width: `${progress}%` }} />
-              </div>
-              <div className={styles.progressMeta}>
-                <strong>${formatMoney(plannedAmount)} planned</strong>
-                <span>{targetAmount > 0 ? `${progress.toFixed(0)}%` : "No goal yet"}</span>
-              </div>
-            </>
-          )}
-        </section>
-
         <div className={styles.planMetrics}>
           <div className={styles.planMetricCard}>
-            <span className={styles.summaryLabel}>Planned to save</span>
+            <span className={styles.summaryLabel}>Planned savings</span>
             <strong>${formatMoney(plannedAmount)}</strong>
           </div>
           <div className={styles.planMetricCard}>
-            <span className={styles.summaryLabel}>Expected payments</span>
-            <strong>${formatMoney(savingsPlan.summary?.expected || 0)}</strong>
+            <span className={styles.summaryLabel}>Current savings</span>
+            <strong>${formatMoney(summary.longTermSavings)}</strong>
           </div>
           <div className={styles.planMetricCard}>
-            <span className={styles.summaryLabel}>Planned rate</span>
-            <strong>{(savingsPlan.summary?.planned_rate || 0).toFixed(1)}%</strong>
+            <span className={styles.summaryLabel}>Listed amounts</span>
+            <strong>{savingsPlan.summary?.item_count || 0}</strong>
           </div>
         </div>
 
         <section className={styles.groupCard}>
           <div className={styles.groupHeader}>
             <div>
-              <h3 className={styles.groupTitle}>Expected payments</h3>
+              <h3 className={styles.groupTitle}>Savings plan</h3>
               <p className={styles.itemMeta}>
-                {formatItemCount(savingsPlan.summary?.item_count || 0)}
+                The total is the sum of the amounts listed here.
               </p>
             </div>
+            {!showSavingsPlanForm ? (
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={() => {
+                  setSavingsPlanEditingId(null);
+                  setSavingsPlanForm(getInitialSavingsPlanForm());
+                  setShowSavingsPlanForm(true);
+                }}
+              >
+                Add amount
+              </button>
+            ) : null}
           </div>
+
+          {showSavingsPlanForm ? (
+            <div className={`${styles.formCard} ${styles.planFormCard}`}>
+              <div className={styles.formGrid}>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder="Source or purpose"
+                  value={savingsPlanForm.source}
+                  onChange={(event) =>
+                    setSavingsPlanForm({ ...savingsPlanForm, source: event.target.value })
+                  }
+                />
+                <label className={styles.formField}>
+                  <span className={styles.formLabel}>Date (optional)</span>
+                  <input
+                    type="date"
+                    className={styles.formInput}
+                    value={savingsPlanForm.planned_date}
+                    onChange={(event) =>
+                      setSavingsPlanForm({ ...savingsPlanForm, planned_date: event.target.value })
+                    }
+                  />
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  className={styles.formInput}
+                  placeholder="Amount"
+                  value={savingsPlanForm.amount}
+                  onChange={(event) =>
+                    setSavingsPlanForm({ ...savingsPlanForm, amount: event.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder="Notes"
+                  value={savingsPlanForm.notes}
+                  onChange={(event) =>
+                    setSavingsPlanForm({ ...savingsPlanForm, notes: event.target.value })
+                  }
+                />
+              </div>
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  onClick={handleSavingsPlanSubmit}
+                  disabled={planFormInvalid}
+                >
+                  {savingsPlanEditingId ? "Save amount" : "Add amount"}
+                </button>
+                <button type="button" className={styles.secondaryButton} onClick={resetSavingsPlanForm}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <div className={styles.groupRows}>
             {savingsPlan.items.map((item) => (
               <article key={item.id} className={styles.planRow}>
                 <div className={styles.itemMain}>
                   <div className={styles.itemLine}>
-                    <span className={styles.itemTitle}>{item.source || "Expected payment"}</span>
-                    <span className={styles.itemMeta}>{formatDate(item.expected_date)}</span>
+                    <span className={styles.itemTitle}>{item.source}</span>
+                    {item.planned_date ? (
+                      <span className={styles.itemMeta}>{formatDate(item.planned_date)}</span>
+                    ) : null}
                   </div>
-                  <span className={styles.planExpected}>
-                    From ${formatMoney(item.expected_amount)} expected
-                  </span>
+                  {item.notes ? <span className={styles.planExpected}>{item.notes}</span> : null}
                 </div>
-                <strong className={styles.itemAmount}>
-                  ${formatMoney(item.planned_save_amount)}
-                </strong>
+                <strong className={styles.itemAmount}>${formatMoney(item.amount)}</strong>
                 <div className={styles.rowActions}>
                   <button
                     type="button"
                     className={styles.actionButton}
-                    onClick={() => {
-                      setActiveTab("expected");
-                      startEdit({ ...item, amount: item.expected_amount });
-                    }}
+                    onClick={() => startSavingsPlanEdit(item)}
                   >
                     Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    onClick={() => handleSavingsPlanDelete(item.id)}
+                  >
+                    Delete
                   </button>
                 </div>
               </article>
             ))}
             {savingsPlan.items.length === 0 ? (
               <div className={styles.emptyState}>
-                Add an expected payment and choose how much you plan to save from it.
+                No savings amounts listed yet.
               </div>
             ) : null}
           </div>
@@ -1078,10 +1110,6 @@ export default function Accounts() {
   };
 
   const renderCurrentTab = () => {
-    if (activeTab === "plan") {
-      return renderSavingsPlanTab();
-    }
-
     if (activeTab === "current") {
       return renderStandardList(data.currentMoney, (item) => ({
         title: item.location,
@@ -1115,7 +1143,9 @@ export default function Accounts() {
           title: item.source,
           meta: joinParts(
             formatDate(item.expected_date),
-            `$${formatMoney(item.planned_save_amount || 0)} planned to save`,
+            item.planned_save_amount > 0
+              ? `$${formatMoney(item.planned_save_amount)} added to savings plan`
+              : "",
             item.notes
           ),
           detailId: `expectedMoney:${item.id}`,
@@ -1201,6 +1231,16 @@ export default function Accounts() {
 
     return (
       <div className={styles.longTermList}>
+        {renderSavingsPlanSection()}
+
+        <div className={styles.savingsHoldingsHeader}>
+          <div>
+            <h3 className={styles.groupTitle}>Current savings</h3>
+            <p className={styles.itemMeta}>Pension and metal holdings</p>
+          </div>
+          <strong>${formatMoney(summary.longTermSavings)}</strong>
+        </div>
+
         <section className={styles.groupCard}>
           <div className={styles.groupHeader}>
             <div className={styles.itemMain}>
@@ -1430,7 +1470,7 @@ export default function Accounts() {
   }
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab);
-  const canAdd = activeTab !== "metals" && activeTab !== "plan";
+  const canAdd = activeTab !== "metals";
 
   return (
     <div className={styles.container}>

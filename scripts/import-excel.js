@@ -47,6 +47,7 @@ if (fs.existsSync(dbPath)) {
 console.log(`📂 Creating database at: ${dbPath}`);
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
 // Initialize schema
 console.log('📋 Creating tables...');
@@ -144,6 +145,18 @@ db.exec(`
 
   INSERT OR IGNORE INTO savings_plan (id) VALUES (1);
 
+  CREATE TABLE IF NOT EXISTS savings_plan_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    expected_money_id INTEGER DEFAULT NULL,
+    source TEXT NOT NULL CHECK(length(trim(source)) > 0),
+    planned_date TEXT DEFAULT NULL,
+    amount REAL NOT NULL CHECK(amount > 0),
+    notes TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (expected_money_id) REFERENCES expected_money(id) ON DELETE SET NULL
+  );
+
   CREATE TABLE IF NOT EXISTS prayers (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     soboh INTEGER DEFAULT 0,
@@ -178,6 +191,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_transactions_scope ON transactions(scope);
   CREATE INDEX IF NOT EXISTS idx_expected_money_planned_savings
     ON expected_money(expected_date, planned_save_amount);
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_savings_plan_items_expected_money
+    ON savings_plan_items(expected_money_id);
+  CREATE INDEX IF NOT EXISTS idx_savings_plan_items_date
+    ON savings_plan_items(planned_date, id);
 `);
 
 // Read Excel file
@@ -232,16 +249,24 @@ if (transactions.length > 0) {
 }
 
 const savingsPlan = getSheetData('Saving Plan');
-if (savingsPlan.length > 0) {
-  const row = savingsPlan[0];
-  const targetAmount = Number(row['Target Amount']);
-  db.prepare(`
-    UPDATE savings_plan
-    SET target_amount = ?, target_date = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = 1
-  `).run(
-    Number.isFinite(targetAmount) && targetAmount >= 0 ? targetAmount : 0,
-    row['Target Date'] ? String(row['Target Date']) : null
+const hasIndependentSavingsPlan = savingsPlan.some(
+  (row) => String(row['Source'] || '').trim() && Number(row['Amount']) > 0
+);
+const insertSavingsPlan = db.prepare(`
+  INSERT INTO savings_plan_items (expected_money_id, source, planned_date, amount, notes)
+  VALUES (?, ?, ?, ?, ?)
+`);
+for (const row of savingsPlan) {
+  const source = String(row['Source'] || '').trim();
+  const amount = Number(row['Amount']);
+  if (!source || !Number.isFinite(amount) || amount <= 0) continue;
+
+  insertSavingsPlan.run(
+    null,
+    source,
+    row['Planned Date'] ? String(row['Planned Date']) : null,
+    amount,
+    row['Notes'] || null
   );
 }
 
@@ -272,15 +297,28 @@ if (expectedMoney.length > 0) {
   for (const m of expectedMoney) {
     const amount = parseFloat(m['Amount']) || 0;
     const plannedSaveAmount = Number(m['Planned Save']);
-    insertEM.run(
+    const result = insertEM.run(
       m['Source'] || 'Unknown',
       m['Expected Date'] || new Date().toISOString().split('T')[0],
       amount,
-      Number.isFinite(plannedSaveAmount) && plannedSaveAmount >= 0 && plannedSaveAmount <= amount
-        ? plannedSaveAmount
-        : 0,
+      0,
       m['Notes'] || null
     );
+
+    if (
+      !hasIndependentSavingsPlan &&
+      Number.isFinite(plannedSaveAmount) &&
+      plannedSaveAmount > 0 &&
+      plannedSaveAmount <= amount
+    ) {
+      insertSavingsPlan.run(
+        result.lastInsertRowid,
+        m['Source'] || 'Unknown',
+        m['Expected Date'] || new Date().toISOString().split('T')[0],
+        plannedSaveAmount,
+        m['Notes'] || null
+      );
+    }
   }
 }
 
