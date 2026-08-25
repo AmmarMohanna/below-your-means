@@ -131,6 +131,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS long_term_savings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     aub_pension_amount REAL NOT NULL DEFAULT 0,
+    cash_savings_amount REAL NOT NULL DEFAULT 0,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -196,6 +197,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_savings_plan_items_date
     ON savings_plan_items(planned_date, id);
 `);
+
+const longTermSavingsColumns = db.prepare('PRAGMA table_info(long_term_savings)').all();
+if (!longTermSavingsColumns.some((column) => column.name === 'cash_savings_amount')) {
+  db.exec(`
+    ALTER TABLE long_term_savings
+    ADD COLUMN cash_savings_amount REAL NOT NULL DEFAULT 0 CHECK(cash_savings_amount >= 0)
+  `);
+}
 
 // Read Excel file
 console.log(`📖 Reading Excel file: ${excelPath}`);
@@ -429,13 +438,21 @@ const longTermSavingsSheet = [
   ...getSheetData('Long-term Savings'),
 ];
 const aubPensionRow = longTermSavingsSheet.find((row) => row['Account'] === 'AUB Pension');
-if (aubPensionRow) {
-  console.log(`🏦 Importing AUB pension data...`);
+const cashSavingsRow = longTermSavingsSheet.find((row) =>
+  ['Current cash savings', 'Cash savings'].includes(row['Account'])
+);
+if (aubPensionRow || cashSavingsRow) {
+  console.log(`🏦 Importing current savings data...`);
   db.prepare(`
     UPDATE long_term_savings
-    SET aub_pension_amount = ?, updated_at = CURRENT_TIMESTAMP
+    SET aub_pension_amount = ?,
+        cash_savings_amount = ?,
+        updated_at = CURRENT_TIMESTAMP
     WHERE id = 1
-  `).run(parseFloat(aubPensionRow['Amount']) || 0);
+  `).run(
+    parseFloat(aubPensionRow?.['Amount']) || 0,
+    parseFloat(cashSavingsRow?.['Amount']) || 0
+  );
 }
 
 // Import Prayers (single row)

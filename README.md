@@ -19,7 +19,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - **Payables** — What you owe and when
 - **Recurring** — Monthly payments by type (Family, Home, Personal, Subscription, Donations)
 - **Projects** — Planned projects with estimates, optional dates, and ranking
-- **Savings** — AUB Pension plus gold (24K, 21K) and silver with live price fetching
+- **Savings** — Current cash savings, AUB Pension, gold (24K, 21K), and silver with live price fetching
 - **Savings** — Keep an independent list of planned savings alongside pension and metal holdings
 
 ### 🌙 Lifestyle — Personal Habits

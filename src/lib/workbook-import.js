@@ -63,9 +63,10 @@ async function resetImportTarget() {
       INSERT OR REPLACE INTO long_term_savings (
         id,
         aub_pension_amount,
+        cash_savings_amount,
         updated_at
       )
-      VALUES (1, 0, CURRENT_TIMESTAMP)
+      VALUES (1, 0, 0, CURRENT_TIMESTAMP)
     `,
     `
       INSERT OR REPLACE INTO savings_plan (
@@ -347,15 +348,22 @@ export async function importWorkbookBuffer(buffer) {
       ...getSheetData(workbook, 'Long-term Savings'),
     ];
     const aubPensionRow = longTermSavingsRows.find((row) => row.Account === 'AUB Pension');
-    if (aubPensionRow) {
+    const cashSavingsRow = longTermSavingsRows.find((row) =>
+      ['Current cash savings', 'Cash savings'].includes(row.Account)
+    );
+    if (aubPensionRow || cashSavingsRow) {
       await runSql(
         `
           UPDATE long_term_savings
           SET aub_pension_amount = ?,
+              cash_savings_amount = ?,
               updated_at = CURRENT_TIMESTAMP
           WHERE id = 1
         `,
-        [parseFloat(aubPensionRow.Amount) || 0]
+        [
+          parseFloat(aubPensionRow?.Amount) || 0,
+          parseFloat(cashSavingsRow?.Amount) || 0,
+        ]
       );
     }
 

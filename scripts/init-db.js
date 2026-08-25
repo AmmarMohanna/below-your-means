@@ -107,6 +107,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS long_term_savings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     aub_pension_amount REAL NOT NULL DEFAULT 0,
+    cash_savings_amount REAL NOT NULL DEFAULT 0,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -186,6 +187,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_recurring_type ON recurring(type);
   CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
 `);
+
+const longTermSavingsColumns = db.prepare('PRAGMA table_info(long_term_savings)').all();
+if (!longTermSavingsColumns.some((column) => column.name === 'cash_savings_amount')) {
+  db.exec(`
+    ALTER TABLE long_term_savings
+    ADD COLUMN cash_savings_amount REAL NOT NULL DEFAULT 0 CHECK(cash_savings_amount >= 0)
+  `);
+}
 
 console.log('Database initialized successfully!');
 console.log('Tables created for transactions, accounts, savings, lifestyle, and audit history.');

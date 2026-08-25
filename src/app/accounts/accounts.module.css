@@ -328,6 +328,12 @@
   padding: 14px 4px 2px;
 }
 
+.savingsAccountsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .projectSummaryCard {
   display: flex;
   align-items: center;
@@ -609,6 +615,10 @@
   }
 
   .planMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .savingsAccountsGrid {
     grid-template-columns: 1fr;
   }
 

@@ -9,14 +9,24 @@ export async function PUT(request) {
   }
 
   try {
-    const { aub_pension_amount } = await request.json();
-    const amount = Number(aub_pension_amount);
+    const body = await request.json();
+    const amounts = {};
 
-    if (!Number.isFinite(amount) || amount < 0) {
-      return NextResponse.json({ error: 'A valid pension amount is required' }, { status: 400 });
+    for (const field of ['aub_pension_amount', 'cash_savings_amount']) {
+      if (body[field] === undefined) continue;
+
+      const amount = Number(body[field]);
+      if (!Number.isFinite(amount) || amount < 0) {
+        return NextResponse.json({ error: 'A valid savings amount is required' }, { status: 400 });
+      }
+      amounts[field] = amount;
     }
 
-    await updateLongTermSavings({ aub_pension_amount: amount });
+    if (Object.keys(amounts).length === 0) {
+      return NextResponse.json({ error: 'A savings amount is required' }, { status: 400 });
+    }
+
+    await updateLongTermSavings(amounts);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating savings:', error);

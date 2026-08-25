@@ -23,7 +23,10 @@ export async function GET() {
       silver_price_per_kg: 950,
       prices_fetched_at: null
     };
-    const longTermSavings = (await getLongTermSavings()) || { aub_pension_amount: 0 };
+    const longTermSavings = (await getLongTermSavings()) || {
+      aub_pension_amount: 0,
+      cash_savings_amount: 0,
+    };
     
     // Build response with stored prices
     const prices = {
@@ -55,7 +58,11 @@ export async function GET() {
       },
       longTermSavings: {
         aub_pension_amount: longTermSavings.aub_pension_amount || 0,
-        total: totalValue + (longTermSavings.aub_pension_amount || 0),
+        cash_savings_amount: longTermSavings.cash_savings_amount || 0,
+        total:
+          totalValue +
+          (longTermSavings.aub_pension_amount || 0) +
+          (longTermSavings.cash_savings_amount || 0),
       }
     });
   } catch (error) {

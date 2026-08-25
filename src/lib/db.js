@@ -594,9 +594,10 @@ export async function getLongTermSavings() {
   return firstSql('SELECT * FROM long_term_savings WHERE id = 1');
 }
 
-export async function updateLongTermSavings({ aub_pension_amount }) {
+export async function updateLongTermSavings({ aub_pension_amount, cash_savings_amount }) {
   return updateSingletonRow('long_term_savings', {
     aub_pension_amount,
+    cash_savings_amount,
     updated_at: await getCurrentTimestamp(),
   });
 }

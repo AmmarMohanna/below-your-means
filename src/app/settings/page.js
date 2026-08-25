@@ -32,7 +32,7 @@ function formatHistoryTitle(entry) {
   }
 
   if (entry.table_name === "long_term_savings") {
-    return "AUB Pension";
+    return "Current savings";
   }
 
   if (entry.table_name === "savings_plan") {
@@ -241,6 +241,7 @@ export default function Settings() {
           XLSX.utils.aoa_to_sheet([
             ["Account", "Amount"],
             ["AUB Pension", metals.longTermSavings.aub_pension_amount || 0],
+            ["Current cash savings", metals.longTermSavings.cash_savings_amount || 0],
             ["Metals", metals.values?.total || 0],
             ["Total", metals.longTermSavings.total || 0],
           ]),

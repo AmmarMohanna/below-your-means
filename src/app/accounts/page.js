@@ -139,6 +139,8 @@ export default function Accounts() {
   const [metalsForm, setMetalsForm] = useState({ gold_24k_grams: 0, gold_21k_grams: 0, silver_kg: 0 });
   const [pensionAmount, setPensionAmount] = useState(0);
   const [pensionForm, setPensionForm] = useState(0);
+  const [cashSavingsAmount, setCashSavingsAmount] = useState(0);
+  const [cashSavingsForm, setCashSavingsForm] = useState(0);
   const [savingsPlan, setSavingsPlan] = useState({
     items: [],
     summary: { planned: 0, item_count: 0 },
@@ -153,6 +155,7 @@ export default function Accounts() {
   const [formData, setFormData] = useState(getInitialForm("current"));
   const [metalsEditing, setMetalsEditing] = useState(false);
   const [pensionEditing, setPensionEditing] = useState(false);
+  const [cashSavingsEditing, setCashSavingsEditing] = useState(false);
   const [pricesEditing, setPricesEditing] = useState(false);
   const [refreshingLivePrices, setRefreshingLivePrices] = useState(false);
   const [completingId, setCompletingId] = useState(null);
@@ -189,6 +192,8 @@ export default function Accounts() {
       setMetalsForm(result.holdings);
       setPensionAmount(result.longTermSavings?.aub_pension_amount || 0);
       setPensionForm(result.longTermSavings?.aub_pension_amount || 0);
+      setCashSavingsAmount(result.longTermSavings?.cash_savings_amount || 0);
+      setCashSavingsForm(result.longTermSavings?.cash_savings_amount || 0);
       setPricesForm({
         gold_per_oz: Math.round((result.prices.gold_24k_per_gram || 85) * 31.1035),
         silver_per_kg: result.prices.silver_per_kg || 950,
@@ -228,9 +233,9 @@ export default function Accounts() {
       expected: data.expectedMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       owe: data.payables.reduce((sum, item) => sum + (item.amount || 0), 0),
       monthly: data.recurring.reduce((sum, item) => sum + (item.amount || 0), 0),
-      longTermSavings: (metals.values.total || 0) + pensionAmount,
+      longTermSavings: (metals.values.total || 0) + pensionAmount + cashSavingsAmount,
     }),
-    [data, metals.values.total, pensionAmount]
+    [cashSavingsAmount, data, metals.values.total, pensionAmount]
   );
 
   const recurringByType = useMemo(
@@ -489,6 +494,25 @@ export default function Accounts() {
       await fetchMetals();
     } catch (error) {
       console.error("Error updating AUB pension:", error);
+    }
+  };
+
+  const handleCashSavingsUpdate = async () => {
+    try {
+      const response = await fetch("/api/long-term-savings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cash_savings_amount: cashSavingsForm }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update current cash savings");
+      }
+
+      setCashSavingsEditing(false);
+      await fetchMetals();
+    } catch (error) {
+      console.error("Error updating current cash savings:", error);
     }
   };
 
@@ -1236,56 +1260,108 @@ export default function Accounts() {
         <div className={styles.savingsHoldingsHeader}>
           <div>
             <h3 className={styles.groupTitle}>Current savings</h3>
-            <p className={styles.itemMeta}>Pension and metal holdings</p>
+            <p className={styles.itemMeta}>Cash, pension, and metal holdings</p>
           </div>
           <strong>${formatMoney(summary.longTermSavings)}</strong>
         </div>
 
-        <section className={styles.groupCard}>
-          <div className={styles.groupHeader}>
-            <div className={styles.itemMain}>
-              <h3 className={styles.groupTitle}>AUB Pension</h3>
-              <p className={styles.itemMeta}>Pension balance</p>
+        <div className={styles.savingsAccountsGrid}>
+          <section className={styles.groupCard}>
+            <div className={styles.groupHeader}>
+              <div className={styles.itemMain}>
+                <h3 className={styles.groupTitle}>AUB Pension</h3>
+                <p className={styles.itemMeta}>Pension balance</p>
+              </div>
+              {pensionEditing ? (
+                <input
+                  type="number"
+                  className={styles.inlineInput}
+                  min="0"
+                  step="0.01"
+                  aria-label="AUB Pension balance"
+                  value={pensionForm || ""}
+                  onChange={(event) => setPensionForm(parseFloat(event.target.value) || 0)}
+                />
+              ) : (
+                <strong className={styles.itemAmount}>${formatMoney(pensionAmount)}</strong>
+              )}
             </div>
-            {pensionEditing ? (
-              <input
-                type="number"
-                className={styles.inlineInput}
-                min="0"
-                step="0.01"
-                aria-label="AUB Pension balance"
-                value={pensionForm || ""}
-                onChange={(event) => setPensionForm(parseFloat(event.target.value) || 0)}
-              />
-            ) : (
-              <strong className={styles.itemAmount}>${formatMoney(pensionAmount)}</strong>
-            )}
-          </div>
 
-          <div className={styles.cardActions}>
-            {!pensionEditing ? (
-              <button type="button" className={styles.actionButton} onClick={() => setPensionEditing(true)}>
-                Edit pension
-              </button>
-            ) : (
-              <>
-                <button type="button" className={styles.actionButton} onClick={handlePensionUpdate}>
-                  Save pension
+            <div className={styles.cardActions}>
+              {!pensionEditing ? (
+                <button type="button" className={styles.actionButton} onClick={() => setPensionEditing(true)}>
+                  Edit pension
                 </button>
+              ) : (
+                <>
+                  <button type="button" className={styles.actionButton} onClick={handlePensionUpdate}>
+                    Save pension
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={() => {
+                      setPensionEditing(false);
+                      setPensionForm(pensionAmount);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
+
+          <section className={styles.groupCard}>
+            <div className={styles.groupHeader}>
+              <div className={styles.itemMain}>
+                <h3 className={styles.groupTitle}>Current cash savings</h3>
+                <p className={styles.itemMeta}>Cash set aside</p>
+              </div>
+              {cashSavingsEditing ? (
+                <input
+                  type="number"
+                  className={styles.inlineInput}
+                  min="0"
+                  step="0.01"
+                  aria-label="Current cash savings balance"
+                  value={cashSavingsForm || ""}
+                  onChange={(event) => setCashSavingsForm(parseFloat(event.target.value) || 0)}
+                />
+              ) : (
+                <strong className={styles.itemAmount}>${formatMoney(cashSavingsAmount)}</strong>
+              )}
+            </div>
+
+            <div className={styles.cardActions}>
+              {!cashSavingsEditing ? (
                 <button
                   type="button"
                   className={styles.actionButton}
-                  onClick={() => {
-                    setPensionEditing(false);
-                    setPensionForm(pensionAmount);
-                  }}
+                  onClick={() => setCashSavingsEditing(true)}
                 >
-                  Cancel
+                  Edit cash savings
                 </button>
-              </>
-            )}
-          </div>
-        </section>
+              ) : (
+                <>
+                  <button type="button" className={styles.actionButton} onClick={handleCashSavingsUpdate}>
+                    Save cash savings
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={() => {
+                      setCashSavingsEditing(false);
+                      setCashSavingsForm(cashSavingsAmount);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
+        </div>
 
         <section className={styles.metalsCard}>
         <div className={styles.metalsHeader}>
