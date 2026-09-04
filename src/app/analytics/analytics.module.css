@@ -153,10 +153,6 @@
   border-radius: 5px 5px 0 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .barShape { background: #927ba5; }
-}
-
 .monthBar[aria-pressed="true"] .barShape,
 .monthBar:hover .barShape,
 .monthBar:focus-visible .barShape {

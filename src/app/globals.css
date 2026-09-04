@@ -1,15 +1,15 @@
 :root,
 .appChrome {
-  --page-canvas: #f6ece6;
-  --page-accent: #995438;
+  --page-canvas: #fbf5f0;
+  --page-accent: #a35b3e;
   --page-accent-strong: #7c402a;
-  --page-tint: #efdbce;
-  --page-panel: #fffdfa;
+  --page-tint: #f5e8de;
+  --page-panel: #ffffff;
   --page-field: #ffffff;
   --page-ink: #302a26;
   --page-secondary: #514942;
   --page-muted: #73665c;
-  --page-border: #dfd5cb;
+  --page-border: #e7ddd5;
   --page-border-strong: #c3b6a9;
   --page-on-accent: #ffffff;
   --primary: var(--page-accent);
@@ -41,43 +41,43 @@
 }
 
 .appChrome[data-page="money"] {
-  --page-canvas: #eaf0f7;
-  --page-accent: #456c97;
+  --page-canvas: #f2f7fc;
+  --page-accent: #4f719a;
   --page-accent-strong: #345476;
-  --page-tint: #dbe6f1;
-  --page-border: #d2dce6;
+  --page-tint: #e5eff9;
+  --page-border: #dce5ef;
   --page-border-strong: #acbbc9;
 }
 
 .appChrome[data-page="life"] {
-  --page-canvas: #ecf1e6;
-  --page-accent: #5d7143;
+  --page-canvas: #f5f8ef;
+  --page-accent: #647747;
   --page-accent-strong: #485933;
-  --page-tint: #dee7d1;
-  --page-border: #d8dfcf;
+  --page-tint: #e8efde;
+  --page-border: #e1e7d8;
   --page-border-strong: #b7c2aa;
 }
 
 .appChrome[data-page="analytics"] {
-  --page-canvas: #f0ebf7;
-  --page-accent: #775496;
+  --page-canvas: #f7f3fc;
+  --page-accent: #80619e;
   --page-accent-strong: #5e4078;
-  --page-tint: #e5dbee;
-  --page-border: #ded5e7;
+  --page-tint: #eee4f7;
+  --page-border: #e6deee;
   --page-border-strong: #bfb0cd;
 }
 
 .appChrome[data-page="settings"] {
-  --page-canvas: #efeee9;
-  --page-accent: #676356;
+  --page-canvas: #f7f7f3;
+  --page-accent: #716d60;
   --page-accent-strong: #4f4c43;
-  --page-tint: #e1dfd6;
-  --page-border: #d9d6ce;
+  --page-tint: #eeede6;
+  --page-border: #e4e2da;
   --page-border-strong: #bab5a9;
 }
 
 * { box-sizing: border-box; padding: 0; margin: 0; }
-html { font-size: 16px; color-scheme: light dark; background: var(--bg); }
+html { font-size: 16px; color-scheme: only light; background: var(--bg); }
 body { min-width: 280px; min-height: 100vh; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; color: var(--text-primary); background: var(--bg); line-height: 1.45; }
 .appChrome { min-height: 100vh; min-height: 100svh; background: var(--bg); color: var(--text-primary); }
 a { color: inherit; text-decoration: none; }
@@ -92,32 +92,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 input[type="date"] { min-width: 0; }
 strong, input[type="number"] { font-variant-numeric: tabular-nums; }
 ::selection { color: var(--on-primary); background: var(--primary); }
-
-@media (prefers-color-scheme: dark) {
-  :root,
-  .appChrome {
-    --page-canvas: #241c19;
-    --page-accent: #e2aa8f;
-    --page-accent-strong: #f0bea4;
-    --page-tint: #443127;
-    --page-panel: #282725;
-    --page-field: #32302d;
-    --page-ink: #f1eee8;
-    --page-secondary: #d6cfc5;
-    --page-muted: #b5aaa0;
-    --page-border: #4b4037;
-    --page-border-strong: #756458;
-    --page-on-accent: #251e19;
-    --danger: #f2a095;
-    --danger-light: #482927;
-    --warning: #e8c77f;
-    --warning-light: #3c3322;
-  }
-  .appChrome[data-page="money"] { --page-canvas: #19232e; --page-accent: #a5c3e2; --page-accent-strong: #c2d7ed; --page-tint: #293d51; --page-border: #3c4c5d; --page-border-strong: #63778e; }
-  .appChrome[data-page="life"] { --page-canvas: #20271b; --page-accent: #bdcda4; --page-accent-strong: #d4dfc1; --page-tint: #35422a; --page-border: #455039; --page-border-strong: #738160; }
-  .appChrome[data-page="analytics"] { --page-canvas: #261f2d; --page-accent: #ccb0e3; --page-accent-strong: #dec9ee; --page-tint: #44344f; --page-border: #51415d; --page-border-strong: #816d91; }
-  .appChrome[data-page="settings"] { --page-canvas: #24231f; --page-accent: #c9c1ae; --page-accent-strong: #e0d9c9; --page-tint: #3d3a32; --page-border: #49463e; --page-border-strong: #736d5f; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
