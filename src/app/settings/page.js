@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 
 import BottomNav from "@/components/BottomNav";
+import AppHeader from "@/components/AppHeader";
 
 import styles from "./settings.module.css";
 
@@ -430,9 +431,7 @@ export default function Settings() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Settings</h1>
-      </header>
+      <AppHeader title="Settings" />
 
       <section className={styles.section}>
         <div className={styles.card}>

@@ -1,0 +1,6 @@
+.header { margin-bottom: 22px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.title { min-width: 0; color: var(--text-primary); font-size: clamp(1.75rem, 5vw, 2rem); font-weight: 600; line-height: 1.2; letter-spacing: -0.04em; }
+.settings { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; color: var(--primary-strong); border: 1px solid var(--border); border-radius: 12px; background: var(--card-solid); }
+.settings:hover { background: var(--primary-light); }
+.content { margin-top: 8px; color: var(--text-muted); }

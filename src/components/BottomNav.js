@@ -1,31 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+import AppIcon from "./AppIcon";
 
 import styles from "./bottom-nav.module.css";
 
 const navItems = [
-  { key: "dashboard", label: "Home", icon: "🏠", href: "/dashboard" },
-  { key: "accounts", label: "Money", icon: "💰", href: "/accounts" },
-  { key: "lifestyle", label: "Life", icon: "🌙", href: "/lifestyle" },
-  { key: "settings", label: "Settings", icon: "⚙️", href: "/settings" },
+  { key: "dashboard", label: "Today", icon: "today", href: "/dashboard" },
+  { key: "accounts", label: "Money", icon: "money", href: "/accounts" },
+  { key: "lifestyle", label: "Life", icon: "life", href: "/lifestyle" },
+  { key: "analytics", label: "Dashboard", icon: "analytics", href: "/analytics" },
 ];
 
 export default function BottomNav({ active }) {
-  const router = useRouter();
-
   return (
-    <nav className={styles.bottomNav} style={{ "--nav-item-count": navItems.length }}>
+    <nav className={styles.bottomNav} aria-label="Main navigation">
       {navItems.map((item) => (
-        <button
+        <Link
           key={item.key}
-          type="button"
+          href={item.href}
+          aria-current={active === item.key ? "page" : undefined}
           className={`${styles.navItem} ${active === item.key ? styles.active : ""}`}
-          onClick={() => router.push(item.href)}
         >
-          <span className={styles.navIcon}>{item.icon}</span>
+          <AppIcon name={item.icon} />
           <span>{item.label}</span>
-        </button>
+        </Link>
       ))}
     </nav>
   );

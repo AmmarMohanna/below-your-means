@@ -1,210 +1,30 @@
-.container {
-  min-height: 100vh;
-  max-width: var(--app-max-width);
-  margin: 0 auto;
-  padding: 20px var(--page-gutter) var(--page-bottom-space);
-}
-
-.header {
-  margin-bottom: 18px;
-  text-align: center;
-}
-
-.title {
-  font-size: clamp(1.8rem, 5vw, 2.5rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.section {
-  display: grid;
-  gap: 14px;
-}
-
-.card {
-  display: grid;
-  gap: 14px;
-  padding: 18px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  box-shadow: var(--shadow-card);
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.cardTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.cardActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.primaryButton,
-.secondaryButton,
-.dangerButton {
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 14px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.primaryButton {
-  border: none;
-  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
-  color: white;
-  box-shadow: 0 12px 28px rgba(15, 159, 141, 0.22);
-}
-
-.primaryButton:disabled,
-.secondaryButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.secondaryButton {
-  border: 1px solid var(--border);
-  background: var(--card-solid);
-  color: var(--text-secondary);
-}
-
-.dangerButton {
-  border: 1px solid rgba(220, 38, 38, 0.16);
-  background: rgba(220, 38, 38, 0.12);
-  color: var(--danger);
-}
-
-.uploadField {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 84px;
-  padding: 0 16px;
-  border: 1px dashed rgba(15, 23, 42, 0.16);
-  border-radius: 18px;
-  background: var(--card-solid);
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 700;
-  text-align: center;
-  cursor: pointer;
-}
-
-.uploadField input {
-  display: none;
-}
-
-.importMessage {
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.historyList {
-  display: grid;
-  gap: 10px;
-}
-
-.historyRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-
-.historyRowExpanded {
-  border-top-color: var(--border-strong);
-}
-
-.historyRow:first-child {
-  padding-top: 0;
-  border-top: none;
-}
-
-.historyToggle {
-  min-width: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.historyText {
-  min-width: 0;
-}
-
-.historyText strong,
-.historyText span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.historyText span {
-  margin-top: 2px;
-  color: var(--text-muted);
-  font-size: 0.82rem;
-}
-
-.historyReveal {
-  display: none;
-  margin-top: 4px;
-  color: var(--primary-strong);
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.historyDetail {
-  grid-column: 1 / -1;
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  line-height: 1.4;
-}
-
-.historyDetail strong,
-.historyDetail span {
-  display: block;
-}
-
-.historyDetail strong {
-  color: var(--text-primary);
-}
-
-.emptyState {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-@media (max-width: 640px) {
-  .cardHeader {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .historyRow {
-    grid-template-columns: 1fr;
-  }
-
-  .historyReveal {
-    display: inline-block;
-  }
-}
+.container { min-height: 100vh; max-width: var(--app-max-width); margin: 0 auto; padding: 24px var(--page-gutter) var(--page-bottom-space); }
+.section { display: grid; gap: 16px; }
+.card { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); min-width: 0; }
+.cardHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cardTitle { color: var(--text-primary); font-size: 1rem; font-weight: 600; }
+.cardActions { display: flex; flex-wrap: wrap; gap: 10px; }
+.primaryButton, .secondaryButton, .dangerButton { min-height: 44px; padding: 10px 14px; border-radius: 9px; font-size: .875rem; font-weight: 500; }
+.primaryButton { border: 1px solid transparent; background: var(--primary); color: var(--on-primary); }
+.primaryButton:disabled, .secondaryButton:disabled { opacity: .5; }
+.secondaryButton { border: 1px solid var(--border); background: var(--card-solid); color: var(--text-secondary); }
+.dangerButton { border: 1px solid var(--border); background: var(--danger-light); color: var(--danger); }
+.uploadField { position: relative; display: flex; align-items: center; justify-content: center; min-height: 72px; padding: 12px 16px; border: 1px dashed var(--border-strong); border-radius: 10px; background: var(--field-bg); color: var(--text-secondary); font-size: .9rem; text-align: center; overflow-wrap: anywhere; }
+.uploadField input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.uploadField:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
+.importMessage { color: var(--text-secondary); font-size: .875rem; line-height: 1.5; }
+.historyList { display: grid; gap: 12px; }
+.historyRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+.historyRowExpanded { border-color: var(--border-strong); }
+.historyRow:first-child { padding-top: 0; border-top: 0; }
+.historyToggle { min-width: 0; min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; }
+.historyText { min-width: 0; }
+.historyText strong, .historyText span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.historyText strong { font-size: .9rem; font-weight: 500; }
+.historyText span { margin-top: 4px; color: var(--text-muted); font-size: .8rem; }
+.historyReveal { display: inline-block; margin-top: 5px; color: var(--primary-strong); font-size: .75rem; }
+.historyDetail { grid-column: 1 / -1; color: var(--text-muted); font-size: .85rem; line-height: 1.45; overflow-wrap: anywhere; }
+.historyDetail strong, .historyDetail span { display: block; }
+.historyDetail strong { color: var(--text-primary); font-weight: 500; }
+.emptyState { color: var(--text-muted); font-size: .9rem; padding-block: 8px; }
+@media (max-width: 359px) { .cardHeader { align-items: stretch; flex-direction: column; } }

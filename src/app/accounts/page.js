@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
+import AppHeader from "@/components/AppHeader";
 import { getTodayBeirut } from "@/lib/date";
 
 import styles from "./accounts.module.css";
@@ -1550,9 +1551,8 @@ export default function Accounts() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Accounts</h1>
-
+      <AppHeader title="Money" />
+      <div className={styles.header}>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Cash</span>
@@ -1571,7 +1571,7 @@ export default function Accounts() {
             <strong>${formatMoney(summary.owe)}</strong>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className={styles.tabs}>
         {tabs.map((tab) => (

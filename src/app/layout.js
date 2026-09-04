@@ -1,4 +1,5 @@
 import "./globals.css";
+import AppChrome from "@/components/AppChrome";
 
 export const metadata = {
   title: "BelowYourMeans - Personal Expense Tracker",
@@ -25,9 +26,10 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#0d9488",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6ece6" },
+    { media: "(prefers-color-scheme: dark)", color: "#241c19" },
+  ],
 };
 
 export default function RootLayout({ children }) {
@@ -38,7 +40,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body>{children}</body>
+      <body><AppChrome>{children}</AppChrome></body>
     </html>
   );
 }

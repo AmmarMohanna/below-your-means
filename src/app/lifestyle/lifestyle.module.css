@@ -1,699 +1,85 @@
-.container {
-  min-height: 100vh;
-  max-width: var(--app-max-width);
-  margin: 0 auto;
-  background: var(--bg);
-  padding: 20px var(--page-gutter) var(--page-bottom-space);
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: var(--bg);
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.header {
-  margin-bottom: 18px;
-}
-
-.headerContent {
-  display: grid;
-  gap: 8px;
-}
-
-.logo {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-family: 'Amiri', serif, system-ui;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--primary-strong);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.96rem;
-  line-height: 1.45;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.tab {
-  flex: 1;
-  padding: 12px 16px;
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  transition: all 0.2s;
-}
-
-.tab:hover {
-  border-color: var(--primary);
-}
-
-.activeTab {
-  background: var(--primary-light);
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.missedHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.missedLabel {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.missedNote {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  background: var(--card-bg);
-  padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-}
-
-.prayerGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.prayerCard {
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-}
-
-.prayerCard:hover {
-  border-color: var(--primary);
-}
-
-.prayerInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.prayerNameAr {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-family: 'Amiri', serif, system-ui;
-}
-
-.prayerNameEn {
-  font-size: 0.6rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.prayerControls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.prayerBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--card-bg);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.prayerBtn:hover:not(:disabled) {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
-}
-
-.prayerBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.prayerCount {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--primary);
-  min-width: 28px;
-  text-align: center;
-}
-
-.fastingSection {
-  margin-top: 16px;
-}
-
-.fastingHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.fastingLabel {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.fastingNote {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  background: var(--card-bg);
-  padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-}
-
-.fastingCard {
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.fastingCard:hover {
-  border-color: var(--primary);
-}
-
-.fastingInfo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.fastingIcon {
-  font-size: 1.5rem;
-}
-
-.fastingName {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-family: 'Amiri', serif, system-ui;
-}
-
-.remindersSection {
-  margin-top: 16px;
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-}
-
-.remindersHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.remindersTitle {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.reminderForm {
-  background: var(--primary-light);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.intervalRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.remindersList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.reminderItem {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  background: var(--bg);
-}
-
-.reminderItemDue {
-  border-color: #f59e0b;
-  background: #fffbeb;
-}
-
-.reminderTopRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.reminderTextGroup {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.reminderTitleText {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-.reminderSubText {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 3px;
-}
-
-.reminderIntervalLabel {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px 8px;
-  white-space: nowrap;
-}
-
-.reminderActionRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.reminderActionBtn {
-  border: 1px solid var(--border);
-  background: var(--card-bg);
-  color: var(--text-secondary);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.reminderActionBtn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.reminderDeleteBtn:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.sessionsSummary {
-  background: linear-gradient(135deg, var(--primary-light) 0%, #99f6e4 100%);
-  border: 2px solid var(--primary);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.trainingOverview {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
-}
-
-.trainingStat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.trainingDivider {
-  width: 1px;
-  height: 48px;
-  background: rgba(13, 148, 136, 0.3);
-}
-
-.sessionsNumber {
-  font-size: 3rem;
-  font-weight: 900;
-  color: var(--primary);
-  line-height: 1;
-}
-
-.sessionsLabel {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.weekStrip {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-top: 22px;
-}
-
-.weekDay {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 8px 2px 13px;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(13, 148, 136, 0.18);
-  border-radius: 10px;
-}
-
-.weekDay span {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.weekDay strong {
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-}
-
-.weekDay i {
-  position: absolute;
-  bottom: -5px;
-  display: grid;
-  width: 16px;
-  height: 16px;
-  place-items: center;
-  color: white;
-  background: transparent;
-  border-radius: 50%;
-  font-size: 0.65rem;
-  font-style: normal;
-  font-weight: 900;
-}
-
-.trainedDay {
-  background: var(--card-bg);
-  border-color: var(--primary);
-}
-
-.trainedDay strong,
-.today span {
-  color: var(--primary);
-}
-
-.trainedDay i {
-  background: var(--primary);
-}
-
-.today {
-  box-shadow: inset 0 0 0 1px var(--primary);
-}
-
-.quickWorkoutBtn {
-  margin-top: 16px;
-  padding: 14px 28px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
-}
-
-.quickWorkoutBtn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
-}
-
-.quickWorkoutBtn:active {
-  transform: translateY(0);
-}
-
-.quickWorkoutBtn:disabled,
-.quickWorkoutBtn:disabled:hover {
-  background: var(--card-bg);
-  color: var(--primary);
-  cursor: default;
-  transform: none;
-  box-shadow: none;
-}
-
-.gymCard {
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 16px;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-
-.gymCardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.gymCardHeader h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.addBtn {
-  padding: 8px 16px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.addBtn:hover {
-  background: var(--primary-dark);
-}
-
-.addForm {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 16px;
-  background: var(--primary-light);
-  border-bottom: 1px solid var(--border);
-}
-
-.formInput {
-  flex: 1;
-  min-width: 80px;
-  padding: 10px 12px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: var(--card-bg);
-}
-
-.formInput:focus {
-  border-color: var(--primary);
-  outline: none;
-}
-
-.formActions {
-  display: flex;
-  gap: 4px;
-}
-
-.saveBtn, .cancelBtn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.saveBtn {
-  background: var(--primary);
-  color: white;
-}
-
-.saveBtn:hover {
-  background: var(--primary-dark);
-}
-
-.cancelBtn {
-  background: var(--border);
-  color: var(--text-secondary);
-}
-
-.cancelBtn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.sessionsList {
-  padding: 8px 0;
-}
-
-.sessionItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.2s;
-}
-
-.sessionItem:last-child {
-  border-bottom: none;
-}
-
-.sessionItem:hover {
-  background: var(--bg);
-}
-
-.sessionDate {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-.sessionNotes {
-  flex: 1;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.deleteBtn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  opacity: 0.4;
-  transition: all 0.2s;
-}
-
-.sessionItem:hover .deleteBtn {
-  opacity: 1;
-}
-
-.deleteBtn:hover {
-  background: #fee2e2;
-}
-
-@media (hover: none) {
-  .deleteBtn {
-    opacity: 1;
-  }
-}
-
-.emptyState {
-  padding: 24px 16px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-@media (max-width: 400px) {
-  .prayerGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .reminderTopRow {
-    flex-direction: column;
-  }
-
-  .sessionsSummary {
-    padding: 20px 14px;
-  }
-
-  .trainingOverview {
-    gap: 14px;
-  }
-
-  .sessionsNumber {
-    font-size: 2.5rem;
-  }
-}
+.container { min-height: 100vh; max-width: var(--app-max-width); margin: 0 auto; padding: 24px var(--page-gutter) var(--page-bottom-space); }
+.loading { display: grid; place-items: center; min-height: 100vh; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.logo { font-size: 1.2rem; font-weight: 500; color: var(--primary-strong); font-family: Georgia, serif; }
+.prayerSection, .gymSection { min-width: 0; }
+.tabs { display: flex; gap: 6px; margin-bottom: 22px; }
+.tab { flex: 1; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--card-solid); color: var(--text-secondary); font-size: .95rem; font-weight: 500; }
+.tab:hover, .activeTab { background: var(--primary-light); color: var(--primary-strong); border-color: var(--border-strong); }
+.missedHeader, .fastingHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.missedLabel, .fastingLabel { font-size: 1rem; font-weight: 600; }
+.missedNote, .fastingNote { color: var(--text-muted); font-size: .8rem; }
+.prayerGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.prayerCard { min-width: 0; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); }
+.prayerInfo { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.prayerNameAr { color: var(--text-primary); font-size: 1.25rem; font-weight: 600; font-family: Georgia, serif; }
+.prayerNameEn { color: var(--text-muted); font-size: .75rem; }
+.prayerControls { display: flex; align-items: center; justify-content: center; gap: 2px; }
+.prayerBtn { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 10px; color: var(--primary-strong); background: var(--card-solid); font-size: 1.2rem; font-weight: 500; }
+.prayerBtn:hover:not(:disabled) { background: var(--primary-light); }
+.prayerBtn:disabled { opacity: .35; }
+.prayerCount { color: var(--primary-strong); min-width: 24px; text-align: center; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fastingSection { margin-top: 22px; }
+.fastingCard { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); }
+.fastingInfo { display: flex; align-items: center; gap: 8px; }
+.fastingIcon { font-size: 1.3rem; }
+.fastingName { color: var(--text-primary); font-size: 1.2rem; font-family: Georgia, serif; }
+.remindersSection { margin-top: 22px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); }
+.remindersHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.remindersTitle { font-size: 1rem; font-weight: 600; }
+.reminderForm { padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--primary-light); }
+.intervalRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.remindersList { display: flex; flex-direction: column; gap: 12px; }
+.reminderItem { padding-top: 14px; border-top: 1px solid var(--border); }
+.reminderItemDue { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--warning-light); }
+.reminderTopRow { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.reminderTextGroup { display: flex; flex-direction: column; min-width: 0; }
+.reminderTitleText { color: var(--text-primary); font-size: .95rem; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+.reminderSubText { color: var(--text-muted); font-size: .8rem; margin-top: 4px; }
+.reminderIntervalLabel { color: var(--text-muted); font-size: .75rem; white-space: nowrap; }
+.reminderActionRow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.reminderActionBtn { min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-solid); color: var(--text-secondary); font-size: .8rem; font-weight: 500; }
+.reminderActionBtn:hover { color: var(--primary-strong); background: var(--primary-light); }
+.reminderDeleteBtn, .reminderDeleteBtn:hover { color: var(--danger); }
+.sessionsSummary { padding: 20px 16px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); text-align: center; }
+.trainingOverview { display: flex; justify-content: center; align-items: center; gap: 16px; }
+.trainingStat { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.trainingDivider { width: 1px; height: 48px; background: var(--border); }
+.sessionsNumber { color: var(--primary-strong); font-size: 2.6rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.sessionsLabel { color: var(--text-muted); font-size: .85rem; font-weight: 400; margin-top: 6px; }
+.weekStrip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 22px; }
+.weekDay { position: relative; display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 4px; padding: 8px 1px 14px; color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: 9px; }
+.weekDay span { font-size: .65rem; font-weight: 500; text-transform: uppercase; }
+.weekDay strong { color: var(--text-secondary); font-size: .9rem; font-weight: 500; }
+.weekDay i { position: absolute; bottom: -3px; display: grid; width: 16px; height: 16px; place-items: center; color: var(--on-primary); background: transparent; border-radius: 50%; font-size: .65rem; font-style: normal; }
+.trainedDay { background: var(--primary-light); border-color: var(--border); }
+.trainedDay strong, .today span { color: var(--primary-strong); }
+.trainedDay i { background: var(--primary); }
+.today { border-color: var(--primary); }
+.quickWorkoutBtn { width: 100%; min-height: 48px; padding: 12px 16px; margin-top: 20px; background: var(--primary); color: var(--on-primary); border: 0; border-radius: 9px; font-size: 1rem; font-weight: 500; }
+.quickWorkoutBtn:hover { background: var(--primary-dark); }
+.quickWorkoutBtn:disabled, .quickWorkoutBtn:disabled:hover { color: var(--primary-strong); background: var(--primary-light); }
+.gymCard { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); overflow: hidden; }
+.gymCardHeader { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.gymCardHeader h3 { color: var(--text-primary); font-size: 1rem; font-weight: 600; }
+.addBtn { flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 9px; background: var(--primary); color: var(--on-primary); font-size: .875rem; font-weight: 500; }
+.addBtn:hover { background: var(--primary-dark); }
+.addForm { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px; background: var(--primary-light); border-bottom: 1px solid var(--border); }
+.formInput { width: 100%; flex: 1 1 120px; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 9px; color: var(--text-primary); background: var(--field-bg); font-size: 16px; }
+.formActions { display: flex; flex-wrap: wrap; gap: 6px; }
+.saveBtn, .cancelBtn { min-width: 44px; width: 44px; height: 44px; border: 0; border-radius: 9px; font-size: 1.1rem; }
+.saveBtn { background: var(--primary); color: var(--on-primary); }
+.saveBtn:hover { background: var(--primary-dark); }
+.cancelBtn { border: 1px solid var(--border); background: var(--card-solid); color: var(--text-secondary); }
+.cancelBtn:hover { background: var(--danger-light); color: var(--danger); }
+.sessionsList { padding: 0 16px; }
+.sessionItem { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.sessionItem:last-child { border-bottom: 0; }
+.sessionDate { flex-shrink: 0; color: var(--text-primary); font-size: .875rem; font-weight: 500; }
+.sessionNotes { flex: 1; min-width: 0; color: var(--text-muted); font-size: .85rem; overflow-wrap: anywhere; }
+.deleteBtn { width: 44px; min-width: 44px; height: 44px; padding: 0; border: 0; border-radius: 9px; background: transparent; color: var(--danger); font-size: 1rem; }
+.deleteBtn:hover { background: var(--danger-light); }
+.emptyState { padding: 24px 16px; color: var(--text-muted); font-size: .9rem; text-align: center; }
+@media (min-width: 600px) { .prayerGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .prayerControls { gap: 8px; } }
+@media (max-width: 359px) { .prayerGrid { gap: 8px; } .prayerCard { padding-inline: 2px; } .prayerControls { gap: 0; } .prayerCount { min-width: 26px; font-size: 1rem; } .fastingCard { padding-inline: 12px; } .sessionsSummary { padding-inline: 12px; } }

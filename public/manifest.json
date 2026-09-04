@@ -4,8 +4,8 @@
   "description": "Personal expense tracking made simple",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#f0fdfa",
-  "theme_color": "#0d9488",
+  "background_color": "#f6ece6",
+  "theme_color": "#f6ece6",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -21,5 +21,8 @@
       "purpose": "any"
     }
   ],
-  "categories": ["finance", "productivity"]
+  "categories": [
+    "finance",
+    "productivity"
+  ]
 }

@@ -8,7 +8,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 
 ## ✨ Features
 
-### 📊 Home — Daily Expense Tracking
+### 📊 Today — Daily Expense Tracking
 - Quick-add transactions with categories
 - Date picker for past entries
 - Daily and monthly spending totals
@@ -27,16 +27,17 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - **Gym Tracker** — Log training days, compare weekly averages, and quickly record today's workout
 - **Custom Reminders** — Add/edit/remove reminders, mark as done to restart timer, pause/resume anytime
 
-### 📈 Analytics — Insights
-- Custom date range reports
-- Spending by category breakdown
-- Largest expenses list
-- Daily averages
+### 📈 Dashboard — Spending & Savings
+- Monthly recorded outflow with comparable prior-period totals
+- Personal/business filters and monthly trends
+- Three largest expenses in the selected month
+- Expected year-end savings from current holdings and dated savings plans
+- Today, Money, Life, Dashboard navigation with a distinct color for each page
 
 ### ⚙️ Settings & Data
 - **Excel Export** — Download all data (transactions, accounts, savings, prayers, gym, reminders) as multi-sheet Excel file
 - Password-protected access
-- Simple logout
+- Settings and logout remain available from the header gear
 
 ### 📱 PWA Support
 - Install on iPhone/Android for native app experience

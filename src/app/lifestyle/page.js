@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
+import AppHeader from "@/components/AppHeader";
 import { getTodayBeirut } from "@/lib/date";
 
 import styles from "./lifestyle.module.css";
@@ -305,13 +306,7 @@ export default function Lifestyle() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <p className={styles.eyebrow}>Lifestyle</p>
-        <div className={styles.headerContent}>
-          <h1 className={styles.logo}>أُلفة</h1>
-          <p className={styles.subtitle}>Prayers, fasting, and training days without clutter.</p>
-        </div>
-      </header>
+      <AppHeader title="Life"><p className={styles.logo} lang="ar">أُلفة</p></AppHeader>
 
       <div className={styles.tabs}>
         <button
