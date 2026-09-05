@@ -30,7 +30,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 ### 📈 Dashboard — Spending & Savings
 - Monthly recorded outflow with comparable prior-period totals
 - Personal/business filters and monthly trends
-- Three largest expenses in the selected month
+- All expenses over $200 in the selected month, highest first
 - Expected year-end savings from current holdings and dated savings plans
 - Today, Money, Life, Dashboard navigation with a distinct color for each page
 

@@ -133,9 +133,8 @@ export function buildStatistics({ transactions = [], month, scope = 'all', today
       percent: priorTotal > 0 ? (total - priorTotal) / priorTotal * 100 : null,
     },
     monthly: chartMonths.map((value) => ({ month: value, total: (monthlyTotals.get(value) || 0) / 100, isPartial: value === currentMonth })),
-    largest: [...selected]
+    largest: selected.filter((row) => Number(row.amount) > 200)
       .sort((left, right) => Number(right.amount) - Number(left.amount) || right.date.localeCompare(left.date) || Number(right.id || 0) - Number(left.id || 0))
-      .slice(0, 3)
       .map((row) => ({ id: row.id, date: row.date, label: row.notes?.trim() || row.category || 'Expense', amount: rounded(Number(row.amount)), scope: row.scope === 'business' ? 'business' : 'personal' })),
     savings: buildSavingsProjection({ today, savings, metals, planItems }),
   };

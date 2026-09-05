@@ -125,13 +125,13 @@ export default function Analytics() {
           </section>
 
           <section className={`${styles.panel} ${styles.largest}`} aria-labelledby="largest-title">
-            <h2 id="largest-title">Largest expenses</h2>
+            <h2 id="largest-title">Expenses over $200</h2>
             {data.largest.length ? <ul className={styles.list}>
               {data.largest.map((item) => <li key={item.id} className={styles.listRow}>
                 <div className={styles.rowDescription}><p>{item.label}</p><span>{dateLabel(item.date, { day: "numeric", month: "short" })}{item.scope === "business" ? " · Business" : ""}</span></div>
                 <strong>{money(item.amount)}</strong>
               </li>)}
-            </ul> : <p className={styles.empty}>No recorded expenses in this view.</p>}
+            </ul> : <p className={styles.empty}>No expenses over $200 this month.</p>}
           </section>
         </>
       )}

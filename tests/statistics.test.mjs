@@ -4,18 +4,35 @@ import { buildSavingsProjection, buildStatistics, isValidDate } from '../src/lib
 
 const expense = (id, date, amount, scope = 'personal') => ({ id, date, amount, scope, type: 'expense', notes: `Expense ${id}` });
 
-test('month and scope totals reconcile with zero-filled bars and the largest three', () => {
+test('month and scope totals reconcile with zero-filled bars', () => {
   const transactions = [expense(1, '2026-07-01', 10.1), expense(2, '2026-08-02', 20.2), expense(3, '2026-08-03', 5.1), expense(4, '2026-08-04', 30, 'business'), expense(5, '2026-08-05', 8), expense(6, '2026-08-06', 9), expense(7, '2026-10-01', 999), expense(8, '2026-02-30', 999), { ...expense(9, '2026-08-01', 500), type: 'income' }];
   const all = buildStatistics({ transactions, month: '2026-08', today: '2026-09-05' });
   assert.equal(all.total, 72.3);
   assert.equal(all.monthly.find((item) => item.month === '2026-08').total, all.total);
   assert.equal(all.monthly.find((item) => item.month === '2026-02').total, 0);
   assert.equal(all.monthly.length, 9);
-  assert.deepEqual(all.largest.map((row) => row.id), [4, 2, 6]);
+  assert.deepEqual(all.largest, []);
   const personal = buildStatistics({ transactions, month: '2026-08', scope: 'personal', today: '2026-09-05' });
   const business = buildStatistics({ transactions, month: '2026-08', scope: 'business', today: '2026-09-05' });
   assert.equal(personal.total + business.total, all.total);
-  assert.deepEqual(business.largest.map((row) => row.id), [4]);
+  assert.deepEqual(business.largest, []);
+});
+
+test('lists every expense strictly over $200 for the selected month and scope, highest first', () => {
+  const transactions = [
+    expense(1, '2026-08-01', 199.99), expense(2, '2026-08-02', 200),
+    expense(3, '2026-08-03', 200.01), expense(4, '2026-08-04', 250, 'business'),
+    expense(5, '2026-08-05', 300), expense(6, '2026-08-06', 450, 'business'),
+    expense(7, '2026-08-07', 999), expense(8, '2026-07-01', 1000),
+    expense(9, '2026-09-06', 9000), expense(10, '2026-08-32', 8000),
+    { ...expense(11, '2026-08-07', 7777), type: 'income' }, expense(12, '2026-08-07', 450),
+  ];
+  const input = { transactions, today: '2026-09-05', month: '2026-08' };
+  assert.deepEqual(buildStatistics(input).largest.map((row) => row.id), [7, 12, 6, 5, 4, 3]);
+  assert.deepEqual(buildStatistics({ ...input, scope: 'personal' }).largest.map((row) => row.id), [7, 12, 5, 3]);
+  assert.deepEqual(buildStatistics({ ...input, scope: 'business' }).largest.map((row) => row.id), [6, 4]);
+  assert.deepEqual(buildStatistics({ ...input, month: '2026-07' }).largest.map((row) => row.id), [8]);
+  assert.deepEqual(buildStatistics({ ...input, month: '2026-09' }).largest, []);
 });
 
 test('current month compares matching elapsed days and excludes future expenses', () => {
