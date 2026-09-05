@@ -37,7 +37,7 @@ test('comparison clamps shorter prior months and crosses year boundaries', () =>
   assert.equal(january.monthly.find((row) => row.month === '2026-01').total, 20);
 });
 
-test('empty data and zero comparisons stay finite; default is latest completed recorded month', () => {
+test('default is the current month even with older records or no current entries', () => {
   const empty = buildStatistics({ today: '2026-09-05' });
   assert.equal(empty.month, '2026-09');
   assert.equal(empty.total, 0);
@@ -45,8 +45,13 @@ test('empty data and zero comparisons stay finite; default is latest completed r
   assert.equal(empty.largest.length, 0);
   assert.ok(empty.monthly.every((row) => row.total === 0));
   const latest = buildStatistics({ today: '2026-09-05', transactions: [expense(1, '2026-06-01', 10), expense(2, '2026-09-01', 20)] });
-  assert.equal(latest.month, '2026-06');
+  assert.equal(latest.month, '2026-09');
+  assert.equal(latest.total, 20);
+  assert.equal(latest.period.isPartial, true);
   assert.equal(latest.comparison.percent, null);
+  const onlyOlderRecords = buildStatistics({ today: '2026-09-05', transactions: [expense(1, '2026-08-01', 10)] });
+  assert.equal(onlyOlderRecords.month, '2026-09');
+  assert.equal(onlyOlderRecords.total, 0);
   assert.throws(() => buildStatistics({ today: '2026-09-05', month: '2026-10' }), RangeError);
   assert.throws(() => buildStatistics({ today: '2026-09-05', scope: 'unknown' }), RangeError);
   assert.equal(isValidDate('2024-02-29'), true);

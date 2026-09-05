@@ -91,8 +91,7 @@ export function buildStatistics({ transactions = [], month, scope = 'all', today
     (row.type === 'expense' || row.type === 'income')
   );
   const recordedMonths = [...new Set(recorded.map((row) => row.date.slice(0, 7)))].sort();
-  const lastCompleteRecordedMonth = recordedMonths.filter((value) => value < currentMonth).at(-1);
-  const selectedMonth = month || lastCompleteRecordedMonth || currentMonth;
+  const selectedMonth = month || currentMonth;
   const year = Number(selectedMonth.slice(0, 4));
   const monthCount = year === Number(today.slice(0, 4)) ? Number(today.slice(5, 7)) : 12;
   const chartMonths = Array.from({ length: monthCount }, (_, index) => `${year}-${String(index + 1).padStart(2, '0')}`);
