@@ -1003,10 +1003,6 @@ export default function Accounts() {
             <span className={styles.summaryLabel}>Current savings</span>
             <strong>${formatMoney(summary.longTermSavings)}</strong>
           </div>
-          <div className={styles.planMetricCard}>
-            <span className={styles.summaryLabel}>Listed amounts</span>
-            <strong>{savingsPlan.summary?.item_count || 0}</strong>
-          </div>
         </div>
 
         <section className={styles.groupCard}>
