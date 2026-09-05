@@ -606,19 +606,22 @@ export async function getSavingsPlan() {
   const items = await allSql(
     `
       SELECT
-        id,
-        expected_money_id,
-        source,
-        planned_date,
-        amount,
-        notes,
-        created_at,
-        updated_at
+        savings_plan_items.id,
+        savings_plan_items.expected_money_id,
+        savings_plan_items.source,
+        savings_plan_items.planned_date,
+        savings_plan_items.amount,
+        savings_plan_items.notes,
+        savings_plan_items.created_at,
+        savings_plan_items.updated_at,
+        expected_money.amount AS expected_amount
       FROM savings_plan_items
+      LEFT JOIN expected_money
+        ON expected_money.id = savings_plan_items.expected_money_id
       ORDER BY
-        CASE WHEN planned_date IS NULL THEN 1 ELSE 0 END,
-        planned_date ASC,
-        id ASC
+        CASE WHEN savings_plan_items.planned_date IS NULL THEN 1 ELSE 0 END,
+        savings_plan_items.planned_date ASC,
+        savings_plan_items.id ASC
     `
   );
   const planned = items.reduce((total, item) => total + (item.amount || 0), 0);

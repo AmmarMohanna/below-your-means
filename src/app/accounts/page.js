@@ -1104,7 +1104,12 @@ export default function Accounts() {
                   </div>
                   {item.notes ? <span className={styles.planExpected}>{item.notes}</span> : null}
                 </div>
-                <strong className={styles.itemAmount}>${formatMoney(item.amount)}</strong>
+                <div className={styles.planAmounts}>
+                  <strong className={styles.itemAmount}>${formatMoney(item.amount)}</strong>
+                  {item.expected_amount != null ? (
+                    <span className={styles.planExpectedAmount}>of ${formatMoney(item.expected_amount)} expected</span>
+                  ) : null}
+                </div>
                 <div className={styles.rowActions}>
                   <button
                     type="button"

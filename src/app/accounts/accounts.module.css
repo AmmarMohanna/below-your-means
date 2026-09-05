@@ -40,6 +40,8 @@
 .planRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
 .planRow:first-child { border-top: 0; }
 .planExpected { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8rem; }
+.planAmounts { display: grid; gap: 4px; max-width: 145px; min-width: 0; text-align: right; }
+.planExpectedAmount { color: var(--text-muted); font-size: .8rem; line-height: 1.4; overflow-wrap: anywhere; }
 .longTermList > * { width: 100%; }
 .savingsHoldingsHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 0 0; }
 .savingsAccountsGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
