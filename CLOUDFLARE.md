@@ -1,6 +1,14 @@
 # Cloudflare Deployment
 
-This branch deploys BelowYourMeans as a Cloudflare Worker using OpenNext and D1.
+The `karim` branch deploys Karim's BelowYourMeans instance as a separate Cloudflare
+Worker using OpenNext and D1. All deployment and database commands on this branch
+target Karim's resources.
+
+- Worker: `below-your-means-karim`
+- URL: `https://below-your-means-karim.mohannaammar.workers.dev`
+- Initialize with migrations only. No personal database is included.
+- Keep the password and session secret in Cloudflare secrets and the ignored local
+  `.dev.vars` file. Never commit credentials.
 
 ## Architecture
 
@@ -12,8 +20,8 @@ This branch deploys BelowYourMeans as a Cloudflare Worker using OpenNext and D1.
 Configured D1 database:
 
 ```text
-name: below-your-means
-id: e52799c3-8dc0-4509-96f9-7511eda3c140
+name: below-your-means-karim
+id: 1ea10bb9-0a07-45af-98b1-84248952b6f0
 binding: DB
 ```
 
@@ -33,7 +41,7 @@ npm install
 npm run d1:migrate:local
 ```
 
-Load either real data from `data/belowyourmeans.db`:
+Only if intentionally restoring Karim's own data from `data/belowyourmeans.db`:
 
 ```bash
 npm run d1:import:local
@@ -61,7 +69,7 @@ Create or verify the D1 database:
 npx wrangler d1 list
 ```
 
-This repo already points `wrangler.jsonc` at the `below-your-means` D1 database ID listed above.
+This branch points `wrangler.jsonc` at the `below-your-means-karim` D1 database ID listed above.
 
 Apply schema migrations:
 
@@ -98,7 +106,7 @@ Only run data import commands when intentionally replacing Cloudflare D1 data.
 3. Import into remote D1:
 
    ```bash
-   npx wrangler d1 execute below-your-means --remote --file data/d1-import.sql
+   npx wrangler d1 execute below-your-means-karim --remote --file data/d1-import.sql
    ```
 
 4. Deploy the Worker and test the live Cloudflare URL before changing DNS.

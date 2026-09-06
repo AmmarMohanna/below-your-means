@@ -1,5 +1,9 @@
 # 💰 BelowYourMeans
 
+This is Karim's instance on the `karim` branch. It uses its own Cloudflare Worker,
+D1 database, and password. Start new instances with migrations only; do not import
+another person's database. See [CLOUDFLARE.md](CLOUDFLARE.md) for deployment details.
+
 A personal life management app designed for self-hosting. Track expenses, manage finances, log prayers, and monitor fitness.
 
 **☁️ Cloudflare Worker • 📱 PWA Ready • 🔒 Password protected**
