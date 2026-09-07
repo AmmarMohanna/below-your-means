@@ -75,6 +75,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS recurring (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     target TEXT NOT NULL,
+    direction TEXT NOT NULL DEFAULT 'pay' CHECK(direction IN ('pay', 'receive')),
     type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal', 'Subscription', 'Donations')),
     amount REAL NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -195,6 +196,16 @@ if (!longTermSavingsColumns.some((column) => column.name === 'cash_savings_amoun
     ADD COLUMN cash_savings_amount REAL NOT NULL DEFAULT 0 CHECK(cash_savings_amount >= 0)
   `);
 }
+
+const recurringColumns = db.prepare('PRAGMA table_info(recurring)').all();
+if (!recurringColumns.some((column) => column.name === 'direction')) {
+  db.exec(`
+    ALTER TABLE recurring
+    ADD COLUMN direction TEXT NOT NULL DEFAULT 'pay'
+    CHECK(direction IN ('pay', 'receive'))
+  `);
+}
+db.exec('CREATE INDEX IF NOT EXISTS idx_recurring_direction ON recurring(direction)');
 
 console.log('Database initialized successfully!');
 console.log('Tables created for transactions, accounts, savings, lifestyle, and audit history.');

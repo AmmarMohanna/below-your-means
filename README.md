@@ -17,7 +17,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - **Current Money** — Where your money is (bank, cash, etc.)
 - **Expected Money** — Incoming payments with due dates
 - **Payables** — What you owe and when
-- **Recurring** — Monthly payments by type (Family, Home, Personal, Subscription, Donations)
+- **Recurring** — Simple monthly payments to pay or receive
 - **Projects** — Planned projects with estimates, optional dates, and ranking
 - **Savings** — Current cash savings, AUB Pension, gold (24K, 21K), and silver with live price fetching
 - **Savings** — Keep an independent list of planned savings alongside pension and metal holdings

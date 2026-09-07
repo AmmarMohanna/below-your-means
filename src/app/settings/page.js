@@ -196,8 +196,13 @@ export default function Settings() {
         XLSX.utils.book_append_sheet(
           workbook,
           XLSX.utils.aoa_to_sheet([
-            ["Target", "Type", "Amount"],
-            ...accounts.recurring.map((item) => [item.target, item.type, item.amount]),
+            ["Target", "Direction", "Type", "Amount"],
+            ...accounts.recurring.map((item) => [
+              item.target,
+              item.direction === "receive" ? "Receive" : "Pay",
+              item.type,
+              item.amount,
+            ]),
           ]),
           "Recurring Monthly"
         );
