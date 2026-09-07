@@ -437,29 +437,15 @@ export async function completePayable(id, { date, scope } = {}) {
 }
 
 export async function getAllRecurring() {
-  return allSql('SELECT * FROM recurring ORDER BY direction, type, target, id');
+  return allSql('SELECT * FROM recurring ORDER BY type, target, id');
 }
 
-function normalizeRecurringDirection(direction) {
-  return direction === 'receive' ? 'receive' : 'pay';
+export async function addRecurring({ target, type, amount }) {
+  return insertRow('recurring', { target, type, amount });
 }
 
-export async function addRecurring({ target, direction, type, amount }) {
-  return insertRow('recurring', {
-    target: String(target || '').trim(),
-    direction: normalizeRecurringDirection(direction),
-    type: type || 'Personal',
-    amount: Number(amount),
-  });
-}
-
-export async function updateRecurring(id, { target, direction, type, amount }) {
-  return updateRow('recurring', id, {
-    target: String(target || '').trim(),
-    direction: normalizeRecurringDirection(direction),
-    type: type || 'Personal',
-    amount: Number(amount),
-  });
+export async function updateRecurring(id, { target, type, amount }) {
+  return updateRow('recurring', id, { target, type, amount });
 }
 
 export async function deleteRecurring(id) {

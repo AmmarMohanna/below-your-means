@@ -287,23 +287,19 @@ export async function importWorkbookBuffer(buffer) {
     const recurring = getSheetData(workbook, 'Recurring Monthly');
     for (const item of recurring) {
       const type = item.Type;
-      const direction = String(item.Direction || 'Pay').toLowerCase();
       if (!['Family', 'Home', 'Personal', 'Subscription', 'Donations'].includes(type)) {
-        continue;
-      }
-      if (!['pay', 'receive'].includes(direction)) {
         continue;
       }
 
       await runSql(
         `
-          INSERT INTO recurring (target, direction, type, amount)
-          VALUES (?, ?, ?, ?)
+          INSERT INTO recurring (target, type, amount)
+          VALUES (?, ?, ?)
         `,
-        [item.Target || 'Unknown', direction, type, parseFloat(item.Amount) || 0]
+        [item.Target || 'Unknown', type, parseFloat(item.Amount) || 0]
       );
-      summary.imported.recurring += 1;
     }
+    summary.imported.recurring = recurring.length;
 
     const metalsRows = getSheetData(workbook, 'Metals');
     if (metalsRows.length > 0) {

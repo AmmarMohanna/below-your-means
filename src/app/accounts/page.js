@@ -13,7 +13,7 @@ const tabs = [
   { id: "current", name: "Current" },
   { id: "expected", name: "Expected" },
   { id: "payables", name: "Payables" },
-  { id: "recurring", name: "Recurring" },
+  { id: "recurring", name: "Monthly" },
   { id: "metals", name: "Savings" },
   { id: "projects", name: "Projects" },
 ];
@@ -84,7 +84,7 @@ function joinParts(...parts) {
 
 function getInitialForm(tab) {
   if (tab === "recurring") {
-    return { target: "", direction: "pay", type: "Personal", amount: "" };
+    return { target: "", type: "Personal", amount: "" };
   }
 
   if (tab === "current") {
@@ -233,24 +233,18 @@ export default function Accounts() {
       cash: data.currentMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       expected: data.expectedMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       owe: data.payables.reduce((sum, item) => sum + (item.amount || 0), 0),
-      monthlyPay: data.recurring
-        .filter((item) => item.direction !== "receive")
-        .reduce((sum, item) => sum + (item.amount || 0), 0),
-      monthlyReceive: data.recurring
-        .filter((item) => item.direction === "receive")
-        .reduce((sum, item) => sum + (item.amount || 0), 0),
+      monthly: data.recurring.reduce((sum, item) => sum + (item.amount || 0), 0),
       longTermSavings: (metals.values.total || 0) + pensionAmount + cashSavingsAmount,
     }),
     [cashSavingsAmount, data, metals.values.total, pensionAmount]
   );
 
-  const recurringToPay = useMemo(
-    () => data.recurring.filter((item) => item.direction !== "receive"),
-    [data.recurring]
-  );
-
-  const recurringToReceive = useMemo(
-    () => data.recurring.filter((item) => item.direction === "receive"),
+  const recurringByType = useMemo(
+    () =>
+      recurringTypes.reduce((groups, type) => {
+        groups[type] = data.recurring.filter((item) => item.type === type);
+        return groups;
+      }, {}),
     [data.recurring]
   );
 
@@ -747,43 +741,27 @@ export default function Accounts() {
     if (activeTab === "recurring") {
       return (
         <>
-          <select
-            className={styles.formInput}
-            aria-label="Payment direction"
-            value={formData.direction || "pay"}
-            onChange={(event) =>
-              setFormData({ ...formData, direction: event.target.value })
-            }
-          >
-            <option value="pay">Pay monthly</option>
-            <option value="receive">Receive monthly</option>
-          </select>
           <input
             type="text"
             className={styles.formInput}
-            placeholder={formData.direction === "receive" ? "Receive from" : "Pay to"}
+            placeholder="Target"
             value={formData.target || ""}
             onChange={(event) => setFormData({ ...formData, target: event.target.value })}
           />
-          {formData.direction !== "receive" ? (
-            <select
-              className={styles.formInput}
-              aria-label="Payment category"
-              value={formData.type || "Personal"}
-              onChange={(event) => setFormData({ ...formData, type: event.target.value })}
-            >
-              {recurringTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          ) : null}
+          <select
+            className={styles.formInput}
+            value={formData.type || "Personal"}
+            onChange={(event) => setFormData({ ...formData, type: event.target.value })}
+          >
+            {recurringTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
           <input
             type="number"
             className={styles.formInput}
-            min="0.01"
-            step="0.01"
             placeholder="Amount"
             value={formData.amount || ""}
             onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
@@ -810,11 +788,6 @@ export default function Accounts() {
       (!Number.isFinite(Number(formData.planned_save_amount)) ||
         Number(formData.planned_save_amount) < 0 ||
         Number(formData.planned_save_amount) > Number(formData.amount || 0));
-    const recurringFormInvalid =
-      activeTab === "recurring" &&
-      (!formData.target?.trim() ||
-        !Number.isFinite(Number(formData.amount)) ||
-        Number(formData.amount) <= 0);
 
     return (
       <div className={styles.formCard}>
@@ -824,13 +797,9 @@ export default function Accounts() {
             type="button"
             className={styles.primaryButton}
             onClick={() => (editingId ? handleUpdate(editingId) : handleAdd())}
-            disabled={projectFormInvalid || expectedFormInvalid || recurringFormInvalid}
+            disabled={projectFormInvalid || expectedFormInvalid}
           >
-            {editingId
-              ? "Save changes"
-              : activeTab === "recurring"
-                ? "Add payment"
-                : "Add item"}
+            {editingId ? "Save changes" : "Add item"}
           </button>
           <button
             type="button"
@@ -1237,94 +1206,51 @@ export default function Accounts() {
     if (activeTab === "recurring") {
       return (
         <div className={styles.groupList}>
-          <section className={styles.groupCard}>
-            <div className={styles.groupHeader}>
-              <h3 className={styles.groupTitle}>Pay · ${formatMoney(summary.monthlyPay)}/mo</h3>
-            </div>
+          {recurringTypes.map((type) => (
+            <section key={type} className={styles.groupCard}>
+              <div className={styles.groupHeader}>
+                <h3 className={styles.groupTitle}>
+                  {type} · ${formatMoney(recurringByType[type].reduce((sum, item) => sum + (item.amount || 0), 0))}/mo
+                </h3>
+              </div>
 
-            <div className={styles.groupRows}>
-              {recurringToPay
-                .filter((item) => item.id !== editingId)
-                .map((item) => (
-                  <article key={item.id} className={styles.groupRow}>
-                    <div className={styles.itemMain}>
-                      <div className={styles.itemLine}>
-                        <span className={styles.itemTitle}>{item.target}</span>
-                        <span className={styles.itemMeta}>{item.type}</span>
+              <div className={styles.groupRows}>
+                {recurringByType[type]
+                  .filter((item) => item.id !== editingId)
+                  .map((item) => (
+                    <article key={item.id} className={styles.groupRow}>
+                      <div className={styles.itemMain}>
+                        <div className={styles.itemLine}>
+                          <span className={styles.itemTitle}>{item.target}</span>
+                        </div>
                       </div>
-                    </div>
-                    <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
-                    <div className={styles.rowActions}>
-                      <button
-                        type="button"
-                        className={styles.actionButton}
-                        onClick={() => startEdit(item)}
-                      >
-                        <span className={styles.mobileIcon} aria-hidden="true">✎</span>
-                        <span className={styles.buttonLabel}>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.deleteButton}
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
-                        <span className={styles.buttonLabel}>Delete</span>
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              {recurringToPay.length === 0 && (
-                <div className={styles.emptyState}>No monthly payments.</div>
-              )}
-            </div>
-          </section>
-
-          <section className={styles.groupCard}>
-            <div className={styles.groupHeader}>
-              <h3 className={styles.groupTitle}>
-                Receive · ${formatMoney(summary.monthlyReceive)}/mo
-              </h3>
-            </div>
-
-            <div className={styles.groupRows}>
-              {recurringToReceive
-                .filter((item) => item.id !== editingId)
-                .map((item) => (
-                  <article key={item.id} className={styles.groupRow}>
-                    <div className={styles.itemMain}>
-                      <div className={styles.itemLine}>
-                        <span className={styles.itemTitle}>{item.target}</span>
+                      <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
+                      <div className={styles.rowActions}>
+                        <button
+                          type="button"
+                          className={styles.actionButton}
+                          onClick={() => startEdit(item)}
+                        >
+                          <span className={styles.mobileIcon} aria-hidden="true">✎</span>
+                          <span className={styles.buttonLabel}>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
+                          <span className={styles.buttonLabel}>Delete</span>
+                        </button>
                       </div>
-                    </div>
-                    <strong className={styles.receiveAmount}>
-                      +${formatMoney(item.amount || 0)}
-                    </strong>
-                    <div className={styles.rowActions}>
-                      <button
-                        type="button"
-                        className={styles.actionButton}
-                        onClick={() => startEdit(item)}
-                      >
-                        <span className={styles.mobileIcon} aria-hidden="true">✎</span>
-                        <span className={styles.buttonLabel}>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.deleteButton}
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
-                        <span className={styles.buttonLabel}>Delete</span>
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              {recurringToReceive.length === 0 && (
-                <div className={styles.emptyState}>No monthly income.</div>
-              )}
-            </div>
-          </section>
+                    </article>
+                  ))}
+                {recurringByType[type].length === 0 && (
+                  <div className={styles.emptyState}>No items.</div>
+                )}
+              </div>
+            </section>
+          ))}
         </div>
       );
     }
@@ -1666,9 +1592,7 @@ export default function Accounts() {
           <h2 className={styles.sectionTitle}>{activeTabMeta?.name}</h2>
 
           {activeTab === "recurring" && (
-            <p className={styles.sectionTotal}>
-              Pay ${formatMoney(summary.monthlyPay)} · Receive ${formatMoney(summary.monthlyReceive)}
-            </p>
+            <p className={styles.sectionTotal}>Total · ${formatMoney(summary.monthly)}/mo</p>
           )}
 
           {canAdd && (

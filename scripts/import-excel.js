@@ -99,7 +99,6 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS recurring (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     target TEXT NOT NULL,
-    direction TEXT NOT NULL DEFAULT 'pay' CHECK(direction IN ('pay', 'receive')),
     type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal', 'Subscription', 'Donations')),
     amount REAL NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -206,16 +205,6 @@ if (!longTermSavingsColumns.some((column) => column.name === 'cash_savings_amoun
     ADD COLUMN cash_savings_amount REAL NOT NULL DEFAULT 0 CHECK(cash_savings_amount >= 0)
   `);
 }
-
-const recurringColumns = db.prepare('PRAGMA table_info(recurring)').all();
-if (!recurringColumns.some((column) => column.name === 'direction')) {
-  db.exec(`
-    ALTER TABLE recurring
-    ADD COLUMN direction TEXT NOT NULL DEFAULT 'pay'
-    CHECK(direction IN ('pay', 'receive'))
-  `);
-}
-db.exec('CREATE INDEX IF NOT EXISTS idx_recurring_direction ON recurring(direction)');
 
 // Read Excel file
 console.log(`📖 Reading Excel file: ${excelPath}`);
@@ -364,22 +353,16 @@ const recurring = getSheetData('Recurring Monthly');
 if (recurring.length > 0) {
   console.log(`🔄 Importing ${recurring.length} recurring payments...`);
   const insertRec = db.prepare(`
-    INSERT INTO recurring (target, direction, type, amount) VALUES (?, ?, ?, ?)
+    INSERT INTO recurring (target, type, amount) VALUES (?, ?, ?)
   `);
   for (const r of recurring) {
     const type = r['Type'];
-    const direction = String(r['Direction'] || 'Pay').toLowerCase();
     if (!['Family', 'Home', 'Personal', 'Subscription', 'Donations'].includes(type)) {
       console.log(`   ⚠️  Skipped recurring with invalid type: ${type}`);
       continue;
     }
-    if (!['pay', 'receive'].includes(direction)) {
-      console.log(`   ⚠️  Skipped recurring with invalid direction: ${direction}`);
-      continue;
-    }
     insertRec.run(
       r['Target'] || 'Unknown',
-      direction,
       type,
       parseFloat(r['Amount']) || 0
     );
