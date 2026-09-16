@@ -33,9 +33,20 @@
 .mobileIcon { display: none; }
 .buttonLabel { display: inline; }
 .cardList, .groupList, .longTermList, .projectList, .savingsPlanDashboard, .groupRows, .metalsRows { display: grid; gap: 12px; min-width: 0; }
-.planMetrics { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.planMetricCard { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; }
-.planMetricCard strong { font-size: 1.05rem; font-weight: 600; }
+.planMetrics { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.planMetricCard { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 22px; }
+.savingsMetricLabel { color: var(--primary-strong); font-size: .9rem; font-weight: 600; }
+.savingsMetricValue { font-size: clamp(1.8rem, 6vw, 2.3rem); line-height: 1.15; letter-spacing: -.04em; font-weight: 600; overflow-wrap: anywhere; max-width: 100%; }
+.savingsMetricNote { color: var(--text-muted); font-size: .8rem; font-weight: 400; line-height: 1.5; }
+.projectedSavingsCard { background: linear-gradient(135deg, var(--primary-light), var(--card-bg)); border-color: var(--border-strong); }
+.savingsBreakdown { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; padding-top: 18px; margin-top: auto; }
+.savingsBreakdown dt { color: var(--text-muted); font-size: .75rem; }
+.savingsBreakdown dd { margin: 3px 0 0; font-size: .9rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.savingsAddition { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; width: 100%; padding-top: 18px; margin-top: auto; color: var(--primary-strong); }
+.savingsAddition strong { font-size: 1.12rem; font-weight: 600; }
+.savingsAddition span { font-size: .8rem; }
+.planToolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-block: 18px 12px; }
+.pensionCard { margin-top: 12px; border-style: dashed; background: transparent; }
 .planFormCard { width: 100%; margin-bottom: 12px; }
 .planRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
 .planRow:first-child { border-top: 0; }
@@ -78,9 +89,8 @@
 .itemCard > .rowActions, .groupRow > .rowActions, .metalRow > .rowActions, .planRow > .rowActions { grid-column: 1 / -1; }
 @media (min-width: 600px) {
   .summaryGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .formGrid, .savingsAccountsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .formGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .planMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .planMetricCard { display: grid; gap: 6px; }
 }
 @media (min-width: 760px) {
   .itemCard, .groupRow, .metalRow, .planRow { grid-template-columns: minmax(0, 1fr) auto auto; }
