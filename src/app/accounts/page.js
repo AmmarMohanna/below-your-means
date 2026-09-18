@@ -149,7 +149,7 @@ export default function Accounts() {
   const [savingsPlanForm, setSavingsPlanForm] = useState(getInitialSavingsPlanForm);
   const [savingsPlanEditingId, setSavingsPlanEditingId] = useState(null);
   const [showSavingsPlanForm, setShowSavingsPlanForm] = useState(false);
-  const [savingsPlanExpanded, setSavingsPlanExpanded] = useState(true);
+  const [savingsPlanExpanded, setSavingsPlanExpanded] = useState(false);
   const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 });
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
