@@ -118,16 +118,24 @@ The app already ships `public/manifest.json`, Apple web-app metadata, and SVG ic
 
 ## Voice entry setup
 
-Voice entry adds no table, migration, import, or background transaction write. Configure the key only on the server. To prepare a later authorized release, run the following interactively from the intended checkout (these are setup instructions, not part of local validation):
+Voice entry adds no table, migration, import, or background transaction write. Configure the key only on the server. To store the key without changing production traffic, run the following interactively from the intended checkout:
 
 ```bash
-# This command changes the configured Worker's secret. Paste the key at the prompt.
-npx wrangler secret put OPENAI_API_KEY --name below-your-means
+# Paste the key at the masked prompt. This creates an undeployed Worker version.
+npx wrangler versions secret put OPENAI_API_KEY --name below-your-means
+
+# Verify the configured secret names; values are never displayed.
+npx wrangler secret list --name below-your-means
+
+# Check which version is serving traffic.
+npx wrangler deployments status --name below-your-means
 ```
+
+The staged secret is not active until a release is deployed. During an authorized release, upload the intended code with `npm run upload`, verify the secret binding in the uploaded version, then deploy that version using `npx wrangler versions deploy`. Do not deploy the secret-only version as a substitute for uploading the feature code. The regular `wrangler secret put` command deploys immediately; use it only when that production change is intended. See [Cloudflare secret setup](https://developers.cloudflare.com/workers/configuration/secrets/).
 
 For local development, create `.dev.vars` from `.dev.vars.example` and set `OPENAI_API_KEY`, `APP_PASSWORD`, and `SESSION_SECRET`. Use a separate test password and session secret. Keep `NEXTJS_ENV=development` and `SECURE_COOKIES=false` for localhost HTTP. Never commit `.dev.vars` or put the key in a `NEXT_PUBLIC_` variable. `npm run dev` uses the OpenNext local Cloudflare context; `npm run preview` builds and runs the Worker locally. Only a fresh local database needs the app's existing local migration setup.
 
-The server defaults are `gpt-4o-mini-transcribe` and `gpt-4.1-mini`, verified against their current [transcription model](https://developers.openai.com/api/docs/models/gpt-4o-mini-transcribe) and [text model](https://developers.openai.com/api/docs/models/gpt-4.1-mini) documentation. Override `OPENAI_TRANSCRIBE_MODEL` and `OPENAI_PARSE_MODEL` server-side in `.dev.vars` locally or `wrangler.jsonc` for a release. A replacement text model must support the Responses API with strict Structured Outputs. Model access still depends on your OpenAI project. Transcription does not force English, so Arabic and mixed speech can be retained; evaluate actual recognition quality on your device.
+The server defaults are `gpt-4o-mini-transcribe` and `gpt-5.4-mini`, verified against their current [transcription model](https://developers.openai.com/api/docs/models/gpt-4o-mini-transcribe) and [text model](https://developers.openai.com/api/docs/models/gpt-5.4-mini) documentation. GPT-5.4 mini uses low reasoning with a 4,096-token output budget (including reasoning). This setting passed live synthetic examples for expenses, consulting income, missing fields, selected and relative dates, non-USD input, multiple transactions, and Arabic text. Override `OPENAI_TRANSCRIBE_MODEL` and `OPENAI_PARSE_MODEL` server-side in `.dev.vars` locally or `wrangler.jsonc` for a release. A replacement text model must support the Responses API with strict Structured Outputs; model-specific reasoning is omitted for other model families. Model access still depends on your OpenAI project. Transcription does not force English, so Arabic and mixed speech can be retained; evaluate actual recognition quality on your device.
 
 The two authenticated voice endpoints share `VOICE_RATE_LIMITER`: 10 requests per 60 seconds for this single-account app (normally two requests per recording). Cloudflare's limiter is per location and eventually consistent, not a global billing cap. The binding must be present; missing configuration fails closed and leaves manual entry available. Keep the namespace unique when copying the app to a separate Worker. Set a provider project budget separately if desired.
 

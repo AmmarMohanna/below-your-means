@@ -76,7 +76,7 @@ test('server rejects malformed shape, nonfinite/nonpositive/overprecision amount
     ready({ amount: 1.001 }), ready({ amount: '45' }), ready({ type: 'transfer' }),
     ready({ scope: 'work' }), ready({ date: '2026-02-30' }), ready({ date: '2026-09-20' }),
     ready({ description: '' }), ready({ description: 'a'.repeat(501) }), ready({ currency: 'dollars' }),
-    ready({ amount: null }), ready({ date: null }),
+    ready({ amount: null }), ready({ date: null }), ready({ description: null }),
     { ...ready(), transaction: { ...ready().transaction, category: 'Food' } },
   ];
   for (const value of invalid) assert.throws(() => validateExtraction(value, { today }));

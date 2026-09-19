@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { createAccountsPost, validateExpectedPlan } from '@/lib/account-series';
 import {
   getAllCurrentMoney,
   addCurrentMoney,
@@ -7,6 +8,7 @@ import {
   deleteCurrentMoney,
   getAllExpectedMoney,
   addExpectedMoney,
+  addMonthlyAccountSeries,
   updateExpectedMoney,
   deleteExpectedMoney,
   getAllPayables,
@@ -26,26 +28,6 @@ import {
   completeExpectedMoney,
   completePayable,
 } from '@/lib/db';
-
-function validateExpectedPlan(data) {
-  const amount = Number(data.amount);
-  const plannedSaveAmount =
-    data.planned_save_amount === '' || data.planned_save_amount === null || data.planned_save_amount === undefined
-      ? 0
-      : Number(data.planned_save_amount);
-
-  if (
-    !Number.isFinite(amount) ||
-    amount < 0 ||
-    !Number.isFinite(plannedSaveAmount) ||
-    plannedSaveAmount < 0 ||
-    plannedSaveAmount > amount
-  ) {
-    return null;
-  }
-
-  return { ...data, amount, planned_save_amount: plannedSaveAmount };
-}
 
 // GET all data for all tables
 export async function GET() {
@@ -74,50 +56,9 @@ export async function GET() {
 }
 
 // POST - add new item to any table
-export async function POST(request) {
-  if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    const body = await request.json();
-    const { table, ...data } = body;
-
-    const normalizedData = table === 'expectedMoney' ? validateExpectedPlan(data) : data;
-    if (!normalizedData) {
-      return NextResponse.json(
-        { error: 'Planned savings must be between zero and the expected amount' },
-        { status: 400 }
-      );
-    }
-
-    let result;
-    switch (table) {
-      case 'currentMoney':
-        result = await addCurrentMoney(normalizedData);
-        break;
-      case 'expectedMoney':
-        result = await addExpectedMoney(normalizedData);
-        break;
-      case 'payables':
-        result = await addPayable(normalizedData);
-        break;
-      case 'recurring':
-        result = await addRecurring(normalizedData);
-        break;
-      case 'projects':
-        result = await addProject(normalizedData);
-        break;
-      default:
-        return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, id: result.lastInsertRowid });
-  } catch (error) {
-    console.error('Error adding item:', error);
-    return NextResponse.json({ error: 'Failed to add item' }, { status: 500 });
-  }
-}
+export const POST = createAccountsPost({
+  isAuthenticated, addMonthlyAccountSeries, addCurrentMoney, addExpectedMoney, addPayable, addRecurring, addProject,
+});
 
 // PUT - update item in any table
 export async function PUT(request) {
@@ -128,6 +69,10 @@ export async function PUT(request) {
   try {
     const body = await request.json();
     const { table, id, ...data } = body;
+
+    if (data.monthly_repeat !== null && data.monthly_repeat !== undefined) {
+      return NextResponse.json({ error: 'Monthly repeat is available when adding a new entry only.' }, { status: 400 });
+    }
 
     const normalizedData = table === 'expectedMoney' ? validateExpectedPlan(data) : data;
     if (!normalizedData) {

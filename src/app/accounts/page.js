@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
 import { getTodayBeirut } from "@/lib/date";
+import { buildMonthlyDates, isValidCalendarDate, MAX_MONTHLY_ENTRIES } from "@/lib/monthly-series";
 
 import styles from "./accounts.module.css";
 
@@ -121,6 +122,10 @@ function getInitialSavingsPlanForm() {
   };
 }
 
+function getInitialMonthlyRepeat() {
+  return { enabled: false, endType: "count", count: "6", endDate: "" };
+}
+
 export default function Accounts() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("current");
@@ -155,6 +160,11 @@ export default function Accounts() {
   const [editingId, setEditingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(getInitialForm("current"));
+  const [monthlyRepeat, setMonthlyRepeat] = useState(getInitialMonthlyRepeat);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [formUncertain, setFormUncertain] = useState(false);
+  const formSubmittingRef = useRef(false);
   const [metalsEditing, setMetalsEditing] = useState(false);
   const [pensionEditing, setPensionEditing] = useState(false);
   const [cashSavingsEditing, setCashSavingsEditing] = useState(false);
@@ -265,9 +275,14 @@ export default function Accounts() {
 
   const resetForm = (tab = activeTab) => {
     setFormData(getInitialForm(tab));
+    setMonthlyRepeat(getInitialMonthlyRepeat());
+    setFormError("");
+    setFormUncertain(false);
   };
 
   const selectTab = (tab) => {
+    if (formSubmittingRef.current) return;
+    if (formUncertain) { fetchData(); if (activeTab === "expected") fetchSavingsPlan(); }
     setActiveTab(tab);
     setEditingId(null);
     setShowAddForm(false);
@@ -288,48 +303,81 @@ export default function Accounts() {
     }));
   };
 
-  const handleAdd = async () => {
-    const table = getTableName(activeTab);
-
+  const getMonthlyPlan = () => {
+    if (editingId !== null || !["expected", "payables"].includes(activeTab) || !monthlyRepeat.enabled) {
+      return { repeat: null, dates: [], error: "" };
+    }
+    const repeat = monthlyRepeat.endType === "count"
+      ? { end_type: "count", count: Number(monthlyRepeat.count) }
+      : { end_type: "date", end_date: monthlyRepeat.endDate };
     try {
-      const response = await fetch("/api/accounts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ table, ...formData }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add item");
-      }
-
-      setShowAddForm(false);
-      resetForm();
-      await Promise.all([fetchData(), activeTab === "expected" ? fetchSavingsPlan() : null]);
+      const dates = buildMonthlyDates(activeTab === "expected" ? formData.expected_date : formData.pay_date, repeat);
+      return { repeat, dates, error: "" };
     } catch (error) {
-      console.error("Error adding account item:", error);
+      return { repeat, dates: [], error: error.message };
     }
   };
 
-  const handleUpdate = async (id) => {
+  const getFormValidationError = () => {
+    if (activeTab === "projects" && (!formData.description?.trim() || formData.estimated_amount === "" || !Number.isFinite(Number(formData.estimated_amount)) || Number(formData.estimated_amount) < 0)) {
+      return "Enter a project description and a valid amount.";
+    }
+    if (!["expected", "payables"].includes(activeTab)) return "";
+    if (!formData.source?.trim() || formData.source.length > 500) return activeTab === "expected" ? "Enter a source of up to 500 characters." : "Enter who you will pay, up to 500 characters.";
+    const date = activeTab === "expected" ? formData.expected_date : formData.pay_date;
+    if (!isValidCalendarDate(date)) return "Choose a valid date for the first item.";
+    if (formData.amount === "" || !Number.isFinite(Number(formData.amount)) || Number(formData.amount) < 0) return "Enter a valid amount of zero or more.";
+    if ((formData.notes || "").length > 2000) return "Keep notes to 2,000 characters or fewer.";
+    if (activeTab === "expected" && formData.planned_save_amount !== "" && formData.planned_save_amount != null && (!Number.isFinite(Number(formData.planned_save_amount)) || Number(formData.planned_save_amount) < 0 || Number(formData.planned_save_amount) > Number(formData.amount))) {
+      return "Planned savings must be between zero and the expected amount.";
+    }
+    return getMonthlyPlan().error;
+  };
+
+  const submitAccountForm = async (id = null) => {
+    if (formSubmittingRef.current || formUncertain) return;
+    const validationError = getFormValidationError();
+    if (validationError) { setFormError(validationError); return; }
     const table = getTableName(activeTab);
+    const monthlyPlan = getMonthlyPlan();
+    const fields = { ...formData };
+    delete fields.monthly_repeat;
+    const payload = { table, ...fields };
+    if (id !== null) payload.id = id;
+    else if (["expected", "payables"].includes(activeTab)) payload.monthly_repeat = monthlyPlan.repeat;
+    if (["expected", "payables"].includes(activeTab)) payload.amount = Number(formData.amount);
+    formSubmittingRef.current = true;
+    setFormSubmitting(true);
+    setFormError("");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
 
     try {
       const response = await fetch("/api/accounts", {
-        method: "PUT",
+        method: id !== null ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ table, id, ...formData }),
+        body: JSON.stringify(payload),
+        signal: controller.signal,
       });
-
+      const result = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error("Failed to update item");
+        const failure = new Error(result?.error || "Could not save this item. Please try again.");
+        failure.uncertain = response.status >= 500 || response.status === 408 || Boolean(result?.uncertain);
+        throw failure;
       }
-
+      if (result?.success !== true || (id === null && (!Number.isSafeInteger(Number(result.id)) || Number(result.id) <= 0))) throw new Error("The save response could not be confirmed.");
       setEditingId(null);
       setShowAddForm(false);
       resetForm();
       await Promise.all([fetchData(), activeTab === "expected" ? fetchSavingsPlan() : null]);
     } catch (error) {
-      console.error("Error updating account item:", error);
+      const uncertain = error.uncertain !== false;
+      setFormUncertain(uncertain);
+      setFormError(uncertain ? "The save could not be confirmed. Close this form and check your items before adding them again." : error.message);
+    } finally {
+      clearTimeout(timeout);
+      formSubmittingRef.current = false;
+      setFormSubmitting(false);
     }
   };
 
@@ -456,6 +504,9 @@ export default function Accounts() {
 
 
   const startEdit = (item) => {
+    if (formSubmittingRef.current) return;
+    if (formUncertain) { fetchData(); if (activeTab === "expected") fetchSavingsPlan(); }
+    resetForm();
     setEditingId(item.id);
     setShowAddForm(false);
     setFormData({ ...item });
@@ -660,12 +711,15 @@ export default function Accounts() {
             type="text"
             className={styles.formInput}
             placeholder="Source"
+            aria-label="Source"
+            maxLength={500}
             value={formData.source || ""}
             onChange={(event) => setFormData({ ...formData, source: event.target.value })}
           />
           <input
             type="date"
             className={styles.formInput}
+            aria-label="Expected date"
             value={formData.expected_date || ""}
             onChange={(event) => setFormData({ ...formData, expected_date: event.target.value })}
           />
@@ -673,31 +727,17 @@ export default function Accounts() {
             type="number"
             className={styles.formInput}
             placeholder="Expected amount"
-            value={formData.amount || ""}
-            onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+            aria-label="Expected amount"
+            min="0" step="0.01" inputMode="decimal"
+            value={formData.amount ?? ""}
+            onChange={(event) => setFormData({ ...formData, amount: event.target.value })}
           />
-          <label className={styles.formField}>
-            <span className={styles.formLabel}>Add to savings plan (optional)</span>
-            <input
-              type="number"
-              className={styles.formInput}
-              min="0"
-              max={formData.amount || undefined}
-              step="0.01"
-              placeholder="Leave blank for none"
-              value={formData.planned_save_amount ?? ""}
-              onChange={(event) =>
-                setFormData({
-                  ...formData,
-                  planned_save_amount: event.target.value === "" ? "" : Number(event.target.value),
-                })
-              }
-            />
-          </label>
           <input
             type="text"
             className={styles.formInput}
             placeholder="Notes"
+            aria-label="Notes"
+            maxLength={2000}
             value={formData.notes || ""}
             onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
           />
@@ -712,12 +752,15 @@ export default function Accounts() {
             type="text"
             className={styles.formInput}
             placeholder="Pay to"
+            aria-label="Pay to"
+            maxLength={500}
             value={formData.source || ""}
             onChange={(event) => setFormData({ ...formData, source: event.target.value })}
           />
           <input
             type="date"
             className={styles.formInput}
+            aria-label="Pay date"
             value={formData.pay_date || ""}
             onChange={(event) => setFormData({ ...formData, pay_date: event.target.value })}
           />
@@ -725,13 +768,17 @@ export default function Accounts() {
             type="number"
             className={styles.formInput}
             placeholder="Amount"
-            value={formData.amount || ""}
-            onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
+            aria-label="Amount"
+            min="0" step="0.01" inputMode="decimal"
+            value={formData.amount ?? ""}
+            onChange={(event) => setFormData({ ...formData, amount: event.target.value })}
           />
           <input
             type="text"
             className={styles.formInput}
             placeholder="Notes"
+            aria-label="Notes"
+            maxLength={2000}
             value={formData.notes || ""}
             onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
           />
@@ -776,42 +823,85 @@ export default function Accounts() {
 
   const renderForm = () => {
     if (!showAddForm && editingId === null) return null;
-
-    const projectFormInvalid =
-      activeTab === "projects" &&
-      (!formData.description?.trim() ||
-        formData.estimated_amount === "" ||
-        !Number.isFinite(Number(formData.estimated_amount)) ||
-        Number(formData.estimated_amount) < 0);
-    const expectedFormInvalid =
-      activeTab === "expected" &&
-      formData.planned_save_amount !== "" &&
-      (!Number.isFinite(Number(formData.planned_save_amount)) ||
-        Number(formData.planned_save_amount) < 0 ||
-        Number(formData.planned_save_amount) > Number(formData.amount || 0));
+    const validationError = getFormValidationError();
+    const monthlyPlan = getMonthlyPlan();
+    const supportsMonthlyRepeat = editingId === null && ["expected", "payables"].includes(activeTab);
+    const showAdvanced = activeTab === "expected" || supportsMonthlyRepeat;
+    const startDate = activeTab === "expected" ? formData.expected_date : formData.pay_date;
 
     return (
-      <div className={styles.formCard}>
-        <div className={styles.formGrid}>{renderFormFields()}</div>
+      <div className={styles.formCard} aria-busy={formSubmitting}>
+        <fieldset className={styles.formFields} disabled={formSubmitting || formUncertain} onChange={() => setFormError("")}>
+          <div className={styles.formGrid}>{renderFormFields()}</div>
+          {showAdvanced && <details key={`${activeTab}-${editingId ?? "new"}`} className={styles.advanced}>
+            <summary>Advanced</summary>
+            <div className={styles.advancedFields}>
+              {activeTab === "expected" && <label className={styles.formField}>
+                <span className={styles.formLabel}>Add to savings plan (optional)</span>
+                <input type="number" aria-label="Add to savings plan (optional)" className={styles.formInput} min="0" max={formData.amount === "" ? undefined : formData.amount} step="0.01" inputMode="decimal"
+                  aria-describedby={supportsMonthlyRepeat && monthlyRepeat.enabled ? "expected-repeat-savings-help" : undefined}
+                  placeholder="Leave blank for none" value={formData.planned_save_amount ?? ""}
+                  onChange={(event) => setFormData({ ...formData, planned_save_amount: event.target.value === "" ? "" : Number(event.target.value) })} />
+                {supportsMonthlyRepeat && monthlyRepeat.enabled && <span id="expected-repeat-savings-help" className={styles.formHelp}>This savings amount applies to each month.</span>}
+              </label>}
+              {supportsMonthlyRepeat && <>
+                <label className={styles.repeatToggle}>
+                  <input type="checkbox" checked={monthlyRepeat.enabled} onChange={(event) => setMonthlyRepeat({ ...monthlyRepeat, enabled: event.target.checked })} />
+                  <span>Repeat monthly</span>
+                </label>
+                {monthlyRepeat.enabled && <>
+                  <div className={styles.formGrid}>
+                    <label className={styles.formField}>
+                      <span className={styles.formLabel}>Repeat until</span>
+                      <select aria-label="Repeat until" className={`${styles.formInput} ${styles.repeatSelect}`} value={monthlyRepeat.endType}
+                        onChange={(event) => setMonthlyRepeat({ ...monthlyRepeat, endType: event.target.value })}>
+                        <option value="count">Number of months</option><option value="date">End date</option>
+                      </select>
+                    </label>
+                    {monthlyRepeat.endType === "count" ? <label className={styles.formField}>
+                      <span className={styles.formLabel}>Number of months</span>
+                      <input type="number" className={styles.formInput} min="1" max={MAX_MONTHLY_ENTRIES} step="1" inputMode="numeric" value={monthlyRepeat.count}
+                        aria-describedby="monthly-repeat-help" aria-invalid={Boolean(monthlyPlan.error)}
+                        onChange={(event) => setMonthlyRepeat({ ...monthlyRepeat, count: event.target.value })} />
+                    </label> : <label className={styles.formField}>
+                      <span className={styles.formLabel}>End date</span>
+                      <input type="date" className={styles.formInput} min={startDate || undefined} value={monthlyRepeat.endDate}
+                        aria-describedby="monthly-repeat-help" aria-invalid={Boolean(monthlyPlan.error)}
+                        onChange={(event) => setMonthlyRepeat({ ...monthlyRepeat, endDate: event.target.value })} />
+                    </label>}
+                  </div>
+                  <p id="monthly-repeat-help" className={monthlyPlan.error ? styles.formValidation : styles.formHelp} aria-live="polite">
+                    {monthlyPlan.error || `${monthlyPlan.dates.length} monthly ${monthlyPlan.dates.length === 1 ? "item" : "items"}, from ${formatDate(monthlyPlan.dates[0])} to ${formatDate(monthlyPlan.dates.at(-1))}. The first month is included.`}
+                  </p>
+                  <p className={styles.formHelp}>Each item can be edited or marked {activeTab === "expected" ? "received" : "paid"} separately. Shorter months use their last day.</p>
+                </>}
+              </>}
+            </div>
+          </details>}
+        </fieldset>
+        {formError ? <p className={styles.formError} role="alert">{formError}</p> : validationError && <p className={styles.formValidation}>{validationError}</p>}
         <div className={styles.formActions}>
           <button
             type="button"
             className={styles.primaryButton}
-            onClick={() => (editingId ? handleUpdate(editingId) : handleAdd())}
-            disabled={projectFormInvalid || expectedFormInvalid}
+            onClick={() => submitAccountForm(editingId)}
+            disabled={Boolean(validationError) || formSubmitting || formUncertain}
           >
-            {editingId ? "Save changes" : "Add item"}
+            {formSubmitting ? (editingId !== null ? "Saving…" : "Adding…") : editingId !== null ? "Save changes" : "Add item"}
           </button>
           <button
             type="button"
             className={styles.secondaryButton}
+            disabled={formSubmitting}
             onClick={() => {
+              if (formSubmittingRef.current) return;
+              if (formUncertain) { fetchData(); if (activeTab === "expected") fetchSavingsPlan(); }
               setEditingId(null);
               setShowAddForm(false);
               resetForm();
             }}
           >
-            Cancel
+            {formUncertain ? "Close and check entries" : "Cancel"}
           </button>
         </div>
       </div>
@@ -1604,6 +1694,7 @@ export default function Accounts() {
             key={tab.id}
             type="button"
             className={`${styles.tabButton} ${activeTab === tab.id ? styles.activeTab : ""}`}
+            disabled={formSubmitting}
             onClick={() => selectTab(tab.id)}
           >
             <span>{tab.name}</span>
@@ -1623,7 +1714,9 @@ export default function Accounts() {
             <button
               type="button"
               className={styles.primaryButton}
+              disabled={formSubmitting || formUncertain}
               onClick={() => {
+                if (formSubmittingRef.current) return;
                 setShowAddForm(true);
                 setEditingId(null);
                 resetForm();

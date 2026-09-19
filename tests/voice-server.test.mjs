@@ -92,7 +92,9 @@ test('Responses request has strict schema, store:false, only transcript and nece
   const [url, init] = server.calls[0];
   assert.equal(url, 'https://api.openai.com/v1/responses');
   const body = JSON.parse(init.body);
-  assert.equal(body.model, 'gpt-4.1-mini');
+  assert.equal(body.model, 'gpt-5.4-mini');
+  assert.deepEqual(body.reasoning, { effort: 'low' });
+  assert.equal(body.max_output_tokens, 4096);
   assert.equal(body.store, false);
   assert.equal(body.text.format.strict, true);
   assert.equal(body.text.format.type, 'json_schema');
@@ -111,6 +113,7 @@ test('API model overrides are server-side only', async () => {
   await server.parse(parseRequest({ model: 'client-model' }));
   await server.transcribe(audioRequest());
   assert.equal(JSON.parse(server.calls[0][1].body).model, 'configured-extractor');
+  assert.equal(JSON.parse(server.calls[0][1].body).reasoning, undefined);
   assert.equal(server.calls[1][1].body.get('model'), 'configured-transcriber');
 });
 
@@ -203,6 +206,7 @@ test('refused, incomplete, malformed and invalid provider results cannot produce
     [{ status: 'completed', output: [{ type: 'message', status: 'incomplete', content: [] }] }, 502],
     [{ status: 'completed', output: [{ type: 'message', status: 'completed', content: [{ type: 'output_text', text: '{bad' }] }] }, 502],
     [completed({ ...fixture, transaction: { ...fixture.transaction, amount: -45 } }), 502],
+    [completed({ ...fixture, transaction: { ...fixture.transaction, amount: 20, description: null, date: '2026-09-18' } }), 502],
   ];
   for (const [result, status] of cases) {
     const server = setup({ fetchImpl: async () => Response.json(result) });

@@ -7,4 +7,4 @@ SECURE_COOKIES=false
 OPENAI_API_KEY=
 # Optional server model overrides (defaults also configured in wrangler.jsonc)
 OPENAI_TRANSCRIBE_MODEL=gpt-4o-mini-transcribe
-OPENAI_PARSE_MODEL=gpt-4.1-mini
+OPENAI_PARSE_MODEL=gpt-5.4-mini
