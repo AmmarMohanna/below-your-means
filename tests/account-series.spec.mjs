@@ -82,6 +82,11 @@ for (const config of configurations) {
     await expect(advanced(page)).not.toHaveAttribute('open');
     await expect(page.getByLabel('Repeat monthly', { exact: true })).not.toBeVisible();
     if (config.tab === 'Expected') await expect(page.getByRole('spinbutton', { name: /^Add to savings plan \(optional\)/ })).not.toBeVisible();
+    await expect(page.locator('p[role="alert"]')).toHaveCount(0);
+    await expect(page.getByText('Enter a source of up to 500 characters.', { exact: true })).toHaveCount(0);
+    await addButton(page).click();
+    await expect(page.locator('p[role="alert"]')).toContainText(config.tab === 'Expected' ? 'Source is required.' : 'Payee is required.');
+    expect(state.writes).toHaveLength(0);
     await fillEntry(page, config, { source: 'Single entry', date: today });
     await addButton(page).click();
     await expect(addButton(page)).not.toBeVisible();
@@ -113,7 +118,7 @@ for (const config of configurations) {
         await page.getByLabel('End date', { exact: true }).fill('2027-04-30');
       }
       await expect(advanced(page)).toContainText(`${dates.length} monthly items`);
-      await expect(advanced(page)).toContainText(/first month is included/i);
+      await expect(advanced(page)).toContainText(/first included/i);
       expect(state.writes).toHaveLength(0);
       await page.screenshot({ path: testInfo.outputPath(`account-${config.table}-${ending}.png`), fullPage: true });
       await addButton(page).click();
@@ -196,14 +201,16 @@ test('monthly controls reject missing, fractional, excessive and backwards limit
   await page.getByLabel('Repeat monthly', { exact: true }).check();
   for (const count of ['', '0', '1.5', '121']) {
     await page.getByLabel('Number of months', { exact: true }).fill(count);
-    await expect(addButton(page)).toBeDisabled();
+    await addButton(page).click();
+    await expect(page.locator('p[role="alert"]')).toBeVisible();
   }
   await page.getByLabel('Number of months', { exact: true }).fill('120');
   await expect(addButton(page)).toBeEnabled();
   await page.getByRole('combobox', { name: 'Repeat until', exact: true }).selectOption({ label: 'End date' });
   for (const end of ['', '2027-01-30', '2038-01-31']) {
     await page.getByLabel('End date', { exact: true }).fill(end);
-    await expect(addButton(page)).toBeDisabled();
+    await addButton(page).click();
+    await expect(page.locator('p[role="alert"]')).toBeVisible();
   }
   await page.getByLabel('End date', { exact: true }).fill('2027-01-31');
   await expect(addButton(page)).toBeEnabled();
@@ -217,9 +224,11 @@ test('planned savings validation still prevents amounts above the expected incom
   await fillEntry(page, configurations[0]);
   await advanced(page).locator('summary').click();
   await page.getByRole('spinbutton', { name: /^Add to savings plan \(optional\)/ }).fill('501');
-  await expect(addButton(page)).toBeDisabled();
+  await addButton(page).click();
+  await expect(page.locator('p[role="alert"]')).toContainText('Planned savings');
   await page.getByLabel('Repeat monthly', { exact: true }).check();
-  await expect(addButton(page)).toBeDisabled();
+  await addButton(page).click();
+  await expect(page.locator('p[role="alert"]')).toContainText('Planned savings');
   await page.getByRole('spinbutton', { name: /^Add to savings plan \(optional\)/ }).fill('500');
   await expect(addButton(page)).toBeEnabled();
   expect(state.writes).toHaveLength(0);
@@ -235,7 +244,7 @@ test('a rejected schedule retains all edits and supports an explicit retry', asy
   await page.getByRole('spinbutton', { name: /^Add to savings plan \(optional\)/ }).fill('100');
   await page.getByLabel('Repeat monthly', { exact: true }).check();
   await addButton(page).click();
-  await expect(page.getByRole('alert').filter({ hasText: 'Please check the monthly schedule.' })).toBeVisible();
+  await expect(page.locator('p[role="alert"]').filter({ hasText: 'Please check the monthly schedule.' })).toBeVisible();
   await expect(page.getByPlaceholder('Source', { exact: true })).toHaveValue('Consulting payment');
   await expect(page.getByRole('spinbutton', { name: /^Add to savings plan \(optional\)/ })).toHaveValue('100');
   await expect(page.getByLabel('Number of months', { exact: true })).toHaveValue('6');
@@ -271,7 +280,7 @@ test('uncertain schedule saves cannot be retried without first checking the list
   await advanced(page).locator('summary').click();
   await page.getByLabel('Repeat monthly', { exact: true }).check();
   await addButton(page).click();
-  await expect(page.getByRole('alert').filter({ hasText: /could not be confirmed/i })).toBeVisible();
+  await expect(page.locator('p[role="alert"]').filter({ hasText: /could not be confirmed/i })).toBeVisible();
   await expect(addButton(page)).toBeDisabled();
   expect(state.writes).toHaveLength(1);
   await page.getByRole('button', { name: 'Close and check entries', exact: true }).click();

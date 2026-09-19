@@ -32,7 +32,6 @@
 .repeatToggle input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary); }
 .repeatSelect { height: 44px; padding-block: 8px; }
 .formHelp { color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
-.formValidation { color: var(--danger); font-size: .8rem; line-height: 1.5; }
 .formError { padding: 12px; background: var(--danger-light); border-radius: 9px; color: var(--danger); font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
 .formField { display: grid; gap: 6px; min-width: 0; }
 .formLabel { color: var(--text-muted); font-size: .8rem; font-weight: 500; }

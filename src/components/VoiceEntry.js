@@ -461,7 +461,7 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8" /></svg>
       </button>
       {(active || error || !supported) && <section className={styles.feedback} aria-label="Voice entry">
-        {!supported && <p className={styles.hint}>Voice recording is unavailable in this browser. Use the manual form.</p>}
+        {!supported && <p className={styles.hint}>Voice unavailable. Use manual entry.</p>}
         {active && (
           <>
             <div className={styles.status}>
@@ -477,12 +477,11 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
         {error && <p className={styles.error} role="alert">{error}</p>}
       </section>}
 
-      <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="voice-review-title" aria-describedby="voice-review-intro" aria-busy={saving || interpreting}
+      <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="voice-review-title" aria-busy={saving || interpreting}
         onKeyDown={trapDialogFocus}
         onCancel={(event) => { event.preventDefault(); dismissReview(); }}
         onClose={() => { if (reviewOpen && !savingRef.current) dismissReview(); }}>
         <h2 id="voice-review-title" ref={titleRef} tabIndex={-1} className={styles.title}>Review your entry</h2>
-        <p id="voice-review-intro" className={styles.intro}>Change any field below. Your entry is added only when you confirm.</p>
         {clarification && <p className={styles.clarification} role="status">{clarification}</p>}
         {draft && <div className={styles.fields}>
           <div className={styles.field}>
@@ -539,7 +538,6 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
           <summary>Transcript</summary>
           <textarea aria-label="Transcript" value={transcript} maxLength={MAX_TRANSCRIPT_LENGTH} disabled={fieldsLocked}
             onChange={(event) => { revisionRef.current += 1; setTranscript(event.target.value); setReviewStatus(""); }} />
-          <p className={styles.transcriptHint}>Interpreting again replaces the fields above. You can also correct them directly.</p>
           <button type="button" className={`${styles.secondary} ${styles.replaceButton}`} disabled={fieldsLocked || interpreting || !transcript.trim()}
             onClick={() => { const session = sessionRef.current; if (session && !savingRef.current && !uncertainSave) interpret(session, transcript, true); }}>
             {interpreting ? "Interpreting…" : "Interpret again and replace fields"}
