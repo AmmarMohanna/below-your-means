@@ -2,6 +2,11 @@ import { getTodayBeirut } from './date.js';
 
 export const MAX_DESCRIPTION_LENGTH = 500;
 
+export function capitalizeDescription(value) {
+  if (typeof value !== 'string') return value;
+  return value.replace(/^(\s*)(\p{L})/u, (_, spacing, letter) => spacing + letter.toUpperCase());
+}
+
 export function getDefaultCategory(type, scope) {
   if (type === 'income') return 'Income';
   return scope === 'business' ? 'Business' : 'Other';
@@ -32,14 +37,15 @@ export function validateEntryFields(draft, { requireDescription = true, today = 
 }
 
 export function buildTransactionPayload(draft, options = {}) {
-  const errors = validateEntryFields(draft, options);
+  const description = capitalizeDescription(draft?.description);
+  const errors = validateEntryFields({ ...draft, description }, options);
   if (Object.keys(errors).length) throw new Error(Object.values(errors)[0]);
   return {
     amount: Number(draft.amount),
     category: getDefaultCategory(draft.type, draft.scope),
     type: draft.type,
     scope: draft.scope,
-    notes: draft.description.trim(),
+    notes: description.trim(),
     date: draft.date,
     created_at: new Date().toISOString().replace('T', ' ').replace('Z', ''),
   };

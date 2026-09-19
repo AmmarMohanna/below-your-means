@@ -16,7 +16,7 @@ test('the current entry date uses Beirut across the UTC midnight boundary', (con
 });
 
 test('edited values map exactly to persistence and category is recomputed', () => {
-  const edited = { ...draft, type: 'income', amount: '512.35', scope: 'business', description: '  Consulting  ', date: '2026-02-02' };
+  const edited = { ...draft, type: 'income', amount: '512.35', scope: 'business', description: '  consulting  ', date: '2026-02-02' };
   const { created_at, ...payload } = buildTransactionPayload(edited);
   assert.deepEqual(payload, { type: 'income', amount: 512.35, scope: 'business', notes: 'Consulting', date: '2026-02-02', category: 'Income' });
   assert.match(created_at, /^\d{4}-\d{2}-\d{2} /);

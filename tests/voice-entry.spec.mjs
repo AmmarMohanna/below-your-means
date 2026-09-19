@@ -121,7 +121,8 @@ test('all direct edits persist once with recomputed income category and refreshe
   const state = await setup(page);
   const dialog = await recordAndReview(page);
   await dialog.getByLabel('Amount in US dollars', { exact: true }).fill('501.25');
-  await dialog.getByLabel('Description', { exact: true }).fill('Edited consulting');
+  await dialog.getByLabel('Description', { exact: true }).fill('edited consulting');
+  await expect(dialog.getByLabel('Description', { exact: true })).toHaveValue('Edited consulting');
   await dialog.getByRole('button', { name: 'Income', exact: true }).click();
   await dialog.getByLabel('Entry scope', { exact: true }).selectOption('business');
   await dialog.getByLabel('Entry date', { exact: true }).fill(earlier);
@@ -481,7 +482,8 @@ test('canceled interpretation cannot replace the next recording draft', async ({
 test('existing manual entry still saves its exact values and refreshes the list', async ({ page }) => {
   const state = await setup(page);
   await page.getByLabel('Amount in US dollars', { exact: true }).fill('300.50');
-  await page.getByLabel('Description', { exact: true }).fill('Manual consulting income');
+  await page.getByLabel('Description', { exact: true }).fill('manual consulting income');
+  await expect(page.getByLabel('Description', { exact: true })).toHaveValue('Manual consulting income');
   await page.getByRole('button', { name: 'Income', exact: true }).click();
   await page.getByLabel('Entry scope', { exact: true }).selectOption('business');
   await page.getByRole('button', { name: 'Add entry', exact: true }).click();
