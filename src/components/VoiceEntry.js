@@ -457,14 +457,11 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
 
   return (
     <>
-      <section className={styles.panel} aria-label="Voice entry">
-        {!active && (
-          <button ref={microphoneRef} type="button" className={styles.recordButton} aria-label="Record an entry" onClick={startRecording} disabled={!supported || disabled || reviewOpen}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8" /></svg>
-            Record an entry
-          </button>
-        )}
-        {!active && <p className={styles.hint}>{supported ? "Say one income or expense. Review it before adding." : "Voice recording is unavailable in this browser. Use the manual form."}</p>}
+      <button ref={microphoneRef} type="button" className={styles.recordButton} aria-label="Record an entry" title="Record an entry" onClick={startRecording} disabled={!supported || disabled || active || reviewOpen}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8" /></svg>
+      </button>
+      {(active || error || !supported) && <section className={styles.feedback} aria-label="Voice entry">
+        {!supported && <p className={styles.hint}>Voice recording is unavailable in this browser. Use the manual form.</p>}
         {active && (
           <>
             <div className={styles.status}>
@@ -478,7 +475,7 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
           </>
         )}
         {error && <p className={styles.error} role="alert">{error}</p>}
-      </section>
+      </section>}
 
       <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="voice-review-title" aria-describedby="voice-review-intro" aria-busy={saving || interpreting}
         onKeyDown={trapDialogFocus}

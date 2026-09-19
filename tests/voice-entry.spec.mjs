@@ -284,7 +284,26 @@ test('transcript edits only replace corrected fields after explicit reinterpreta
 test('phone viewport and short keyboard-height viewport keep modal reachable with trapped focus', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 664 });
   await setup(page);
-  await expect(page.getByRole('button', { name: 'Record an entry', exact: true })).toBeInViewport();
+  const microphone = page.getByRole('button', { name: 'Record an entry', exact: true });
+  const manualAdd = page.getByRole('button', { name: 'Add entry', exact: true });
+  await expect(page.getByRole('region', { name: 'Voice entry' })).toHaveCount(0);
+  await expect(page.getByText('Say one income or expense. Review it before adding.', { exact: true })).toHaveCount(0);
+  await expect(microphone).toHaveText('');
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 664 });
+    await expect(microphone).toBeInViewport({ ratio: 1 });
+    const microphoneBox = await microphone.boundingBox();
+    const addBox = await manualAdd.boundingBox();
+    expect(microphoneBox.width).toBeGreaterThanOrEqual(44);
+    expect(microphoneBox.height).toBeGreaterThanOrEqual(44);
+    expect(Math.abs(microphoneBox.y + microphoneBox.height / 2 - addBox.y - addBox.height / 2)).toBeLessThanOrEqual(2);
+    const gap = Math.max(microphoneBox.x - addBox.x - addBox.width, addBox.x - microphoneBox.x - microphoneBox.width);
+    expect(gap).toBeGreaterThanOrEqual(0);
+    expect(gap).toBeLessThanOrEqual(24);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  }
+  await page.screenshot({ path: testInfo.outputPath('today-microphone-320.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 664 });
   await page.screenshot({ path: testInfo.outputPath('today-microphone.png'), fullPage: true });
   const dialog = await recordAndReview(page);
   expect(await dialog.evaluate((element) => element.open && element.matches(':modal'))).toBe(true);

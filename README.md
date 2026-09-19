@@ -104,7 +104,7 @@ Deploying does not run D1 migrations or data imports. Run those commands only wh
 
 ### Voice entry
 
-On Today, select a date and Personal/Business scope, then tap **Record an entry**. Stop automatically transcribes and interprets one transaction. **Review your entry** opens with editable type, USD amount, description, scope, and date. Only **Confirm and add** writes a transaction. Cancel discards the voice draft and preserves manual input. Expand the transcript to correct it; replacing the draft after interpretation is an explicit action.
+On Today, select a date and Personal/Business scope, then tap the microphone beside **Add entry**. Stop automatically transcribes and interprets one transaction. **Review your entry** opens with editable type, USD amount, description, scope, and date. Only **Confirm and add** writes a transaction. Cancel discards the voice draft and preserves manual input. Expand the transcript to correct it; replacing the draft after interpretation is an explicit action.
 
 Missing amounts or other unresolved fields can be corrected directly. Non-USD amounts require a USD amount entered by you; the app never converts currency. Multiple transactions require a new recording of one transaction. Dates cannot be in the future. Recording lasts up to 60 seconds, uses a supported MP4/WebM audio format, and requires a secure browser context (HTTPS, or localhost during development).
 
