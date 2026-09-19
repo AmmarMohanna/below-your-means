@@ -323,15 +323,13 @@ export default function Dashboard() {
       )}
       <section className={styles.daySection} aria-label="Entries for selected date">
         <div className={styles.dayHeader}>
-          <div className={styles.dayHeading}>
-            <h2>{formatDisplayDate(selectedDate)}</h2>
-            {(dailySummary.expense > 0 || dailySummary.income > 0) && (
-              <div className={styles.dayTotals} aria-label="Daily totals">
-                {dailySummary.income > 0 && <span className={styles.amountIncome}>Income ${formatMoney(dailySummary.income, 2)}</span>}
-                {dailySummary.expense > 0 && <span>Outcome ${formatMoney(dailySummary.expense, 2)}</span>}
-              </div>
-            )}
-          </div>
+          <h2>{formatDisplayDate(selectedDate)}</h2>
+          {(dailySummary.expense > 0 || dailySummary.income > 0) && (
+            <div className={styles.dayTotals} aria-label="Daily totals">
+              {dailySummary.income > 0 && <span className={styles.amountIncome}>Received ${formatMoney(dailySummary.income, 2)}</span>}
+              {dailySummary.expense > 0 && <span>Paid ${formatMoney(dailySummary.expense, 2)}</span>}
+            </div>
+          )}
           {dailyTransactions.length > 0 && <button type="button" className={styles.selectionToggle} onClick={() => { setSelectionMode((previous) => !previous); setSelectedIds([]); }}>
             {selectionMode ? "Cancel" : "Select"}
           </button>}
