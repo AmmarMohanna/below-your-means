@@ -149,6 +149,7 @@ export default function Accounts() {
   const [savingsPlanForm, setSavingsPlanForm] = useState(getInitialSavingsPlanForm);
   const [savingsPlanEditingId, setSavingsPlanEditingId] = useState(null);
   const [showSavingsPlanForm, setShowSavingsPlanForm] = useState(false);
+  const [savingsPlanExpanded, setSavingsPlanExpanded] = useState(false);
   const [pricesForm, setPricesForm] = useState({ gold_per_oz: 2650, silver_per_kg: 950 });
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -234,9 +235,9 @@ export default function Accounts() {
       expected: data.expectedMoney.reduce((sum, item) => sum + (item.amount || 0), 0),
       owe: data.payables.reduce((sum, item) => sum + (item.amount || 0), 0),
       monthly: data.recurring.reduce((sum, item) => sum + (item.amount || 0), 0),
-      longTermSavings: (metals.values.total || 0) + pensionAmount + cashSavingsAmount,
+      longTermSavings: (metals.values.total || 0) + cashSavingsAmount,
     }),
-    [cashSavingsAmount, data, metals.values.total, pensionAmount]
+    [cashSavingsAmount, data, metals.values.total]
   );
 
   const recurringByType = useMemo(
@@ -995,140 +996,164 @@ export default function Accounts() {
     return (
       <div className={styles.savingsPlanDashboard}>
         <div className={styles.planMetrics}>
-          <div className={styles.planMetricCard}>
-            <span className={styles.summaryLabel}>Planned savings</span>
-            <strong>${formatMoney(plannedAmount)}</strong>
-          </div>
-          <div className={styles.planMetricCard}>
-            <span className={styles.summaryLabel}>Current savings</span>
-            <strong>${formatMoney(summary.longTermSavings)}</strong>
-          </div>
+          <section className={styles.planMetricCard} aria-labelledby="current-savings-title">
+            <h3 id="current-savings-title" className={styles.savingsMetricLabel}>Current savings</h3>
+            <strong className={styles.savingsMetricValue}>${formatMoney(summary.longTermSavings)}</strong>
+            <p className={styles.savingsMetricNote}>What you have saved today</p>
+            <dl className={styles.savingsBreakdown}>
+              <div><dt>Gold</dt><dd>${formatMoney((metals.values.gold_24k || 0) + (metals.values.gold_21k || 0))}</dd></div>
+              <div><dt>Silver</dt><dd>${formatMoney(metals.values.silver || 0)}</dd></div>
+              <div><dt>Cash</dt><dd>${formatMoney(cashSavingsAmount)}</dd></div>
+            </dl>
+          </section>
+          <section className={`${styles.planMetricCard} ${styles.projectedSavingsCard}`} aria-labelledby="planned-savings-title">
+            <h3 id="planned-savings-title" className={styles.savingsMetricLabel}>Planned savings</h3>
+            <strong className={styles.savingsMetricValue}>${formatMoney(summary.longTermSavings + plannedAmount)}</strong>
+            <p className={styles.savingsMetricNote}>Current savings + all registered plan amounts</p>
+            <div className={styles.savingsAddition}>
+              <strong>+${formatMoney(plannedAmount)}</strong>
+              <span>upcoming · {formatItemCount(savingsPlan.items.length)}</span>
+            </div>
+          </section>
         </div>
 
         <section className={styles.groupCard}>
-          <div className={styles.groupHeader}>
-            <div>
-              <h3 className={styles.groupTitle}>Savings plan</h3>
-              <p className={styles.itemMeta}>
-                The total is the sum of the amounts listed here.
-              </p>
-            </div>
-            {!showSavingsPlanForm ? (
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => {
-                  setSavingsPlanEditingId(null);
-                  setSavingsPlanForm(getInitialSavingsPlanForm());
-                  setShowSavingsPlanForm(true);
-                }}
-              >
-                Add amount
-              </button>
-            ) : null}
-          </div>
-
-          {showSavingsPlanForm ? (
-            <div className={`${styles.formCard} ${styles.planFormCard}`}>
-              <div className={styles.formGrid}>
-                <input
-                  type="text"
-                  className={styles.formInput}
-                  placeholder="Source or purpose"
-                  value={savingsPlanForm.source}
-                  onChange={(event) =>
-                    setSavingsPlanForm({ ...savingsPlanForm, source: event.target.value })
-                  }
-                />
-                <label className={styles.formField}>
-                  <span className={styles.formLabel}>Date (optional)</span>
-                  <input
-                    type="date"
-                    className={styles.formInput}
-                    value={savingsPlanForm.planned_date}
-                    onChange={(event) =>
-                      setSavingsPlanForm({ ...savingsPlanForm, planned_date: event.target.value })
-                    }
-                  />
-                </label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  className={styles.formInput}
-                  placeholder="Amount"
-                  value={savingsPlanForm.amount}
-                  onChange={(event) =>
-                    setSavingsPlanForm({ ...savingsPlanForm, amount: event.target.value })
-                  }
-                />
-                <input
-                  type="text"
-                  className={styles.formInput}
-                  placeholder="Notes"
-                  value={savingsPlanForm.notes}
-                  onChange={(event) =>
-                    setSavingsPlanForm({ ...savingsPlanForm, notes: event.target.value })
-                  }
-                />
-              </div>
-              <div className={styles.formActions}>
+          <h3>
+            <button
+              type="button"
+              className={styles.monthGroupButton}
+              aria-expanded={savingsPlanExpanded}
+              aria-controls="savings-plan-content"
+              onClick={() => setSavingsPlanExpanded((expanded) => !expanded)}
+            >
+              <span className={styles.monthGroupMain}>
+                <span className={styles.monthGroupTitle}>Savings plan</span>
+                <span className={styles.monthGroupMeta}>{formatItemCount(savingsPlan.items.length)} · all registered dates</span>
+              </span>
+              <span className={styles.monthGroupAmount}>${formatMoney(plannedAmount)}</span>
+              <span className={styles.monthGroupChevron} aria-hidden="true">{savingsPlanExpanded ? "⌃" : "⌄"}</span>
+            </button>
+          </h3>
+          <div id="savings-plan-content" hidden={!savingsPlanExpanded}>
+            <div className={styles.planToolbar}>
+              <p className={styles.savingsMetricNote}>Upcoming additions to your current savings.</p>
+              {!showSavingsPlanForm ? (
                 <button
                   type="button"
-                  className={styles.primaryButton}
-                  onClick={handleSavingsPlanSubmit}
-                  disabled={planFormInvalid}
+                  className={styles.actionButton}
+                  onClick={() => {
+                    setSavingsPlanEditingId(null);
+                    setSavingsPlanForm(getInitialSavingsPlanForm());
+                    setShowSavingsPlanForm(true);
+                  }}
                 >
-                  {savingsPlanEditingId ? "Save amount" : "Add amount"}
+                  Add amount
                 </button>
-                <button type="button" className={styles.secondaryButton} onClick={resetSavingsPlanForm}>
-                  Cancel
-                </button>
-              </div>
+              ) : null}
             </div>
-          ) : null}
 
-          <div className={styles.groupRows}>
-            {savingsPlan.items.map((item) => (
-              <article key={item.id} className={styles.planRow}>
-                <div className={styles.itemMain}>
-                  <div className={styles.itemLine}>
-                    <span className={styles.itemTitle}>{item.source}</span>
-                    {item.planned_date ? (
-                      <span className={styles.itemMeta}>{formatDate(item.planned_date)}</span>
-                    ) : null}
-                  </div>
-                  {item.notes ? <span className={styles.planExpected}>{item.notes}</span> : null}
+            {showSavingsPlanForm ? (
+              <div className={`${styles.formCard} ${styles.planFormCard}`}>
+                <div className={styles.formGrid}>
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    placeholder="Source or purpose"
+                    value={savingsPlanForm.source}
+                    onChange={(event) =>
+                      setSavingsPlanForm({ ...savingsPlanForm, source: event.target.value })
+                    }
+                  />
+                  <label className={styles.formField}>
+                    <span className={styles.formLabel}>Date (optional)</span>
+                    <input
+                      type="date"
+                      className={styles.formInput}
+                      value={savingsPlanForm.planned_date}
+                      onChange={(event) =>
+                        setSavingsPlanForm({ ...savingsPlanForm, planned_date: event.target.value })
+                      }
+                    />
+                  </label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    className={styles.formInput}
+                    placeholder="Amount"
+                    value={savingsPlanForm.amount}
+                    onChange={(event) =>
+                      setSavingsPlanForm({ ...savingsPlanForm, amount: event.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    placeholder="Notes"
+                    value={savingsPlanForm.notes}
+                    onChange={(event) =>
+                      setSavingsPlanForm({ ...savingsPlanForm, notes: event.target.value })
+                    }
+                  />
                 </div>
-                <div className={styles.planAmounts}>
-                  <strong className={styles.itemAmount}>${formatMoney(item.amount)}</strong>
-                  {item.expected_amount != null ? (
-                    <span className={styles.planExpectedAmount}>of ${formatMoney(item.expected_amount)} expected</span>
-                  ) : null}
-                </div>
-                <div className={styles.rowActions}>
+                <div className={styles.formActions}>
                   <button
                     type="button"
-                    className={styles.actionButton}
-                    onClick={() => startSavingsPlanEdit(item)}
+                    className={styles.primaryButton}
+                    onClick={handleSavingsPlanSubmit}
+                    disabled={planFormInvalid}
                   >
-                    Edit
+                    {savingsPlanEditingId ? "Save amount" : "Add amount"}
                   </button>
-                  <button
-                    type="button"
-                    className={styles.deleteButton}
-                    onClick={() => handleSavingsPlanDelete(item.id)}
-                  >
-                    Delete
+                  <button type="button" className={styles.secondaryButton} onClick={resetSavingsPlanForm}>
+                    Cancel
                   </button>
                 </div>
-              </article>
-            ))}
-            {savingsPlan.items.length === 0 ? (
-              <div className={styles.emptyState}>
-                No savings amounts listed yet.
               </div>
             ) : null}
+
+            <div className={styles.groupRows}>
+              {savingsPlan.items.map((item) => (
+                <article key={item.id} className={styles.planRow}>
+                  <div className={styles.itemMain}>
+                    <div className={styles.itemLine}>
+                      <span className={styles.itemTitle}>{item.source}</span>
+                      {item.planned_date ? (
+                        <span className={styles.itemMeta}>{formatDate(item.planned_date)}</span>
+                      ) : null}
+                    </div>
+                    {item.notes ? <span className={styles.planExpected}>{item.notes}</span> : null}
+                  </div>
+                  <div className={styles.planAmounts}>
+                    <strong className={styles.itemAmount}>${formatMoney(item.amount)}</strong>
+                    {item.expected_amount != null ? (
+                      <span className={styles.planExpectedAmount}>of ${formatMoney(item.expected_amount)} expected</span>
+                    ) : null}
+                  </div>
+                  <div className={styles.rowActions}>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={() => startSavingsPlanEdit(item)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.deleteButton}
+                      onClick={() => handleSavingsPlanDelete(item.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+              {savingsPlan.items.length === 0 ? (
+                <div className={styles.emptyState}>
+                  No savings amounts listed yet.
+                </div>
+              ) : null}
+            </div>
           </div>
         </section>
       </div>
@@ -1261,59 +1286,12 @@ export default function Accounts() {
 
         <div className={styles.savingsHoldingsHeader}>
           <div>
-            <h3 className={styles.groupTitle}>Current savings</h3>
-            <p className={styles.itemMeta}>Cash, pension, and metal holdings</p>
+            <h3 className={styles.groupTitle}>Savings breakdown</h3>
+            <p className={styles.itemMeta}>Gold, silver, and cash set aside</p>
           </div>
-          <strong>${formatMoney(summary.longTermSavings)}</strong>
         </div>
 
         <div className={styles.savingsAccountsGrid}>
-          <section className={styles.groupCard}>
-            <div className={styles.groupHeader}>
-              <div className={styles.itemMain}>
-                <h3 className={styles.groupTitle}>AUB Pension</h3>
-                <p className={styles.itemMeta}>Pension balance</p>
-              </div>
-              {pensionEditing ? (
-                <input
-                  type="number"
-                  className={styles.inlineInput}
-                  min="0"
-                  step="0.01"
-                  aria-label="AUB Pension balance"
-                  value={pensionForm || ""}
-                  onChange={(event) => setPensionForm(parseFloat(event.target.value) || 0)}
-                />
-              ) : (
-                <strong className={styles.itemAmount}>${formatMoney(pensionAmount)}</strong>
-              )}
-            </div>
-
-            <div className={styles.cardActions}>
-              {!pensionEditing ? (
-                <button type="button" className={styles.actionButton} onClick={() => setPensionEditing(true)}>
-                  Edit pension
-                </button>
-              ) : (
-                <>
-                  <button type="button" className={styles.actionButton} onClick={handlePensionUpdate}>
-                    Save pension
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.actionButton}
-                    onClick={() => {
-                      setPensionEditing(false);
-                      setPensionForm(pensionAmount);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </>
-              )}
-            </div>
-          </section>
-
           <section className={styles.groupCard}>
             <div className={styles.groupHeader}>
               <div className={styles.itemMain}>
@@ -1534,6 +1512,52 @@ export default function Accounts() {
             ? new Date(metals.prices.last_updated).toLocaleString()
             : "manual only so far"}
         </p>
+        </section>
+
+        <section className={`${styles.groupCard} ${styles.pensionCard}`}>
+          <div className={styles.groupHeader}>
+            <div className={styles.itemMain}>
+              <h3 className={styles.groupTitle}>AUB Pension</h3>
+              <p className={styles.savingsMetricNote}>Tracked separately · excluded from savings totals</p>
+            </div>
+            {pensionEditing ? (
+              <input
+                type="number"
+                className={styles.inlineInput}
+                min="0"
+                step="0.01"
+                aria-label="AUB Pension balance"
+                value={pensionForm || ""}
+                onChange={(event) => setPensionForm(parseFloat(event.target.value) || 0)}
+              />
+            ) : (
+              <strong className={styles.itemAmount}>${formatMoney(pensionAmount)}</strong>
+            )}
+          </div>
+
+          <div className={styles.cardActions}>
+            {!pensionEditing ? (
+              <button type="button" className={styles.actionButton} onClick={() => setPensionEditing(true)}>
+                Edit pension
+              </button>
+            ) : (
+              <>
+                <button type="button" className={styles.actionButton} onClick={handlePensionUpdate}>
+                  Save pension
+                </button>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => {
+                    setPensionEditing(false);
+                    setPensionForm(pensionAmount);
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
         </section>
       </div>
     );

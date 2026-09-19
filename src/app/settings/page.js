@@ -241,10 +241,17 @@ export default function Settings() {
           workbook,
           XLSX.utils.aoa_to_sheet([
             ["Account", "Amount"],
-            ["AUB Pension", metals.longTermSavings.aub_pension_amount || 0],
             ["Current cash savings", metals.longTermSavings.cash_savings_amount || 0],
             ["Metals", metals.values?.total || 0],
-            ["Total", metals.longTermSavings.total || 0],
+            ["Current savings (excluding pension)", metals.longTermSavings.total || 0],
+            ["Upcoming savings plan", savingsPlan.summary?.planned || 0],
+            [
+              "Planned savings (excluding pension)",
+              (metals.longTermSavings.total || 0) + (savingsPlan.summary?.planned || 0),
+            ],
+            [],
+            ["Pension — excluded from savings totals", ""],
+            ["AUB Pension", metals.longTermSavings.aub_pension_amount || 0],
           ]),
           "Savings"
         );

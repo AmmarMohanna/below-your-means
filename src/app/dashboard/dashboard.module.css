@@ -42,7 +42,7 @@
 .bulkBar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px}
 .bulkDeleteButton{min-height:44px;border:0;border-radius:9px;padding:0 12px;color:var(--danger);background:var(--danger-light);cursor:pointer}
 .reminderPanel summary{min-height:44px;cursor:pointer;font-size:14px;padding-top:10px}
-.reminderItem{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding:10px 0;font-size:14px;overflow-wrap:anywhere}
+.reminderItem{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;font-size:14px;overflow-wrap:anywhere}
 .reminderActions{display:flex;gap:6px;flex-shrink:0}
 .secondaryButton{min-height:44px;border:1px solid var(--border);border-radius:9px;padding:0 12px;background:var(--field-bg);color:var(--text-primary);cursor:pointer;font-size:13px}
 .error{padding:12px;background:var(--danger-light);color:var(--danger);border-radius:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;font-size:14px}

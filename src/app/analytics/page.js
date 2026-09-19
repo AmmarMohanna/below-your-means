@@ -88,11 +88,11 @@ export default function Analytics() {
           </section>
 
           <section className={`${styles.panel} ${styles.savings}`} aria-labelledby="savings-title">
-            <h2 id="savings-title">Expected year-end savings</h2>
-            <p className={styles.supporting}>All savings · {dateLabel(data.savings.yearEnd, { day: "numeric", month: "short", year: "numeric" })}</p>
+            <h2 id="savings-title">Planned savings</h2>
+            <p className={styles.supporting}>Current savings + all registered additions</p>
             <p className={styles.savingsTotal}>{money(data.savings.expected)}</p>
             <p className={styles.supporting}>{money(data.savings.current)} saved + {money(data.savings.additions)} planned</p>
-            <p className={styles.savingsNote}>Includes pension and metals at stored prices; assumes planned additions are saved.</p>
+            <p className={styles.savingsNote}>Gold, silver and cash savings, plus the upcoming savings plan. Pension is excluded; metals use stored prices.</p>
           </section>
 
           <section className={styles.panel} aria-labelledby="monthly-title">
@@ -125,13 +125,13 @@ export default function Analytics() {
           </section>
 
           <section className={`${styles.panel} ${styles.largest}`} aria-labelledby="largest-title">
-            <h2 id="largest-title">Expenses over $200</h2>
+            <h2 id="largest-title">Expenses of $200 or more</h2>
             {data.largest.length ? <ul className={styles.list}>
               {data.largest.map((item) => <li key={item.id} className={styles.listRow}>
                 <div className={styles.rowDescription}><p>{item.label}</p><span>{dateLabel(item.date, { day: "numeric", month: "short" })}{item.scope === "business" ? " · Business" : ""}</span></div>
                 <strong>{money(item.amount)}</strong>
               </li>)}
-            </ul> : <p className={styles.empty}>No expenses over $200 this month.</p>}
+            </ul> : <p className={styles.empty}>No expenses of $200 or more this month.</p>}
           </section>
         </>
       )}
