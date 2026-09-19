@@ -7,7 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
 import VoiceEntry from "@/components/VoiceEntry";
 import { getTodayBeirut } from "@/lib/date";
-import { buildTransactionPayload, MAX_DESCRIPTION_LENGTH } from "@/lib/transaction-entry";
+import { buildTransactionPayload, capitalizeDescription, MAX_DESCRIPTION_LENGTH } from "@/lib/transaction-entry";
 
 import styles from "./dashboard.module.css";
 
@@ -297,7 +297,7 @@ export default function Dashboard() {
           </label>
           <input aria-label="Description" type="text" className={styles.textInput} disabled={isSubmitting}
             placeholder={type === "income" ? "Who paid you?" : "What was it for?"}
-            value={description} maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(event.target.value)} />
+            value={description} autoCapitalize="sentences" maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(capitalizeDescription(event.target.value))} />
           <div className={styles.entryOptions}>
             <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
               <option value="personal">Personal</option><option value="business">Business</option>

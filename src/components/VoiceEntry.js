@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getTodayBeirut } from "@/lib/date";
-import { buildTransactionPayload, MAX_DESCRIPTION_LENGTH, validateEntryFields } from "@/lib/transaction-entry";
+import { buildTransactionPayload, capitalizeDescription, MAX_DESCRIPTION_LENGTH, validateEntryFields } from "@/lib/transaction-entry";
 import { MAX_AUDIO_BYTES, MAX_RECORDING_SECONDS, MAX_TRANSCRIPT_LENGTH } from "@/lib/voice-contract";
 import { getMicrophoneError, getRecordingExtension, getRecordingMimeType } from "@/lib/voice-recording";
 
@@ -229,7 +229,7 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
       if (extracted && result.status !== "unsupported") {
         nextDraft.type = extracted.type ?? "";
         nextDraft.amount = extracted.currency && extracted.currency !== "USD" ? "" : (extracted.amount ?? "");
-        nextDraft.description = extracted.description ?? "";
+        nextDraft.description = capitalizeDescription(extracted.description ?? "");
         nextDraft.scope = extracted.scope ?? "";
         nextDraft.date = extracted.date ?? "";
       }
@@ -508,9 +508,9 @@ export default function VoiceEntry({ selectedDate, scope, disabled = false, onSa
           <label className={styles.field}>
             <span className={styles.fieldLabel}>Description</span>
             <input aria-label="Description" type="text" className={entryStyles.textInput} placeholder={draft.type === "income" ? "Who paid you?" : "What was it for?"}
-              required maxLength={MAX_DESCRIPTION_LENGTH} value={draft.description} disabled={fieldsLocked}
+              required autoCapitalize="sentences" maxLength={MAX_DESCRIPTION_LENGTH} value={draft.description} disabled={fieldsLocked}
               aria-invalid={Boolean(fieldErrors.description)} aria-describedby={fieldErrors.description ? "voice-description-error" : undefined}
-              onChange={(event) => updateField("description", event.target.value)} />
+              onChange={(event) => updateField("description", capitalizeDescription(event.target.value))} />
             {fieldErrors.description && <span id="voice-description-error" className={styles.fieldError}>{fieldErrors.description}</span>}
           </label>
           <div className={styles.options}>
