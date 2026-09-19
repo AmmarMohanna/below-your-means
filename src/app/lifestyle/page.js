@@ -263,14 +263,13 @@ export default function Lifestyle() {
   const trainingDates = new Set(gymSessions.map((session) => session.date));
   const trainedToday = trainingDates.has(today);
   const [currentYear, currentMonth, currentDay] = today.split("-").map(Number);
-  const lastMonthStartDate = new Date(Date.UTC(currentYear, currentMonth - 2, 1));
-  const lastMonthEndDate = new Date(Date.UTC(currentYear, currentMonth - 1, 0));
-  const lastMonthStart = lastMonthStartDate.toISOString().slice(0, 10);
-  const lastMonthEnd = lastMonthEndDate.toISOString().slice(0, 10);
-  const lastMonthTrainingDays = [...trainingDates].filter(
-    (date) => date >= lastMonthStart && date <= lastMonthEnd
+  const lastFourWeeksStart = new Date(
+    Date.UTC(currentYear, currentMonth - 1, currentDay - 27)
+  ).toISOString().slice(0, 10);
+  const lastFourWeeksTrainingDays = [...trainingDates].filter(
+    (date) => date >= lastFourWeeksStart && date <= today
   ).length;
-  const lastMonthWeeklyAverage = (lastMonthTrainingDays * 7) / lastMonthEndDate.getUTCDate();
+  const lastFourWeeksWeeklyAverage = lastFourWeeksTrainingDays / 4;
   const yearStart = `${currentYear}-01-01`;
   const thisYearTrainingDays = [...trainingDates].filter(
     (date) => date >= yearStart && date <= today
@@ -500,8 +499,8 @@ export default function Lifestyle() {
           <div className={styles.sessionsSummary}>
             <div className={styles.trainingOverview}>
               <div className={styles.trainingStat}>
-                <span className={styles.sessionsNumber}>{formatWeeklyAverage(lastMonthWeeklyAverage)}</span>
-                <span className={styles.sessionsLabel}>Days/week last month</span>
+                <span className={styles.sessionsNumber}>{formatWeeklyAverage(lastFourWeeksWeeklyAverage)}</span>
+                <span className={styles.sessionsLabel}>Days/week — last 4 weeks</span>
               </div>
               <div className={styles.trainingDivider} />
               <div className={styles.trainingStat}>
