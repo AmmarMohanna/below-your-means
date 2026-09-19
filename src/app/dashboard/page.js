@@ -22,9 +22,10 @@ function formatDisplayDate(date) {
   });
 }
 
-function formatMoney(value) {
+function formatMoney(value, fractionDigits = 0) {
   return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(value || 0);
 }
 
@@ -118,6 +119,13 @@ export default function Dashboard() {
         }),
     [selectedDateValue, transactions]
   );
+
+  const dailySummary = useMemo(() => dailyTransactions.reduce((summary, transaction) => {
+    if (transaction.type === "income" || transaction.type === "expense") {
+      summary[transaction.type] += Number(transaction.amount) || 0;
+    }
+    return summary;
+  }, { income: 0, expense: 0 }), [dailyTransactions]);
 
   const dueReminders = useMemo(
     () =>
@@ -315,7 +323,15 @@ export default function Dashboard() {
       )}
       <section className={styles.daySection} aria-label="Entries for selected date">
         <div className={styles.dayHeader}>
-          <h2>{formatDisplayDate(selectedDate)}</h2>
+          <div className={styles.dayHeading}>
+            <h2>{formatDisplayDate(selectedDate)}</h2>
+            {(dailySummary.expense > 0 || dailySummary.income > 0) && (
+              <div className={styles.dayTotals} aria-label="Daily totals">
+                {dailySummary.income > 0 && <span className={styles.amountIncome}>Income ${formatMoney(dailySummary.income, 2)}</span>}
+                {dailySummary.expense > 0 && <span>Outcome ${formatMoney(dailySummary.expense, 2)}</span>}
+              </div>
+            )}
+          </div>
           {dailyTransactions.length > 0 && <button type="button" className={styles.selectionToggle} onClick={() => { setSelectionMode((previous) => !previous); setSelectedIds([]); }}>
             {selectionMode ? "Cancel" : "Select"}
           </button>}

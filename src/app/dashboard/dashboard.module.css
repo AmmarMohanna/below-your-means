@@ -23,8 +23,10 @@
 .summaryValue{display:block;font-size:22px;font-weight:500;margin-top:4px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .notice{font-size:13px;color:var(--primary-strong);margin:0}
 .dayHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.dayHeading{display:flex;flex:1;flex-wrap:wrap;align-items:baseline;gap:4px 12px;min-width:0}
 .dayHeader h2{font-size:16px;font-weight:500;margin:0}
-.selectionToggle{min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer}
+.dayTotals{display:flex;flex-wrap:wrap;gap:4px 12px;min-width:0;color:var(--text-muted);font-size:12px;line-height:1.5;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.selectionToggle{flex-shrink:0;min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer}
 .transactionCard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
 .transactionCard:last-child{border-bottom:0;padding-bottom:0}
 .selecting{grid-template-columns:44px minmax(0,1fr) auto;gap:8px}
