@@ -280,40 +280,44 @@ export default function Dashboard() {
     <main className={styles.container}>
       <AppHeader title="Today" />
       {error && <div className={styles.error} role="alert">{error}<button type="button" onClick={fetchTransactions}>Retry</button></div>}
-      <VoiceEntry selectedDate={selectedDateValue} scope={scope} disabled={isSubmitting || manualSaveUncertain}
-        onSaved={() => { fetchTransactions(); setNotice("Entry added."); }} onCheckEntries={fetchTransactions} />
-      <form className={styles.entryCard} onSubmit={handleSubmit}>
-        <div className={styles.segmented} aria-label="Entry type">
-          {["expense", "income"].map((value) => (
-            <button key={value} type="button" aria-pressed={type === value} disabled={isSubmitting}
-              className={`${styles.segment} ${type === value ? styles.segmentActive : ""}`}
-              onClick={() => setType(value)}>{value === "expense" ? "Expense" : "Income"}</button>
-          ))}
-        </div>
-        <label className={styles.amountInputWrap}>
-          <span className={styles.currency}>$</span>
-          <input aria-label="Amount in US dollars" type="number" inputMode="decimal" step="0.01" min="0.01" required disabled={isSubmitting}
-            className={styles.amountInput} placeholder="0.00" value={amount}
-            onChange={(event) => setAmount(event.target.value)} onFocus={(event) => event.target.select()} />
-        </label>
-        <input aria-label="Description" type="text" className={styles.textInput} disabled={isSubmitting}
-          placeholder={type === "income" ? "Who paid you?" : "What was it for?"}
-          value={description} maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(event.target.value)} />
-        <div className={styles.entryOptions}>
-          <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
-            <option value="personal">Personal</option><option value="business">Business</option>
-          </select>
-          <label className={styles.dateInputWrap}>
-            <span>{formatDisplayDate(selectedDate)}</span>
-            <input aria-label="Entry date" type="date" className={styles.dateInput} value={selectedDate}
-              max={getTodayBeirut()} required disabled={isSubmitting}
-              onInput={(event) => { if (event.target.value) setSelectedDate(event.target.value); }}
-              onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} />
+      <div className={styles.entryCard}>
+        <form id="manual-entry-form" className={styles.entryFields} onSubmit={handleSubmit}>
+          <div className={styles.segmented} aria-label="Entry type">
+            {["expense", "income"].map((value) => (
+              <button key={value} type="button" aria-pressed={type === value} disabled={isSubmitting}
+                className={`${styles.segment} ${type === value ? styles.segmentActive : ""}`}
+                onClick={() => setType(value)}>{value === "expense" ? "Expense" : "Income"}</button>
+            ))}
+          </div>
+          <label className={styles.amountInputWrap}>
+            <span className={styles.currency}>$</span>
+            <input aria-label="Amount in US dollars" type="number" inputMode="decimal" step="0.01" min="0.01" required disabled={isSubmitting}
+              className={styles.amountInput} placeholder="0.00" value={amount}
+              onChange={(event) => setAmount(event.target.value)} onFocus={(event) => event.target.select()} />
           </label>
+          <input aria-label="Description" type="text" className={styles.textInput} disabled={isSubmitting}
+            placeholder={type === "income" ? "Who paid you?" : "What was it for?"}
+            value={description} maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(event.target.value)} />
+          <div className={styles.entryOptions}>
+            <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
+              <option value="personal">Personal</option><option value="business">Business</option>
+            </select>
+            <label className={styles.dateInputWrap}>
+              <span>{formatDisplayDate(selectedDate)}</span>
+              <input aria-label="Entry date" type="date" className={styles.dateInput} value={selectedDate}
+                max={getTodayBeirut()} required disabled={isSubmitting}
+                onInput={(event) => { if (event.target.value) setSelectedDate(event.target.value); }}
+                onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} />
+            </label>
+          </div>
+        </form>
+        <div className={styles.entryActions}>
+          <button type="submit" form="manual-entry-form" className={styles.saveButton} disabled={isSubmitting || manualSaveUncertain || !amount || Number(amount) <= 0}>
+            {isSubmitting ? "Adding…" : "Add entry"}
+          </button>
+          <VoiceEntry selectedDate={selectedDateValue} scope={scope} disabled={isSubmitting || manualSaveUncertain}
+            onSaved={() => { fetchTransactions(); setNotice("Entry added."); }} onCheckEntries={fetchTransactions} />
         </div>
-        <button type="submit" className={styles.saveButton} disabled={isSubmitting || manualSaveUncertain || !amount || Number(amount) <= 0}>
-          {isSubmitting ? "Adding…" : "Add entry"}
-        </button>
         {manualSaveUncertain && <div className={styles.error} role="alert">
           <span>The save could not be confirmed. Check your entries below before adding it again.</span>
           <button type="button" onClick={() => setManualSaveUncertain(false)}>I checked my entries</button>
@@ -323,7 +327,7 @@ export default function Dashboard() {
           <div><span className={styles.summaryLabel}>Month out</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</strong></div>
           <div><span className={styles.summaryLabel}>Month in</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</strong></div>
         </div>
-      </form>
+      </div>
       {dueReminders.length > 0 && (
         <details className={styles.reminderPanel}>
           <summary>{dueReminders.length} {dueReminders.length === 1 ? "reminder due" : "reminders due"}</summary>
