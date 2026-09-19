@@ -355,7 +355,7 @@ test('empty recording is recoverable without interpretation or saving', async ({
 
 test('unsupported recording APIs preserve manual fallback', async ({ page }) => {
   const state = await setup(page, { unsupported: true });
-  await expect(page.getByText(/recording.*not supported|does not support.*record|unavailable.*browser/i)).toBeVisible();
+  await expect(page.getByText(/recording.*not supported|does not support.*record|Voice unavailable/i)).toBeVisible();
   await page.getByLabel('Amount in US dollars', { exact: true }).fill('8');
   await expect(page.getByRole('button', { name: 'Add entry', exact: true })).toBeEnabled();
   expect(state.writes).toHaveLength(0);

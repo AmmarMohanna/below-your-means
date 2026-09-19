@@ -89,15 +89,14 @@ export default function Analytics() {
 
           <section className={`${styles.panel} ${styles.savings}`} aria-labelledby="savings-title">
             <h2 id="savings-title">Planned savings</h2>
-            <p className={styles.supporting}>Current savings + all registered additions</p>
             <p className={styles.savingsTotal}>{money(data.savings.expected)}</p>
             <p className={styles.supporting}>{money(data.savings.current)} saved + {money(data.savings.additions)} planned</p>
-            <p className={styles.savingsNote}>Gold, silver and cash savings, plus the upcoming savings plan. Pension is excluded; metals use stored prices.</p>
+            <p className={styles.savingsNote}>Excludes pension · stored metal prices</p>
           </section>
 
           <section className={styles.panel} aria-labelledby="monthly-title">
             <div className={styles.panelHeader}>
-              <div><h2 id="monthly-title">Month by month</h2><p className={styles.supporting}>Recorded expense totals · USD</p></div>
+              <div><h2 id="monthly-title">Month by month</h2><p className={styles.supporting}>Expenses · USD</p></div>
               <span className={styles.year}>{data.year}</span>
             </div>
             <div className={styles.chartScroll}>

@@ -323,10 +323,11 @@ export default function Accounts() {
       return "Enter a project description and a valid amount.";
     }
     if (!["expected", "payables"].includes(activeTab)) return "";
-    if (!formData.source?.trim() || formData.source.length > 500) return activeTab === "expected" ? "Enter a source of up to 500 characters." : "Enter who you will pay, up to 500 characters.";
+    if (!formData.source?.trim()) return activeTab === "expected" ? "Source is required." : "Payee is required.";
+    if (formData.source.length > 500) return "Use 500 characters or fewer.";
     const date = activeTab === "expected" ? formData.expected_date : formData.pay_date;
-    if (!isValidCalendarDate(date)) return "Choose a valid date for the first item.";
-    if (formData.amount === "" || !Number.isFinite(Number(formData.amount)) || Number(formData.amount) < 0) return "Enter a valid amount of zero or more.";
+    if (!isValidCalendarDate(date)) return "Choose a valid date.";
+    if (formData.amount === "" || !Number.isFinite(Number(formData.amount)) || Number(formData.amount) < 0) return "Enter an amount of zero or more.";
     if ((formData.notes || "").length > 2000) return "Keep notes to 2,000 characters or fewer.";
     if (activeTab === "expected" && formData.planned_save_amount !== "" && formData.planned_save_amount != null && (!Number.isFinite(Number(formData.planned_save_amount)) || Number(formData.planned_save_amount) < 0 || Number(formData.planned_save_amount) > Number(formData.amount))) {
       return "Planned savings must be between zero and the expected amount.";
@@ -823,7 +824,6 @@ export default function Accounts() {
 
   const renderForm = () => {
     if (!showAddForm && editingId === null) return null;
-    const validationError = getFormValidationError();
     const monthlyPlan = getMonthlyPlan();
     const supportsMonthlyRepeat = editingId === null && ["expected", "payables"].includes(activeTab);
     const showAdvanced = activeTab === "expected" || supportsMonthlyRepeat;
@@ -840,9 +840,9 @@ export default function Accounts() {
                 <span className={styles.formLabel}>Add to savings plan (optional)</span>
                 <input type="number" aria-label="Add to savings plan (optional)" className={styles.formInput} min="0" max={formData.amount === "" ? undefined : formData.amount} step="0.01" inputMode="decimal"
                   aria-describedby={supportsMonthlyRepeat && monthlyRepeat.enabled ? "expected-repeat-savings-help" : undefined}
-                  placeholder="Leave blank for none" value={formData.planned_save_amount ?? ""}
+                  placeholder="Amount" value={formData.planned_save_amount ?? ""}
                   onChange={(event) => setFormData({ ...formData, planned_save_amount: event.target.value === "" ? "" : Number(event.target.value) })} />
-                {supportsMonthlyRepeat && monthlyRepeat.enabled && <span id="expected-repeat-savings-help" className={styles.formHelp}>This savings amount applies to each month.</span>}
+                {supportsMonthlyRepeat && monthlyRepeat.enabled && <span id="expected-repeat-savings-help" className={styles.formHelp}>Per month.</span>}
               </label>}
               {supportsMonthlyRepeat && <>
                 <label className={styles.repeatToggle}>
@@ -861,31 +861,30 @@ export default function Accounts() {
                     {monthlyRepeat.endType === "count" ? <label className={styles.formField}>
                       <span className={styles.formLabel}>Number of months</span>
                       <input type="number" className={styles.formInput} min="1" max={MAX_MONTHLY_ENTRIES} step="1" inputMode="numeric" value={monthlyRepeat.count}
-                        aria-describedby="monthly-repeat-help" aria-invalid={Boolean(monthlyPlan.error)}
+                        aria-describedby={monthlyPlan.error ? undefined : "monthly-repeat-help"} aria-invalid={Boolean(formError && monthlyPlan.error)}
                         onChange={(event) => setMonthlyRepeat({ ...monthlyRepeat, count: event.target.value })} />
                     </label> : <label className={styles.formField}>
                       <span className={styles.formLabel}>End date</span>
                       <input type="date" className={styles.formInput} min={startDate || undefined} value={monthlyRepeat.endDate}
-                        aria-describedby="monthly-repeat-help" aria-invalid={Boolean(monthlyPlan.error)}
+                        aria-describedby={monthlyPlan.error ? undefined : "monthly-repeat-help"} aria-invalid={Boolean(formError && monthlyPlan.error)}
                         onChange={(event) => setMonthlyRepeat({ ...monthlyRepeat, endDate: event.target.value })} />
                     </label>}
                   </div>
-                  <p id="monthly-repeat-help" className={monthlyPlan.error ? styles.formValidation : styles.formHelp} aria-live="polite">
-                    {monthlyPlan.error || `${monthlyPlan.dates.length} monthly ${monthlyPlan.dates.length === 1 ? "item" : "items"}, from ${formatDate(monthlyPlan.dates[0])} to ${formatDate(monthlyPlan.dates.at(-1))}. The first month is included.`}
-                  </p>
-                  <p className={styles.formHelp}>Each item can be edited or marked {activeTab === "expected" ? "received" : "paid"} separately. Shorter months use their last day.</p>
+                  {!monthlyPlan.error && <p id="monthly-repeat-help" className={styles.formHelp} aria-live="polite">
+                    {`${monthlyPlan.dates.length} monthly ${monthlyPlan.dates.length === 1 ? "item" : "items"} · ${formatDate(monthlyPlan.dates[0])}–${formatDate(monthlyPlan.dates.at(-1))} (first included)`}
+                  </p>}
                 </>}
               </>}
             </div>
           </details>}
         </fieldset>
-        {formError ? <p className={styles.formError} role="alert">{formError}</p> : validationError && <p className={styles.formValidation}>{validationError}</p>}
+        {formError && <p className={styles.formError} role="alert">{formError}</p>}
         <div className={styles.formActions}>
           <button
             type="button"
             className={styles.primaryButton}
             onClick={() => submitAccountForm(editingId)}
-            disabled={Boolean(validationError) || formSubmitting || formUncertain}
+            disabled={formSubmitting || formUncertain}
           >
             {formSubmitting ? (editingId !== null ? "Saving…" : "Adding…") : editingId !== null ? "Save changes" : "Add item"}
           </button>
@@ -1089,7 +1088,6 @@ export default function Accounts() {
           <section className={styles.planMetricCard} aria-labelledby="current-savings-title">
             <h3 id="current-savings-title" className={styles.savingsMetricLabel}>Current savings</h3>
             <strong className={styles.savingsMetricValue}>${formatMoney(summary.longTermSavings)}</strong>
-            <p className={styles.savingsMetricNote}>What you have saved today</p>
             <dl className={styles.savingsBreakdown}>
               <div><dt>Gold</dt><dd>${formatMoney((metals.values.gold_24k || 0) + (metals.values.gold_21k || 0))}</dd></div>
               <div><dt>Silver</dt><dd>${formatMoney(metals.values.silver || 0)}</dd></div>
@@ -1099,7 +1097,7 @@ export default function Accounts() {
           <section className={`${styles.planMetricCard} ${styles.projectedSavingsCard}`} aria-labelledby="planned-savings-title">
             <h3 id="planned-savings-title" className={styles.savingsMetricLabel}>Planned savings</h3>
             <strong className={styles.savingsMetricValue}>${formatMoney(summary.longTermSavings + plannedAmount)}</strong>
-            <p className={styles.savingsMetricNote}>Current savings + all registered plan amounts</p>
+            <p className={styles.savingsMetricNote}>Current + planned additions</p>
             <div className={styles.savingsAddition}>
               <strong>+${formatMoney(plannedAmount)}</strong>
               <span>upcoming · {formatItemCount(savingsPlan.items.length)}</span>
@@ -1126,7 +1124,6 @@ export default function Accounts() {
           </h3>
           <div id="savings-plan-content" hidden={!savingsPlanExpanded}>
             <div className={styles.planToolbar}>
-              <p className={styles.savingsMetricNote}>Upcoming additions to your current savings.</p>
               {!showSavingsPlanForm ? (
                 <button
                   type="button"
@@ -1377,7 +1374,6 @@ export default function Accounts() {
         <div className={styles.savingsHoldingsHeader}>
           <div>
             <h3 className={styles.groupTitle}>Savings breakdown</h3>
-            <p className={styles.itemMeta}>Gold, silver, and cash set aside</p>
           </div>
         </div>
 
@@ -1386,7 +1382,6 @@ export default function Accounts() {
             <div className={styles.groupHeader}>
               <div className={styles.itemMain}>
                 <h3 className={styles.groupTitle}>Current cash savings</h3>
-                <p className={styles.itemMeta}>Cash set aside</p>
               </div>
               {cashSavingsEditing ? (
                 <input
@@ -1608,7 +1603,7 @@ export default function Accounts() {
           <div className={styles.groupHeader}>
             <div className={styles.itemMain}>
               <h3 className={styles.groupTitle}>AUB Pension</h3>
-              <p className={styles.savingsMetricNote}>Tracked separately · excluded from savings totals</p>
+              <p className={styles.savingsMetricNote}>Excluded from savings totals</p>
             </div>
             {pensionEditing ? (
               <input
