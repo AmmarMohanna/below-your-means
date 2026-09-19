@@ -9,7 +9,8 @@ A personal life management app designed for self-hosting. Track expenses, manage
 ## ✨ Features
 
 ### 📊 Today — Daily Expense Tracking
-- Quick-add transactions with categories
+- Quick-add income and expenses with automatic internal categories
+- Voice entry on Today: record, review/edit in a modal, then explicitly confirm
 - Date picker for past entries
 - Daily and monthly spending totals
 
@@ -49,7 +50,7 @@ A personal life management app designed for self-hosting. Track expenses, manage
 
 ### Prerequisites
 
-- Node.js
+- Node.js 22.14+ (or a newer supported Node version)
 - Wrangler login for remote Cloudflare deploys
 
 ### Run Locally
@@ -97,6 +98,40 @@ Deploying does not run D1 migrations or data imports. Run those commands only wh
 |----------|----------|-------------|
 | `APP_PASSWORD` | Yes | Password to access the app |
 | `SESSION_SECRET` | Yes | Secret for session encryption |
+| `OPENAI_API_KEY` | For voice only | Server-only Cloudflare secret; manual entry works without it |
+| `OPENAI_TRANSCRIBE_MODEL` | No | Defaults to `gpt-4o-mini-transcribe` |
+| `OPENAI_PARSE_MODEL` | No | Defaults to `gpt-5.4-mini` with low reasoning; must support Responses strict Structured Outputs |
+
+### Voice entry
+
+On Today, select a date and Personal/Business scope, then tap **Record an entry**. Stop automatically transcribes and interprets one transaction. **Review your entry** opens with editable type, USD amount, description, scope, and date. Only **Confirm and add** writes a transaction. Cancel discards the voice draft and preserves manual input. Expand the transcript to correct it; replacing the draft after interpretation is an explicit action.
+
+Missing amounts or other unresolved fields can be corrected directly. Non-USD amounts require a USD amount entered by you; the app never converts currency. Multiple transactions require a new recording of one transaction. Dates cannot be in the future. Recording lasts up to 60 seconds, uses a supported MP4/WebM audio format, and requires a secure browser context (HTTPS, or localhost during development).
+
+Copy `.dev.vars.example` to `.dev.vars`, set a local password/session secret and `OPENAI_API_KEY`, then use `npm run dev` or `npm run preview`. For a fresh local database only, run the existing `npm run d1:migrate:local` setup first. This feature adds no database migration. The model variables and `VOICE_RATE_LIMITER` binding are declared in `wrangler.jsonc`. See [Cloudflare voice setup and iPhone checklist](CLOUDFLARE.md#voice-entry-setup) for secret commands and limits.
+
+Audio and transcripts remain transient: they are not saved in D1 or logged by the feature. Only the recording or transcript and required date/scope context go to OpenAI; account balances and transaction history do not. Parsing sets `store: false`; this does **not** eliminate all provider retention. See [OpenAI data controls](https://developers.openai.com/api/docs/guides/your-data).
+
+### Monthly Expected entries and Payables
+
+When adding an Expected entry or Payable, expand **Advanced** and enable **Repeat monthly**. Choose a number of months (including the first entry) or an inclusive end date, up to 120 entries. The same day is used each month, clamped to the last day of shorter months: January 31 becomes February 28 and then March 31.
+
+Saving creates the dated planned entries together. It does not record an income or expense transaction; use the existing completion action when money actually moves. Each occurrence can be edited or deleted individually. The existing Monthly tab is unchanged, and no migration or scheduler is needed.
+
+The optional Expected **Add to savings plan** amount is also under **Advanced**. If set, each occurrence gets its own linked savings-plan item with the same amount. Entries and linked savings are saved atomically, so a failed database batch leaves no partial series.
+
+### Validation
+
+```bash
+npm ci
+npm test
+npx playwright install chromium webkit
+npm run test:e2e
+npm run lint
+npm run build
+```
+
+Unit tests mock OpenAI and use isolated in-memory SQLite to verify monthly-series persistence and rollback. Browser tests use mocked recording and app API responses against a local Next server with test-only authentication. They do not call OpenAI or write to D1. Real microphone capture, provider extraction quality, and iPhone Safari/installed PWA behavior need the device checklist; browser emulation does not verify those.
 
 ---
 

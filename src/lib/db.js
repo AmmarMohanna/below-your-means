@@ -1,4 +1,5 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { insertAccountSeries } from './account-series.js';
 
 const orderedAccountConfig = {
   currentMoney: {
@@ -346,6 +347,10 @@ export async function addExpectedMoney({ source, expected_date, amount, planned_
     notes,
   });
   return result;
+}
+
+export async function addMonthlyAccountSeries(table, data) {
+  return insertAccountSeries(getDb(), table, data);
 }
 
 export async function updateExpectedMoney(

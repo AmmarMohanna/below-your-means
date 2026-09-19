@@ -24,6 +24,16 @@
 .formCard, .metalsCard, .groupCard, .itemCard, .planMetricCard { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; min-width: 0; }
 .formCard { display: grid; gap: 12px; padding: 16px; }
 .formGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.formFields { display: grid; gap: 12px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.advanced { border-top: 1px solid var(--border); min-width: 0; }
+.advanced summary { min-height: 44px; padding: 11px 0; color: var(--text-secondary); font-size: .875rem; cursor: pointer; }
+.advancedFields { display: grid; gap: 12px; padding-top: 4px; }
+.repeatToggle { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--text-primary); font-size: .9rem; cursor: pointer; }
+.repeatToggle input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary); }
+.repeatSelect { height: 44px; padding-block: 8px; }
+.formHelp { color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+.formValidation { color: var(--danger); font-size: .8rem; line-height: 1.5; }
+.formError { padding: 12px; background: var(--danger-light); border-radius: 9px; color: var(--danger); font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
 .formField { display: grid; gap: 6px; min-width: 0; }
 .formLabel { color: var(--text-muted); font-size: .8rem; font-weight: 500; }
 .formInput, .inlineInput { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 9px; background: var(--field-bg); color: var(--text-primary); font-size: 16px; font-weight: 400; }

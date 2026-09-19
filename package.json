@@ -16,7 +16,9 @@
     "d1:migrate:local": "wrangler d1 migrations apply below-your-means --local",
     "d1:migrate:remote": "wrangler d1 migrations apply below-your-means --remote",
     "lint": "eslint src",
-    "db:init": "npm run d1:migrate:local"
+    "db:init": "npm run d1:migrate:local",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource/raleway": "^5.1.1",
@@ -29,9 +31,10 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.63.0",
+    "better-sqlite3": "^11.10.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.19",
-    "better-sqlite3": "^11.10.0",
     "wrangler": "^4.100.0"
   }
 }

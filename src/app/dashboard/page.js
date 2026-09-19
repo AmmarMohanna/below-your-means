@@ -5,14 +5,11 @@ import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
+import VoiceEntry from "@/components/VoiceEntry";
 import { getTodayBeirut } from "@/lib/date";
+import { buildTransactionPayload, MAX_DESCRIPTION_LENGTH } from "@/lib/transaction-entry";
 
 import styles from "./dashboard.module.css";
-
-function getDefaultCategory(type, scope) {
-  if (type === "income") return "Income";
-  return scope === "business" ? "Business" : "Other";
-}
 
 function formatDisplayDate(date) {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-GB", {
@@ -29,10 +26,6 @@ function formatMoney(value, fractionDigits = 0) {
   }).format(value || 0);
 }
 
-function getClientTimestamp() {
-  return new Date().toISOString().replace("T", " ").replace("Z", "");
-}
-
 export default function Dashboard() {
   const router = useRouter();
   const [transactions, setTransactions] = useState([]);
@@ -47,11 +40,16 @@ export default function Dashboard() {
   const [type, setType] = useState("expense");
   const [scope, setScope] = useState("personal");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [manualSaveUncertain, setManualSaveUncertain] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [expandedTransactionIds, setExpandedTransactionIds] = useState([]);
   const notifiedReminderIds = useRef(new Set());
+  const manualSavingRef = useRef(false);
+  const manualRequestRef = useRef(null);
+
+  useEffect(() => () => manualRequestRef.current?.abort(), []);
 
   const fetchTransactions = useCallback(async () => {
     setError("");
@@ -149,31 +147,37 @@ export default function Dashboard() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const transactionAmount = Number(amount);
-    if (!Number.isFinite(transactionAmount) || transactionAmount <= 0) return;
+    if (manualSavingRef.current || manualSaveUncertain) return;
+    let payload;
+    try {
+      payload = buildTransactionPayload({ amount, description, type, scope, date: selectedDateValue }, { requireDescription: false });
+    } catch (failure) {
+      setError(failure.message);
+      return;
+    }
 
+    manualSavingRef.current = true;
     setIsSubmitting(true);
     setError("");
     setNotice("");
+    const controller = new AbortController();
+    manualRequestRef.current = controller;
+    const timeout = setTimeout(() => controller.abort(), 30_000);
 
     try {
       const response = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: transactionAmount,
-          category: getDefaultCategory(type, scope),
-          type,
-          scope,
-          notes: description.trim(),
-          date: selectedDateValue,
-          created_at: getClientTimestamp(),
-        }),
+        body: JSON.stringify(payload),
+        signal: controller.signal,
       });
-
+      const result = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error("Failed to save transaction");
+        const failure = new Error(result?.error || "Could not save this entry. Your values are still here.");
+        failure.uncertain = Boolean(result?.uncertain) || response.status >= 500 || response.status === 408;
+        throw failure;
       }
+      if (result?.success !== true || !Number.isFinite(result.id) || result.id <= 0) throw new Error("Unconfirmed save");
 
       setAmount("");
       setDescription("");
@@ -181,10 +185,17 @@ export default function Dashboard() {
       setScope("personal");
       await fetchTransactions();
       setNotice("Entry added.");
-    } catch (error) {
-      console.error("Error saving transaction:", error);
-      setError("Could not save this entry. Please try again.");
+    } catch (failure) {
+      if (failure.uncertain !== false) {
+        setManualSaveUncertain(true);
+        await fetchTransactions();
+      } else {
+        setError(failure.message);
+      }
     } finally {
+      clearTimeout(timeout);
+      manualRequestRef.current = null;
+      manualSavingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -269,38 +280,44 @@ export default function Dashboard() {
     <main className={styles.container}>
       <AppHeader title="Today" />
       {error && <div className={styles.error} role="alert">{error}<button type="button" onClick={fetchTransactions}>Retry</button></div>}
+      <VoiceEntry selectedDate={selectedDateValue} scope={scope} disabled={isSubmitting || manualSaveUncertain}
+        onSaved={() => { fetchTransactions(); setNotice("Entry added."); }} onCheckEntries={fetchTransactions} />
       <form className={styles.entryCard} onSubmit={handleSubmit}>
         <div className={styles.segmented} aria-label="Entry type">
           {["expense", "income"].map((value) => (
-            <button key={value} type="button" aria-pressed={type === value}
+            <button key={value} type="button" aria-pressed={type === value} disabled={isSubmitting}
               className={`${styles.segment} ${type === value ? styles.segmentActive : ""}`}
               onClick={() => setType(value)}>{value === "expense" ? "Expense" : "Income"}</button>
           ))}
         </div>
         <label className={styles.amountInputWrap}>
           <span className={styles.currency}>$</span>
-          <input aria-label="Amount in US dollars" type="number" inputMode="decimal" step="0.01" min="0.01" required
+          <input aria-label="Amount in US dollars" type="number" inputMode="decimal" step="0.01" min="0.01" required disabled={isSubmitting}
             className={styles.amountInput} placeholder="0.00" value={amount}
             onChange={(event) => setAmount(event.target.value)} onFocus={(event) => event.target.select()} />
         </label>
-        <input aria-label="Description" type="text" className={styles.textInput}
+        <input aria-label="Description" type="text" className={styles.textInput} disabled={isSubmitting}
           placeholder={type === "income" ? "Who paid you?" : "What was it for?"}
-          value={description} onChange={(event) => setDescription(event.target.value)} />
+          value={description} maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(event.target.value)} />
         <div className={styles.entryOptions}>
-          <select aria-label="Entry scope" className={styles.scopeInput} value={scope} onChange={(event) => setScope(event.target.value)}>
+          <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
             <option value="personal">Personal</option><option value="business">Business</option>
           </select>
           <label className={styles.dateInputWrap}>
             <span>{formatDisplayDate(selectedDate)}</span>
             <input aria-label="Entry date" type="date" className={styles.dateInput} value={selectedDate}
-              max={getTodayBeirut()} required
+              max={getTodayBeirut()} required disabled={isSubmitting}
               onInput={(event) => { if (event.target.value) setSelectedDate(event.target.value); }}
               onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} />
           </label>
         </div>
-        <button type="submit" className={styles.saveButton} disabled={isSubmitting || !amount || Number(amount) <= 0}>
+        <button type="submit" className={styles.saveButton} disabled={isSubmitting || manualSaveUncertain || !amount || Number(amount) <= 0}>
           {isSubmitting ? "Adding…" : "Add entry"}
         </button>
+        {manualSaveUncertain && <div className={styles.error} role="alert">
+          <span>The save could not be confirmed. Check your entries below before adding it again.</span>
+          <button type="button" onClick={() => setManualSaveUncertain(false)}>I checked my entries</button>
+        </div>}
         {notice && <p className={styles.notice} role="status">{notice}</p>}
         <div className={styles.summaryStrip}>
           <div><span className={styles.summaryLabel}>Month out</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</strong></div>
