@@ -105,3 +105,53 @@
   .itemCard, .groupRow, .metalRow, .planRow { grid-template-columns: minmax(0, 1fr) auto auto; }
   .itemCard > .rowActions, .groupRow > .rowActions, .metalRow > .rowActions, .planRow > .rowActions { grid-column: auto; }
 }
+
+.recurringRow {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid var(--border);
+}
+
+.paymentDate {
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.paymentDue {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.paymentButton {
+  white-space: nowrap;
+  transition: background 150ms ease;
+}
+
+.paymentButton:hover:not(:disabled) {
+  background: rgba(15, 118, 110, 0.18);
+}
+
+.paymentButton:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.paymentActions button:focus-visible {
+  outline: 2px solid var(--primary-strong);
+  outline-offset: 3px;
+}
+
+.paymentError {
+  grid-column: 1 / -1;
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+
+@media (max-width: 680px) {
+  .recurringRow { grid-template-columns: minmax(0, 1fr) auto; }
+  .paymentActions { grid-column: 1 / -1; padding-top: 4px; }
+  .paymentActions .paymentButton { margin-right: auto; }
+  .paymentActions button { min-height: 40px; min-width: 40px; }
+}

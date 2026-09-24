@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
-import { getTodayBeirut } from "@/lib/date";
+import { getTodayBeirut, getNextMonthlyPaymentDate, isValidDateOnly } from "@/lib/date";
 import { buildMonthlyDates, isValidCalendarDate, MAX_MONTHLY_ENTRIES } from "@/lib/monthly-series";
 
 import styles from "./accounts.module.css";
@@ -172,6 +172,42 @@ export default function Accounts() {
   const [refreshingLivePrices, setRefreshingLivePrices] = useState(false);
   const [completingId, setCompletingId] = useState(null);
   const [monthGroupOverrides, setMonthGroupOverrides] = useState({});
+  const [payingIds, setPayingIds] = useState([]);
+  const [paymentErrors, setPaymentErrors] = useState({});
+  const [today, setToday] = useState(getTodayBeirut);
+
+  useEffect(() => {
+    const refreshToday = () => setToday(getTodayBeirut());
+    const timer = setInterval(refreshToday, 60_000);
+    window.addEventListener("focus", refreshToday);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refreshToday);
+    };
+  }, []);
+
+  const handleRecurringPaid = async (id) => {
+    setPayingIds((previous) => [...previous, id]);
+    setPaymentErrors((previous) => ({ ...previous, [id]: "" }));
+    try {
+      const response = await fetch(`/api/accounts/recurring/${id}/payment`, { method: "POST" });
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (!response.ok) throw new Error("Could not save payment. Please try again.");
+      const { item } = await response.json();
+      setData((previous) => ({
+        ...previous,
+        recurring: previous.recurring.map((row) => row.id === item.id ? item : row),
+      }));
+      setToday(getTodayBeirut());
+    } catch {
+      setPaymentErrors((previous) => ({ ...previous, [id]: "Could not save payment. Please try again." }));
+    } finally {
+      setPayingIds((previous) => previous.filter((value) => value !== id));
+    }
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -321,6 +357,10 @@ export default function Accounts() {
   const getFormValidationError = () => {
     if (activeTab === "projects" && (!formData.description?.trim() || formData.estimated_amount === "" || !Number.isFinite(Number(formData.estimated_amount)) || Number(formData.estimated_amount) < 0)) {
       return "Enter a project description and a valid amount.";
+    }
+    if (activeTab === "recurring" && formData.last_paid_date &&
+      (!isValidDateOnly(formData.last_paid_date) || formData.last_paid_date > today)) {
+      return "Last paid must be a valid date on or before today.";
     }
     if (!["expected", "payables"].includes(activeTab)) return "";
     if (!formData.source?.trim()) return activeTab === "expected" ? "Source is required." : "Payee is required.";
@@ -815,6 +855,16 @@ export default function Accounts() {
             value={formData.amount || ""}
             onChange={(event) => setFormData({ ...formData, amount: parseFloat(event.target.value) || 0 })}
           />
+          <label className={styles.formField}>
+            <span className={styles.formLabel}>Last paid · optional</span>
+            <input
+              type="date"
+              className={styles.formInput}
+              max={today}
+              value={formData.last_paid_date || ""}
+              onChange={(event) => setFormData({ ...formData, last_paid_date: event.target.value })}
+            />
+          </label>
         </>
       );
     }
@@ -1329,34 +1379,68 @@ export default function Accounts() {
               <div className={styles.groupRows}>
                 {recurringByType[type]
                   .filter((item) => item.id !== editingId)
-                  .map((item) => (
-                    <article key={item.id} className={styles.groupRow}>
-                      <div className={styles.itemMain}>
-                        <div className={styles.itemLine}>
-                          <span className={styles.itemTitle}>{item.target}</span>
+                  .map((item) => {
+                    const nextDue = getNextMonthlyPaymentDate(item.last_paid_date);
+                    const isDue = nextDue && nextDue <= today;
+                    const paidToday = item.last_paid_date === today;
+                    const saving = payingIds.includes(item.id);
+                    return (
+                      <article key={item.id} className={`${styles.groupRow} ${styles.recurringRow}`}>
+                        <div className={styles.itemMain}>
+                          <div className={styles.itemLine}>
+                            <span className={styles.itemTitle}>{item.target}</span>
+                          </div>
+                          <p
+                            className={`${styles.paymentDate} ${isDue ? styles.paymentDue : ""}`}
+                            title={item.last_paid_date ? `Last paid ${formatDate(item.last_paid_date)}` : undefined}
+                            aria-live="polite"
+                          >
+                            {nextDue ? (
+                              <>
+                                {nextDue < today ? "Overdue · " : nextDue === today ? "Due today · " : "Next due "}
+                                <time dateTime={nextDue}>{formatDate(nextDue)}</time>
+                              </>
+                            ) : "Not marked paid yet"}
+                          </p>
                         </div>
-                      </div>
-                      <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
-                      <div className={styles.rowActions}>
-                        <button
-                          type="button"
-                          className={styles.actionButton}
-                          onClick={() => startEdit(item)}
-                        >
-                          <span className={styles.mobileIcon} aria-hidden="true">✎</span>
-                          <span className={styles.buttonLabel}>Edit</span>
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.deleteButton}
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
-                          <span className={styles.buttonLabel}>Delete</span>
-                        </button>
-                      </div>
-                    </article>
-                  ))}
+                        <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
+                        <div className={`${styles.rowActions} ${styles.paymentActions}`}>
+                          <button
+                            type="button"
+                            className={`${styles.completeButton} ${styles.paymentButton}`}
+                            disabled={saving || paidToday}
+                            aria-label={paidToday ? `${item.target} paid today` : `Mark ${item.target} paid`}
+                            onClick={() => handleRecurringPaid(item.id)}
+                          >
+                            {saving ? "Saving…" : paidToday ? "✓ Paid today" : "Mark paid"}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.actionButton}
+                            disabled={saving}
+                            aria-label={`Edit ${item.target}`}
+                            onClick={() => startEdit(item)}
+                          >
+                            <span className={styles.mobileIcon} aria-hidden="true">✎</span>
+                            <span className={styles.buttonLabel}>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.deleteButton}
+                            disabled={saving}
+                            aria-label={`Delete ${item.target}`}
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            <span className={styles.mobileIcon} aria-hidden="true">⌫</span>
+                            <span className={styles.buttonLabel}>Delete</span>
+                          </button>
+                        </div>
+                        {paymentErrors[item.id] && (
+                          <p className={styles.paymentError} role="alert">{paymentErrors[item.id]}</p>
+                        )}
+                      </article>
+                    );
+                  })}
                 {recurringByType[type].length === 0 && (
                   <div className={styles.emptyState}>No items.</div>
                 )}
