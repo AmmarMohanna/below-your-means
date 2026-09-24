@@ -106,11 +106,6 @@
   .itemCard > .rowActions, .groupRow > .rowActions, .metalRow > .rowActions, .planRow > .rowActions { grid-column: auto; }
 }
 
-.recurringRow {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid var(--border);
-}
-
 .paymentDate {
   margin-top: 5px;
   color: var(--text-muted);
@@ -129,7 +124,7 @@
 }
 
 .paymentButton:hover:not(:disabled) {
-  background: rgba(15, 118, 110, 0.18);
+  background: var(--primary-light);
 }
 
 .paymentButton:disabled {
