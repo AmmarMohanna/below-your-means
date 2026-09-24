@@ -118,19 +118,12 @@
   font-weight: 600;
 }
 
-.paymentButton {
-  white-space: nowrap;
-  transition: background 150ms ease;
-}
-
-.paymentButton:hover:not(:disabled) {
-  background: var(--primary-light);
-}
-
-.paymentButton:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
+.paymentMain { display: flex; align-items: center; gap: 4px; }
+.paymentDetails { min-width: 0; }
+.paymentToggle { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; cursor: pointer; }
+.paymentToggle input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.paymentToggle input:disabled { cursor: wait; opacity: .6; }
+.paymentToggle input:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 4px; }
 
 .paymentActions button:focus-visible {
   outline: 2px solid var(--primary-strong);
@@ -147,6 +140,5 @@
 @media (max-width: 680px) {
   .recurringRow { grid-template-columns: minmax(0, 1fr) auto; }
   .paymentActions { grid-column: 1 / -1; padding-top: 4px; }
-  .paymentActions .paymentButton { margin-right: auto; }
   .paymentActions button { min-height: 40px; min-width: 40px; }
 }

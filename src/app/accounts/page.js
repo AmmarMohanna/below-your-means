@@ -186,11 +186,11 @@ export default function Accounts() {
     };
   }, []);
 
-  const handleRecurringPaid = async (id) => {
+  const handleRecurringPaid = async (id, paid) => {
     setPayingIds((previous) => [...previous, id]);
     setPaymentErrors((previous) => ({ ...previous, [id]: "" }));
     try {
-      const response = await fetch(`/api/accounts/recurring/${id}/payment`, { method: "POST" });
+      const response = await fetch(`/api/accounts/recurring/${id}/payment`, { method: paid ? "POST" : "DELETE" });
       if (response.status === 401) {
         router.push("/login");
         return;
@@ -1382,38 +1382,36 @@ export default function Accounts() {
                   .map((item) => {
                     const nextDue = getNextMonthlyPaymentDate(item.last_paid_date);
                     const isDue = nextDue && nextDue <= today;
-                    const paidToday = item.last_paid_date === today;
+                    const isPaid = Boolean(nextDue && nextDue > today);
                     const saving = payingIds.includes(item.id);
                     return (
                       <article key={item.id} className={`${styles.groupRow} ${styles.recurringRow}`}>
-                        <div className={styles.itemMain}>
-                          <div className={styles.itemLine}>
+                        <div className={`${styles.itemMain} ${styles.paymentMain}`}>
+                          <label className={styles.paymentToggle}>
+                            <input
+                              type="checkbox"
+                              checked={isPaid}
+                              disabled={saving}
+                              aria-label={`Mark ${item.target} ${isPaid ? "unpaid" : "paid"}`}
+                              onChange={(event) => handleRecurringPaid(item.id, event.target.checked)}
+                            />
+                          </label>
+                          <div className={styles.paymentDetails}>
                             <span className={styles.itemTitle}>{item.target}</span>
-                          </div>
-                          <p
-                            className={`${styles.paymentDate} ${isDue ? styles.paymentDue : ""}`}
-                            title={item.last_paid_date ? `Last paid ${formatDate(item.last_paid_date)}` : undefined}
-                            aria-live="polite"
-                          >
-                            {nextDue ? (
-                              <>
+                            {nextDue && (
+                              <p
+                                className={`${styles.paymentDate} ${isDue ? styles.paymentDue : ""}`}
+                                title={`Last paid ${formatDate(item.last_paid_date)}`}
+                                aria-live="polite"
+                              >
                                 {nextDue < today ? "Overdue · " : nextDue === today ? "Due today · " : "Next due "}
                                 <time dateTime={nextDue}>{formatDate(nextDue)}</time>
-                              </>
-                            ) : "Not marked paid yet"}
-                          </p>
+                              </p>
+                            )}
+                          </div>
                         </div>
                         <strong className={styles.itemAmount}>${formatMoney(item.amount || 0)}</strong>
                         <div className={`${styles.rowActions} ${styles.paymentActions}`}>
-                          <button
-                            type="button"
-                            className={`${styles.completeButton} ${styles.paymentButton}`}
-                            disabled={saving || paidToday}
-                            aria-label={paidToday ? `${item.target} paid today` : `Mark ${item.target} paid`}
-                            onClick={() => handleRecurringPaid(item.id)}
-                          >
-                            {saving ? "Saving…" : paidToday ? "✓ Paid today" : "Mark paid"}
-                          </button>
                           <button
                             type="button"
                             className={styles.actionButton}

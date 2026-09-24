@@ -522,13 +522,13 @@ export async function shiftProject(id, direction) {
   return { changes: 2 };
 }
 
-export async function markRecurringPaid(id) {
+export async function markRecurringPaid(id, paid = true) {
   const item = await getRowById('recurring', id);
   if (!item) return null;
-  const today = getTodayBeirut();
-  // Repeated taps/retries on the same day must not advance another month.
-  if (item.last_paid_date !== today) {
-    await updateRow('recurring', id, { last_paid_date: today });
+  const paidDate = paid ? getTodayBeirut() : null;
+  // Repeated toggles/retries must not advance another month or duplicate updates.
+  if (item.last_paid_date !== paidDate) {
+    await updateRow('recurring', id, { last_paid_date: paidDate });
   }
   return getRowById('recurring', id);
 }

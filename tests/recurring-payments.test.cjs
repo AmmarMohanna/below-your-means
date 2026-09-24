@@ -148,3 +148,27 @@ test('workbook import and JSON backup preserve payment dates; old workbooks rema
   }
   sqlite.close();
 });
+
+
+test('unchecking clears the paid date, persists, and is idempotent', async () => {
+  const { db, route, sqlite } = await harness();
+  const { lastInsertRowid: id } = await db.addRecurring({ target: 'Internet', type: 'Home', amount: 30 });
+  await db.markRecurringPaid(id);
+  const context = { params: Promise.resolve({ id: String(id) }) };
+  const response = await route.DELETE(null, context);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).item.last_paid_date, null);
+  assert.equal((await db.getAllRecurring())[0].last_paid_date, null);
+  const audits = sqlite.prepare('SELECT count(*) AS n FROM audit_log').get().n;
+  await route.DELETE(null, context);
+  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM audit_log').get().n, audits);
+  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM transactions').get().n, 0);
+  assert.equal((await route.DELETE(null, { params: Promise.resolve({ id: '999' }) })).status, 404);
+  sqlite.close();
+});
+
+test('unchecking also requires authentication', async () => {
+  const { route, sqlite } = await harness(false);
+  assert.equal((await route.DELETE(null, { params: Promise.resolve({ id: '1' }) })).status, 401);
+  sqlite.close();
+});
