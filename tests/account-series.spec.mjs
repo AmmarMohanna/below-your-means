@@ -340,13 +340,14 @@ test('Money overview opens all six areas and restores keyboard focus on return',
   expect(state.writes).toHaveLength(0);
 });
 
-test('Money overview fits a small dark phone and uses a desktop sidebar', async ({ page }) => {
+test('Money overview stays light with dark device settings and uses a desktop sidebar', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
   await setupAccounts(page);
   await expect(page.getByRole('navigation', { name: 'Money areas' }).getByRole('button')).toHaveCount(6);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(21, 23, 25)');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(242, 243, 245)');
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).not.toContain('dark');
   await page.setViewportSize({ width: 1440, height: 900 });
   const nav = await page.getByRole('navigation', { name: 'Main navigation' }).boundingBox();
   expect(nav.x).toBe(0);

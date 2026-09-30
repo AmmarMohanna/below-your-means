@@ -13,17 +13,8 @@
   --shadow-soft:none; --shadow-card:none; --app-max-width:880px;
   --page-gutter:clamp(16px,4vw,32px); --page-bottom-space:calc(120px + env(safe-area-inset-bottom));
 }
-@media(prefers-color-scheme:dark) {
- :root, .appChrome {
-  --page-canvas:#151719; --page-panel:#24272a; --page-field:#24272a;
-  --page-ink:#f1f4f4; --page-secondary:#b4bec4; --page-muted:#a6b1b7;
-  --page-accent:#6bd9c2; --page-accent-strong:#8ce4d1; --page-tint:#243d36;
-  --page-border:#3c4246; --page-border-strong:#68757d; --page-on-accent:#092d26;
-  --danger:#ffaaa2; --danger-light:#462827; --warning:#ebc477; --warning-light:#3a3224;
- }
-}
 * { box-sizing: border-box; padding: 0; margin: 0; }
-html { font-size: 16px; color-scheme: light dark; background: var(--bg); }
+html { font-size: 16px; color-scheme: only light; background: var(--bg); }
 body { min-width: 280px; min-height: 100vh; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; color: var(--text-primary); background: var(--bg); line-height: 1.45; }
 .appChrome { min-height: 100vh; min-height: 100svh; background: var(--bg); color: var(--text-primary); }
 a { color: inherit; text-decoration: none; }
