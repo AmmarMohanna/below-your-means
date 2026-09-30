@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 export default function AppChrome({ children }) {
   const pathname = usePathname();
-  const page = pathname?.startsWith("/accounts") ? "money"
+  const page = pathname === "/login" ? "login" : pathname?.startsWith("/accounts") ? "money"
     : pathname?.startsWith("/lifestyle") ? "life"
       : pathname?.startsWith("/analytics") ? "analytics"
         : pathname?.startsWith("/settings") ? "settings" : "today";

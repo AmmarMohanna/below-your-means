@@ -6,6 +6,7 @@ initOpenNextCloudflareForDev();
 const nextConfig = {
   // Optimize for production
   poweredByHeader: false,
+  devIndicators: false,
 
   // Headers for PWA
   async headers() {

@@ -16,6 +16,7 @@ const navItems = [
 export default function BottomNav({ active }) {
   return (
     <nav className={styles.bottomNav} aria-label="Main navigation">
+      <span className={styles.brand}>BelowYourMeans</span>
       {navItems.map((item) => (
         <Link
           key={item.key}

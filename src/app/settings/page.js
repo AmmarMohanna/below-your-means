@@ -441,6 +441,7 @@ export default function Settings() {
       <AppHeader title="Settings" />
 
       <section className={styles.section}>
+        <h2 className={styles.groupTitle}>Data</h2>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Export Excel</h2>
@@ -469,10 +470,8 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Restore from Excel</h2>
-          </div>
+        <details className={styles.card}>
+          <summary className={styles.disclosure}>Restore from Excel</summary>
 
           <label className={styles.uploadField}>
             <input
@@ -495,12 +494,11 @@ export default function Settings() {
           </div>
 
           {importMessage ? <p className={styles.importMessage}>{importMessage}</p> : null}
-        </div>
+        </details>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Recent changes</h2>
-          </div>
+        <h2 className={styles.groupTitle}>History</h2>
+        <details className={styles.card}>
+          <summary className={styles.disclosure}>Recent changes</summary>
 
           <div className={styles.historyList}>
             {loadingHistory ? (
@@ -551,8 +549,9 @@ export default function Settings() {
               ))
             )}
           </div>
-        </div>
+        </details>
 
+        <h2 className={styles.groupTitle}>Account</h2>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Log out</h2>

@@ -164,6 +164,7 @@ test('cancel and Escape restore mic focus and preserve every manual field', asyn
   await page.getByLabel('Amount in US dollars', { exact: true }).fill('72.25');
   await page.getByLabel('Description', { exact: true }).fill('Keep manual draft');
   await page.getByRole('button', { name: 'Income', exact: true }).click();
+  await page.locator('#manual-entry-form details summary').click();
   await page.getByLabel('Entry scope', { exact: true }).selectOption('business');
   await page.getByLabel('Entry date', { exact: true }).fill(earlier);
   let dialog = await recordAndReview(page);
@@ -485,6 +486,7 @@ test('existing manual entry still saves its exact values and refreshes the list'
   await page.getByLabel('Description', { exact: true }).fill('manual consulting income');
   await expect(page.getByLabel('Description', { exact: true })).toHaveValue('Manual consulting income');
   await page.getByRole('button', { name: 'Income', exact: true }).click();
+  await page.locator('#manual-entry-form details summary').click();
   await page.getByLabel('Entry scope', { exact: true }).selectOption('business');
   await page.getByRole('button', { name: 'Add entry', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Manual consulting income Business', exact: true })).toBeVisible();

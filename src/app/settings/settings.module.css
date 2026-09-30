@@ -1,10 +1,10 @@
 .container { min-height: 100vh; max-width: var(--app-max-width); margin: 0 auto; padding: 24px var(--page-gutter) var(--page-bottom-space); }
 .section { display: grid; gap: 16px; }
-.card { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg); min-width: 0; }
+.card { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 18px; background: var(--card-bg); min-width: 0; }
 .cardHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .cardTitle { color: var(--text-primary); font-size: 1rem; font-weight: 600; }
 .cardActions { display: flex; flex-wrap: wrap; gap: 10px; }
-.primaryButton, .secondaryButton, .dangerButton { min-height: 44px; padding: 10px 14px; border-radius: 9px; font-size: .875rem; font-weight: 500; }
+.primaryButton, .secondaryButton, .dangerButton { min-height: 44px; padding: 10px 14px; border-radius: 13px; font-size: .875rem; font-weight: 500; }
 .primaryButton { border: 1px solid transparent; background: var(--primary); color: var(--on-primary); }
 .primaryButton:disabled, .secondaryButton:disabled { opacity: .5; }
 .secondaryButton { border: 1px solid var(--border); background: var(--card-solid); color: var(--text-secondary); }
@@ -28,3 +28,7 @@
 .historyDetail strong { color: var(--text-primary); font-weight: 500; }
 .emptyState { color: var(--text-muted); font-size: .9rem; padding-block: 8px; }
 @media (max-width: 359px) { .cardHeader { align-items: stretch; flex-direction: column; } }
+
+.groupTitle{font-size:13px;font-weight:500;color:var(--text-muted);padding:8px 4px 0}
+.disclosure{min-height:44px;cursor:pointer;display:list-item;font-size:16px;font-weight:500;color:var(--text-primary);list-style-position:inside}
+.card[open] .disclosure{margin-bottom:16px}

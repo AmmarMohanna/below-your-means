@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
+import AppIcon from "@/components/AppIcon";
 import { getTodayBeirut } from "@/lib/date";
 
 import styles from "./lifestyle.module.css";
@@ -312,13 +313,13 @@ export default function Lifestyle() {
           className={`${styles.tab} ${activeTab === "prayers" ? styles.activeTab : ""}`}
           onClick={() => setActiveTab("prayers")}
         >
-          🕌 Prayers
+          Prayers
         </button>
         <button
           className={`${styles.tab} ${activeTab === "gym" ? styles.activeTab : ""}`}
           onClick={() => setActiveTab("gym")}
         >
-          💪 Exercise
+          Exercise
         </button>
       </div>
 
@@ -333,19 +334,20 @@ export default function Lifestyle() {
             {PRAYERS.map((prayer) => (
               <div key={prayer.id} className={styles.prayerCard}>
                 <div className={styles.prayerInfo}>
-                  <span className={styles.prayerNameAr}>{prayer.name}</span>
+                  <span lang="ar" dir="rtl" className={styles.prayerNameAr}>{prayer.name}</span>
                   <span className={styles.prayerNameEn}>{prayer.nameEn}</span>
                 </div>
                 <div className={styles.prayerControls}>
                   <button
                     className={styles.prayerBtn}
+                    aria-label={`Decrease ${prayer.nameEn}`}
                     onClick={() => handlePrayerChange(prayer.id, -1)}
                     disabled={prayers[prayer.id] === 0}
                   >
                     −
                   </button>
                   <span className={styles.prayerCount}>{prayers[prayer.id]}</span>
-                  <button className={styles.prayerBtn} onClick={() => handlePrayerChange(prayer.id, 1)}>
+                  <button aria-label={`Increase ${prayer.nameEn}`} className={styles.prayerBtn} onClick={() => handlePrayerChange(prayer.id, 1)}>
                     +
                   </button>
                 </div>
@@ -360,19 +362,20 @@ export default function Lifestyle() {
             </div>
             <div className={styles.fastingCard}>
               <div className={styles.fastingInfo}>
-                <span className={styles.fastingIcon}>🌙</span>
+                <AppIcon name="life" />
                 <span className={styles.fastingName}>صيام</span>
               </div>
               <div className={styles.prayerControls}>
                 <button
                   className={styles.prayerBtn}
+                  aria-label="Decrease fasting"
                   onClick={() => handlePrayerChange("fasting", -1)}
                   disabled={prayers.fasting === 0}
                 >
                   −
                 </button>
                 <span className={styles.prayerCount}>{prayers.fasting}</span>
-                <button className={styles.prayerBtn} onClick={() => handlePrayerChange("fasting", 1)}>
+                <button aria-label="Increase fasting" className={styles.prayerBtn} onClick={() => handlePrayerChange("fasting", 1)}>
                   +
                 </button>
               </div>
@@ -427,10 +430,10 @@ export default function Lifestyle() {
                   </select>
                 </div>
                 <div className={styles.formActions}>
-                  <button onClick={handleSaveReminder} className={styles.saveBtn}>
+                  <button aria-label="Save reminder" onClick={handleSaveReminder} className={styles.saveBtn}>
                     ✓
                   </button>
-                  <button onClick={resetReminderForm} className={styles.cancelBtn}>
+                  <button aria-label="Cancel reminder" onClick={resetReminderForm} className={styles.cancelBtn}>
                     ×
                   </button>
                 </div>
@@ -563,10 +566,10 @@ export default function Lifestyle() {
                   className={styles.formInput}
                 />
                 <div className={styles.formActions}>
-                  <button onClick={handleAddSession} className={styles.saveBtn}>
+                  <button aria-label="Save training day" onClick={handleAddSession} className={styles.saveBtn}>
                     ✓
                   </button>
-                  <button onClick={() => setShowAddSession(false)} className={styles.cancelBtn}>
+                  <button aria-label="Cancel training day" onClick={() => setShowAddSession(false)} className={styles.cancelBtn}>
                     ×
                   </button>
                 </div>
@@ -578,8 +581,8 @@ export default function Lifestyle() {
                 <div key={session.id} className={styles.sessionItem}>
                   <span className={styles.sessionDate}>{formatDate(session.date)}</span>
                   {session.notes && <span className={styles.sessionNotes}>{session.notes}</span>}
-                  <button className={styles.deleteBtn} onClick={() => handleDeleteSession(session.id)}>
-                    🗑️
+                  <button aria-label={`Delete training on ${session.date}`} className={styles.deleteBtn} onClick={() => handleDeleteSession(session.id)}>
+                    <AppIcon name="trash" size={18} />
                   </button>
                 </div>
               ))}

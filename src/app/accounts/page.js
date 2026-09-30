@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation";
 
 import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
+import AppIcon from "@/components/AppIcon";
 import { getTodayBeirut, getNextMonthlyPaymentDate, isValidDateOnly } from "@/lib/date";
 import { buildMonthlyDates, isValidCalendarDate, MAX_MONTHLY_ENTRIES } from "@/lib/monthly-series";
 
 import styles from "./accounts.module.css";
 
 const tabs = [
-  { id: "current", name: "Current" },
-  { id: "expected", name: "Expected" },
-  { id: "payables", name: "Payables" },
-  { id: "recurring", name: "Monthly" },
-  { id: "metals", name: "Savings" },
-  { id: "projects", name: "Projects" },
+  { id: "current", name: "Current", icon: "money", description: "Cash and accounts" },
+  { id: "expected", name: "Expected", icon: "incoming", description: "Income on the way" },
+  { id: "payables", name: "Payables", icon: "outgoing", description: "What you owe" },
+  { id: "recurring", name: "Monthly", icon: "repeat", description: "Regular payments" },
+  { id: "metals", name: "Savings", icon: "savings", description: "Holdings and plans" },
+  { id: "projects", name: "Projects", icon: "projects", description: "Plans worth saving for" },
 ];
 
 const recurringTypes = ["Family", "Home", "Personal", "Subscription", "Donations"];
@@ -128,7 +129,7 @@ function getInitialMonthlyRepeat() {
 
 export default function Accounts() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("current");
+  const [activeTab, setActiveTab] = useState(null);
   const [expandedMetaIds, setExpandedMetaIds] = useState([]);
   const [data, setData] = useState({
     currentMoney: [],
@@ -175,6 +176,17 @@ export default function Accounts() {
   const [payingIds, setPayingIds] = useState([]);
   const [paymentErrors, setPaymentErrors] = useState({});
   const [today, setToday] = useState(getTodayBeirut);
+  const detailHeadingRef = useRef(null);
+  const overviewRef = useRef(null);
+  const navigationPendingRef = useRef(false);
+  const lastAreaRef = useRef("current");
+
+  useEffect(() => {
+    if (!navigationPendingRef.current) return;
+    navigationPendingRef.current = false;
+    if (activeTab) detailHeadingRef.current?.focus();
+    else overviewRef.current?.querySelector(`[data-area="${lastAreaRef.current}"]`)?.focus();
+  }, [activeTab]);
 
   useEffect(() => {
     const refreshToday = () => setToday(getTodayBeirut());
@@ -319,6 +331,8 @@ export default function Accounts() {
   const selectTab = (tab) => {
     if (formSubmittingRef.current) return;
     if (formUncertain) { fetchData(); if (activeTab === "expected") fetchSavingsPlan(); }
+    navigationPendingRef.current = true;
+    if (tab) lastAreaRef.current = tab;
     setActiveTab(tab);
     setEditingId(null);
     setShowAddForm(false);
@@ -1740,6 +1754,7 @@ export default function Accounts() {
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab);
   const canAdd = activeTab !== "metals";
+  const overviewAmounts = { current: summary.cash, expected: summary.expected, payables: summary.owe, recurring: summary.monthly, metals: summary.longTermSavings, projects: projectTotal };
 
   return (
     <div className={styles.container}>
@@ -1765,23 +1780,22 @@ export default function Accounts() {
         </div>
       </div>
 
-      <div className={styles.tabs}>
+      {!activeTab && <nav ref={overviewRef} className={styles.overview} aria-label="Money areas">
         {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`${styles.tabButton} ${activeTab === tab.id ? styles.activeTab : ""}`}
-            disabled={formSubmitting}
-            onClick={() => selectTab(tab.id)}
-          >
-            <span>{tab.name}</span>
+          <button key={tab.id} data-area={tab.id} type="button" aria-label={tab.name} className={styles.overviewRow}
+            disabled={formSubmitting} onClick={() => selectTab(tab.id)}>
+            <span className={styles.areaIcon}><AppIcon name={tab.icon} /></span>
+            <span className={styles.areaText}><strong>{tab.name}</strong><span>{tab.description}</span></span>
+            <span className={styles.areaAmount}>${formatMoney(overviewAmounts[tab.id] || 0)}{tab.id === "recurring" ? "/mo" : ""}</span>
+            <AppIcon name="chevron" size={18} />
           </button>
         ))}
-      </div>
+      </nav>}
+      {activeTab && <button type="button" className={styles.backButton} disabled={formSubmitting} onClick={() => selectTab(null)}>← Money overview</button>}
 
-      <section className={styles.section}>
+      {activeTab && <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>{activeTabMeta?.name}</h2>
+          <h2 ref={detailHeadingRef} tabIndex={-1} className={styles.sectionTitle}>{activeTabMeta?.name}</h2>
 
           {activeTab === "recurring" && (
             <p className={styles.sectionTotal}>Total · ${formatMoney(summary.monthly)}/mo</p>
@@ -1806,7 +1820,7 @@ export default function Accounts() {
 
         {renderForm()}
         {renderCurrentTab()}
-      </section>
+      </section>}
 
       <BottomNav active="accounts" />
     </div>

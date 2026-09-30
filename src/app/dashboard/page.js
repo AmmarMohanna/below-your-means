@@ -280,6 +280,10 @@ export default function Dashboard() {
     <main className={styles.container}>
       <AppHeader title="Today" />
       {error && <div className={styles.error} role="alert">{error}<button type="button" onClick={fetchTransactions}>Retry</button></div>}
+      <div className={styles.summaryStrip}>
+        <div><span className={styles.summaryLabel}>Month out</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</strong></div>
+        <div><span className={styles.summaryLabel}>Month in</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</strong></div>
+      </div>
       <div className={styles.entryCard}>
         <form id="manual-entry-form" className={styles.entryFields} onSubmit={handleSubmit}>
           <div className={styles.segmented} aria-label="Entry type">
@@ -298,18 +302,21 @@ export default function Dashboard() {
           <input aria-label="Description" type="text" className={styles.textInput} disabled={isSubmitting}
             placeholder={type === "income" ? "Who paid you?" : "What was it for?"}
             value={description} autoCapitalize="sentences" maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(capitalizeDescription(event.target.value))} />
-          <div className={styles.entryOptions}>
-            <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
-              <option value="personal">Personal</option><option value="business">Business</option>
-            </select>
-            <label className={styles.dateInputWrap}>
-              <span>{formatDisplayDate(selectedDate)}</span>
-              <input aria-label="Entry date" type="date" className={styles.dateInput} value={selectedDate}
-                max={getTodayBeirut()} required disabled={isSubmitting}
-                onInput={(event) => { if (event.target.value) setSelectedDate(event.target.value); }}
-                onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} />
-            </label>
-          </div>
+          <details className={styles.entryDetails}>
+            <summary>{scope === "business" ? "Business" : "Personal"} · {formatDisplayDate(selectedDate)}</summary>
+            <div className={styles.entryOptions}>
+              <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
+                <option value="personal">Personal</option><option value="business">Business</option>
+              </select>
+              <label className={styles.dateInputWrap}>
+                <span>{formatDisplayDate(selectedDate)}</span>
+                <input aria-label="Entry date" type="date" className={styles.dateInput} value={selectedDate}
+                  max={getTodayBeirut()} required disabled={isSubmitting}
+                  onInput={(event) => { if (event.target.value) setSelectedDate(event.target.value); }}
+                  onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} />
+              </label>
+            </div>
+          </details>
         </form>
         <div className={styles.entryActions}>
           <button type="submit" form="manual-entry-form" className={styles.saveButton} disabled={isSubmitting || manualSaveUncertain || !amount || Number(amount) <= 0}>
@@ -323,10 +330,6 @@ export default function Dashboard() {
           <button type="button" onClick={() => setManualSaveUncertain(false)}>I checked my entries</button>
         </div>}
         {notice && <p className={styles.notice} role="status">{notice}</p>}
-        <div className={styles.summaryStrip}>
-          <div><span className={styles.summaryLabel}>Month out</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</strong></div>
-          <div><span className={styles.summaryLabel}>Month in</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</strong></div>
-        </div>
       </div>
       {dueReminders.length > 0 && (
         <details className={styles.reminderPanel}>

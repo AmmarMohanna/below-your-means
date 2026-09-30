@@ -268,6 +268,7 @@ test('double submission sends one schedule request and locks controls until comp
   await expect.poll(() => state.writes.length).toBe(1);
   await expect(page.getByRole('button', { name: /Adding/ })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '← Money overview', exact: true })).toBeDisabled();
   release();
   await expect(page.getByRole('button', { name: /Adding/ })).not.toBeVisible();
   expect(state.writes).toHaveLength(1);
@@ -320,4 +321,34 @@ test('Advanced remains usable at 320px without horizontal overflow', async ({ pa
   await expect(addButton(page)).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath('expected-advanced-expanded-320.png'), fullPage: true });
   expect(state.writes).toHaveLength(0);
+});
+
+
+test('Money overview opens all six areas and restores keyboard focus on return', async ({ page }) => {
+  const state = await setupAccounts(page, { items: { projects: [{ id: 1, description: 'Travel', estimated_amount: 2300, target_date: null, sort_order: 1 }] } });
+  await expect(page.getByRole('button', { name: 'Projects', exact: true })).toContainText('$2,300');
+  for (const name of ['Current', 'Expected', 'Payables', 'Monthly', 'Savings', 'Projects']) {
+    const area = page.getByRole('button', { name, exact: true });
+    await area.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name, level: 2, exact: true })).toBeFocused();
+    const back = page.getByRole('button', { name: '← Money overview', exact: true });
+    await back.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('button', { name, exact: true })).toBeFocused();
+  }
+  expect(state.writes).toHaveLength(0);
+});
+
+test('Money overview fits a small dark phone and uses a desktop sidebar', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  await setupAccounts(page);
+  await expect(page.getByRole('navigation', { name: 'Money areas' }).getByRole('button')).toHaveCount(6);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(21, 23, 25)');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const nav = await page.getByRole('navigation', { name: 'Main navigation' }).boundingBox();
+  expect(nav.x).toBe(0);
+  expect(nav.width).toBe(216);
 });
