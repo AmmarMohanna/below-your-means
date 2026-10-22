@@ -1,14 +1,15 @@
 # Cloudflare Deployment
 
-The `karim` branch deploys Karim's BelowYourMeans instance as a separate Cloudflare
-Worker using OpenNext and D1. All deployment and database commands on this branch
-target Karim's resources.
+Both instances deploy from `main`. Select the configuration for the intended instance.
+Application code and migrations are shared. Workers, databases, secrets, and voice rate limits remain separate.
 
-- Worker: `below-your-means-karim`
-- URL: `https://below-your-means-karim.mohannaammar.workers.dev`
-- Initialize with migrations only. No personal database is included.
-- Keep the password and session secret in Cloudflare secrets and the ignored local
-  `.dev.vars` file. Never commit credentials.
+| Target | Configuration | Worker and database | URL |
+| --- | --- | --- | --- |
+| Ammar | `wrangler.jsonc` | `below-your-means` | https://below-your-means.mohannaammar.workers.dev |
+| Karim | `wrangler.karim.jsonc` | `below-your-means-karim` | https://below-your-means-karim.mohannaammar.workers.dev |
+
+Initialize new instances with migrations only. Do not copy data or credentials between instances.
+Keep production secrets in each Worker. Use test credentials in the ignored `.dev.vars` file for local preview.
 
 ## Architecture
 
@@ -17,12 +18,11 @@ target Karim's resources.
 - Static assets, PWA manifest, and icons are served by Workers Assets.
 - Authentication stays password based with an HMAC session cookie.
 
-Configured D1 database:
+Configured D1 databases use the binding `DB`:
 
 ```text
-name: below-your-means-karim
-id: 1ea10bb9-0a07-45af-98b1-84248952b6f0
-binding: DB
+Ammar: e52799c3-8dc0-4509-96f9-7511eda3c140
+Karim: 1ea10bb9-0a07-45af-98b1-84248952b6f0
 ```
 
 ## Local Preview
@@ -41,7 +41,9 @@ npm install
 npm run d1:migrate:local
 ```
 
-Only if intentionally restoring Karim's own data from `data/belowyourmeans.db`:
+For Karim's local database, use `npm run d1:migrate:local:karim` instead.
+
+Only restore `data/belowyourmeans.db` when it belongs to the selected instance:
 
 ```bash
 npm run d1:import:local
@@ -54,6 +56,8 @@ npm run preview
 ```
 
 Open `http://localhost:8787`.
+
+For Karim's local configuration, use `npm run preview:karim` instead.
 
 ## Remote Setup
 
@@ -69,12 +73,15 @@ Create or verify the D1 database:
 npx wrangler d1 list
 ```
 
-This branch points `wrangler.jsonc` at the `below-your-means-karim` D1 database ID listed above.
+The default configuration targets Ammar. `wrangler.karim.jsonc` targets Karim.
 
 Apply schema migrations:
 
 ```bash
 npm run d1:migrate:remote
+
+# Karim only
+npm run d1:migrate:remote:karim
 ```
 
 Only run remote migrations when intentionally changing schema. A normal deploy does not mutate D1 data.
@@ -82,15 +89,42 @@ Only run remote migrations when intentionally changing schema. A normal deploy d
 Set Worker secrets:
 
 ```bash
-npx wrangler secret put APP_PASSWORD
-npx wrangler secret put SESSION_SECRET
+npx wrangler secret put APP_PASSWORD --config wrangler.jsonc
+npx wrangler secret put SESSION_SECRET --config wrangler.jsonc
 ```
 
-Deploy:
+For Karim's secrets, replace `wrangler.jsonc` with `wrangler.karim.jsonc`.
+
+Deploy from the shared branch:
 
 ```bash
 npm run deploy
+
+# Karim only
+npm run deploy:karim
+
+# Both instances from one build
+npm run deploy:both
 ```
+
+These wrapper commands build before deployment. The current Next.js 15 version triggers OpenNext's support check.
+Until a separate framework upgrade, build with an explicit override:
+
+```bash
+npx opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion
+```
+
+Then deploy the built bundle to the intended target:
+
+```bash
+# Ammar only
+npx opennextjs-cloudflare deploy --config wrangler.jsonc
+
+# Karim only
+npx opennextjs-cloudflare deploy --config wrangler.karim.jsonc
+```
+
+Run both deploy commands to publish the same build to both instances.
 
 ## Data Import
 
@@ -106,10 +140,12 @@ Only run data import commands when intentionally replacing Cloudflare D1 data.
 3. Import into remote D1:
 
    ```bash
-   npx wrangler d1 execute below-your-means-karim --remote --file data/d1-import.sql
+   npx wrangler d1 execute below-your-means --config wrangler.jsonc --remote --file data/d1-import.sql
    ```
 
-4. Deploy the Worker and test the live Cloudflare URL before changing DNS.
+   For Karim, use `below-your-means-karim` and `--config wrangler.karim.jsonc` instead.
+
+4. Deploy the selected Worker and test its live URL before changing DNS.
 
 The import SQL resets app tables before inserting the exported data. Do not run it during a normal deploy.
 
@@ -129,17 +165,31 @@ The app already ships `public/manifest.json`, Apple web-app metadata, and SVG ic
 Voice entry adds no table, migration, import, or background transaction write. Configure the key only on the server. To store the key without changing production traffic, run the following interactively from the intended checkout:
 
 ```bash
-# Paste the key at the masked prompt. This creates an undeployed Worker version.
-npx wrangler versions secret put OPENAI_API_KEY --name below-your-means-karim
+# Ammar: creates an undeployed Worker version.
+npx wrangler versions secret put OPENAI_API_KEY --config wrangler.jsonc
+
+# Karim: creates an undeployed Worker version.
+npx wrangler versions secret put OPENAI_API_KEY --config wrangler.karim.jsonc
 
 # Verify the configured secret names; values are never displayed.
-npx wrangler secret list --name below-your-means-karim
+npx wrangler secret list --config wrangler.jsonc
 
 # Check which version is serving traffic.
-npx wrangler deployments status --name below-your-means-karim
+npx wrangler deployments status --config wrangler.jsonc
 ```
 
-The staged secret is not active until a release is deployed. During an authorized release, upload the intended code with `npm run upload`, verify the secret binding in the uploaded version, then deploy that version using `npx wrangler versions deploy`. Do not deploy the secret-only version as a substitute for uploading the feature code. The regular `wrangler secret put` command deploys immediately; use it only when that production change is intended. See [Cloudflare secret setup](https://developers.cloudflare.com/workers/configuration/secrets/).
+For Karim's verification commands, replace `wrangler.jsonc` with `wrangler.karim.jsonc`.
+
+The staged secret becomes active after a release is deployed.
+Upload code with `npm run upload` for Ammar or `npm run upload:karim` for Karim.
+The current Next.js support override also applies to these build commands.
+Verify the uploaded version's secret bindings before deploying it.
+Use the selected configuration with `npx wrangler versions deploy`.
+
+Deploy the feature code with the secret. Do not deploy the secret-only version as a code release.
+The regular `wrangler secret put` command deploys immediately.
+Use that command only when the production change is intended.
+See [Cloudflare secret setup](https://developers.cloudflare.com/workers/configuration/secrets/).
 
 For local development, create `.dev.vars` from `.dev.vars.example` and set `OPENAI_API_KEY`, `APP_PASSWORD`, and `SESSION_SECRET`. Use a separate test password and session secret. Keep `NEXTJS_ENV=development` and `SECURE_COOKIES=false` for localhost HTTP. Never commit `.dev.vars` or put the key in a `NEXT_PUBLIC_` variable. `npm run dev` uses the OpenNext local Cloudflare context; `npm run preview` builds and runs the Worker locally. Only a fresh local database needs the app's existing local migration setup.
 

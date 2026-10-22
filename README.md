@@ -1,8 +1,17 @@
 # 💰 BelowYourMeans
 
-This is Karim's instance on the `karim` branch. It uses its own Cloudflare Worker,
-D1 database, and password. Start new instances with migrations only; do not import
-another person's database. See [CLOUDFLARE.md](CLOUDFLARE.md) for deployment details.
+Both Ammar's and Karim's instances use the `main` branch and the same application code.
+Each instance has its own Cloudflare Worker, D1 database, password, and voice rate limit.
+
+| Target | Configuration | Deploy command |
+| --- | --- | --- |
+| Ammar | `wrangler.jsonc` | `npm run deploy` |
+| Karim | `wrangler.karim.jsonc` | `npm run deploy:karim` |
+| Both | Both configurations | `npm run deploy:both` |
+
+These commands build before deployment. The current Next.js 15 build requires an explicit support override.
+See [CLOUDFLARE.md](CLOUDFLARE.md) for the override and target-specific migration commands.
+Initialize new instances with migrations only. Do not import another person's database.
 
 A personal life management app designed for self-hosting. Track expenses, manage finances, log prayers, and monitor fitness.
 

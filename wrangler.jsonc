@@ -1,8 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "below-your-means-karim",
-  "workers_dev": true,
-  "preview_urls": false,
+  "name": "below-your-means",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-06-13",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -13,7 +11,7 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "below-your-means-karim"
+      "service": "below-your-means"
     }
   ],
   "vars": {
@@ -23,15 +21,15 @@
   "ratelimits": [
     {
       "name": "VOICE_RATE_LIMITER",
-      "namespace_id": "1022202601",
+      "namespace_id": "9192026",
       "simple": { "limit": 10, "period": 60 }
     }
   ],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "below-your-means-karim",
-      "database_id": "1ea10bb9-0a07-45af-98b1-84248952b6f0",
+      "database_name": "below-your-means",
+      "database_id": "e52799c3-8dc0-4509-96f9-7511eda3c140",
       "migrations_dir": "./migrations"
     }
   ],

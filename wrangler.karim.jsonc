@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "below-your-means-karim",
+  "workers_dev": true,
+  "preview_urls": false,
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-13",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "below-your-means-karim"
+    }
+  ],
+  "vars": {
+    "OPENAI_TRANSCRIBE_MODEL": "gpt-4o-mini-transcribe",
+    "OPENAI_PARSE_MODEL": "gpt-5.4-mini"
+  },
+  "ratelimits": [
+    {
+      "name": "VOICE_RATE_LIMITER",
+      "namespace_id": "1022202601",
+      "simple": { "limit": 10, "period": 60 }
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "below-your-means-karim",
+      "database_id": "1ea10bb9-0a07-45af-98b1-84248952b6f0",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
