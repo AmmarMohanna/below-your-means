@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { createTransactionPost } from '@/lib/transaction-post';
 import {
   getAllTransactions,
   addTransaction,
@@ -31,38 +32,7 @@ export async function GET(request) {
   }
 }
 
-export async function POST(request) {
-  if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    const data = await request.json();
-    const { amount, category, type, scope, notes, date, created_at } = data;
-    const transactionAmount = Number(amount);
-
-    if (!Number.isFinite(transactionAmount) || transactionAmount <= 0 || !category || !type || !date) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const result = await addTransaction({
-      amount: transactionAmount,
-      category,
-      type,
-      scope,
-      notes,
-      date,
-      created_at,
-    });
-    return NextResponse.json({ success: true, id: result.lastInsertRowid });
-  } catch (error) {
-    console.error('Error adding transaction:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+export const POST = createTransactionPost({ isAuthenticated, addTransaction });
 
 export async function PATCH(request) {
   if (!(await isAuthenticated())) {

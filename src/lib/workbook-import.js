@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { isValidDateOnly } from './date.js';
 
 import { normalizeScope, runSql, runWithoutAudit } from './db.js';
 
@@ -293,10 +294,11 @@ export async function importWorkbookBuffer(buffer) {
 
       await runSql(
         `
-          INSERT INTO recurring (target, type, amount)
-          VALUES (?, ?, ?)
+          INSERT INTO recurring (target, type, amount, last_paid_date)
+          VALUES (?, ?, ?, ?)
         `,
-        [item.Target || 'Unknown', type, parseFloat(item.Amount) || 0]
+        [item.Target || 'Unknown', type, parseFloat(item.Amount) || 0,
+          isValidDateOnly(item['Last Paid']) ? item['Last Paid'] : null]
       );
     }
     summary.imported.recurring = recurring.length;

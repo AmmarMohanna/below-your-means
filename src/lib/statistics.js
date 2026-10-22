@@ -43,7 +43,6 @@ function rounded(value) {
 
 export function buildSavingsProjection({ today, savings = {}, metals = {}, planItems = [] }) {
   if (!isValidDate(today)) throw new RangeError('A valid current date is required');
-  const yearEnd = `${today.slice(0, 4)}-12-31`;
   const cash = nonnegative(savings?.cash_savings_amount);
   const pension = nonnegative(savings?.aub_pension_amount);
   // Match /api/metals: a zero or missing stored price uses its existing fallback.
@@ -51,23 +50,12 @@ export function buildSavingsProjection({ today, savings = {}, metals = {}, planI
     nonnegative(metals?.gold_24k_grams) * nonnegative(metals?.gold_24k_price_per_gram || 85) +
     nonnegative(metals?.gold_21k_grams) * nonnegative(metals?.gold_21k_price_per_gram || 74.4) +
     nonnegative(metals?.silver_kg) * nonnegative(metals?.silver_price_per_kg || 950);
-  const current = rounded(cash + pension + metalValue);
-  const eligible = [];
-  let excludedPlans = false;
-
-  for (const item of planItems) {
-    if (!Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0) continue;
-    // Plans have no completion flag. Their dates, not receipt links, define this scenario.
-    if (!isValidDate(item.planned_date) || item.planned_date < today || item.planned_date > yearEnd) {
-      excludedPlans = true;
-      continue;
-    }
-    eligible.push(item);
-  }
-
-  const additions = sumAmounts(eligible);
+  const current = rounded(cash + metalValue);
+  // Every registered plan remains upcoming until removed, regardless of its date.
+  const additions = sumAmounts(planItems.filter((item) =>
+    Number.isFinite(Number(item.amount)) && Number(item.amount) > 0
+  ));
   return {
-    yearEnd,
     current,
     additions,
     expected: rounded(current + additions),
@@ -75,7 +63,6 @@ export function buildSavingsProjection({ today, savings = {}, metals = {}, planI
     pension: rounded(pension),
     metals: rounded(metalValue),
     metalPricesAt: metals?.prices_fetched_at || metals?.updated_at || null,
-    excludedPlans,
   };
 }
 
@@ -133,7 +120,7 @@ export function buildStatistics({ transactions = [], month, scope = 'all', today
       percent: priorTotal > 0 ? (total - priorTotal) / priorTotal * 100 : null,
     },
     monthly: chartMonths.map((value) => ({ month: value, total: (monthlyTotals.get(value) || 0) / 100, isPartial: value === currentMonth })),
-    largest: selected.filter((row) => Number(row.amount) > 200)
+    largest: selected.filter((row) => Number(row.amount) >= 200)
       .sort((left, right) => Number(right.amount) - Number(left.amount) || right.date.localeCompare(left.date) || Number(right.id || 0) - Number(left.id || 0))
       .map((row) => ({ id: row.id, date: row.date, label: row.notes?.trim() || row.category || 'Expense', amount: rounded(Number(row.amount)), scope: row.scope === 'business' ? 'business' : 'personal' })),
     savings: buildSavingsProjection({ today, savings, metals, planItems }),

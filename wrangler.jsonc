@@ -16,6 +16,17 @@
       "service": "below-your-means-karim"
     }
   ],
+  "vars": {
+    "OPENAI_TRANSCRIBE_MODEL": "gpt-4o-mini-transcribe",
+    "OPENAI_PARSE_MODEL": "gpt-5.4-mini"
+  },
+  "ratelimits": [
+    {
+      "name": "VOICE_RATE_LIMITER",
+      "namespace_id": "1022202601",
+      "simple": { "limit": 10, "period": 60 }
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",

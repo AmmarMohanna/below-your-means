@@ -1,4 +1,6 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTodayBeirut, isValidDateOnly } from './date.js';
+import { insertAccountSeries } from './account-series.js';
 
 const orderedAccountConfig = {
   currentMoney: {
@@ -348,6 +350,10 @@ export async function addExpectedMoney({ source, expected_date, amount, planned_
   return result;
 }
 
+export async function addMonthlyAccountSeries(table, data) {
+  return insertAccountSeries(getDb(), table, data);
+}
+
 export async function updateExpectedMoney(
   id,
   { source, expected_date, amount, planned_save_amount, notes }
@@ -440,12 +446,21 @@ export async function getAllRecurring() {
   return allSql('SELECT * FROM recurring ORDER BY type, target, id');
 }
 
-export async function addRecurring({ target, type, amount }) {
-  return insertRow('recurring', { target, type, amount });
+function normalizeLastPaidDate(value) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  if (!isValidDateOnly(value) || value > getTodayBeirut()) {
+    throw new Error('Last paid date must be a valid date on or before today');
+  }
+  return value;
 }
 
-export async function updateRecurring(id, { target, type, amount }) {
-  return updateRow('recurring', id, { target, type, amount });
+export async function addRecurring({ target, type, amount, last_paid_date }) {
+  return insertRow('recurring', { target, type, amount, last_paid_date: normalizeLastPaidDate(last_paid_date) });
+}
+
+export async function updateRecurring(id, { target, type, amount, last_paid_date }) {
+  return updateRow('recurring', id, { target, type, amount, last_paid_date: normalizeLastPaidDate(last_paid_date) });
 }
 
 export async function deleteRecurring(id) {
@@ -505,6 +520,17 @@ export async function shiftProject(id, direction) {
   });
 
   return { changes: 2 };
+}
+
+export async function markRecurringPaid(id, paid = true) {
+  const item = await getRowById('recurring', id);
+  if (!item) return null;
+  const paidDate = paid ? getTodayBeirut() : null;
+  // Repeated toggles/retries must not advance another month or duplicate updates.
+  if (item.last_paid_date !== paidDate) {
+    await updateRow('recurring', id, { last_paid_date: paidDate });
+  }
+  return getRowById('recurring', id);
 }
 
 export async function shiftDatedAccountItem(kind, id, direction) {

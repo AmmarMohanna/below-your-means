@@ -2,3 +2,9 @@ APP_PASSWORD=changeme123
 SESSION_SECRET=replace-with-openssl-rand-hex-32
 NEXTJS_ENV=development
 SECURE_COOKIES=false
+
+# Optional: enables voice entry. Server-only; never use NEXT_PUBLIC_ for this key.
+OPENAI_API_KEY=
+# Optional server model overrides (defaults also configured in wrangler.jsonc)
+OPENAI_TRANSCRIBE_MODEL=gpt-4o-mini-transcribe
+OPENAI_PARSE_MODEL=gpt-5.4-mini

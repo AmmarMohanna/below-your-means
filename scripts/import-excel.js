@@ -101,6 +101,7 @@ db.exec(`
     target TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal', 'Subscription', 'Donations')),
     amount REAL NOT NULL,
+    last_paid_date TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -353,7 +354,7 @@ const recurring = getSheetData('Recurring Monthly');
 if (recurring.length > 0) {
   console.log(`🔄 Importing ${recurring.length} recurring payments...`);
   const insertRec = db.prepare(`
-    INSERT INTO recurring (target, type, amount) VALUES (?, ?, ?)
+    INSERT INTO recurring (target, type, amount, last_paid_date) VALUES (?, ?, ?, ?)
   `);
   for (const r of recurring) {
     const type = r['Type'];
@@ -364,7 +365,8 @@ if (recurring.length > 0) {
     insertRec.run(
       r['Target'] || 'Unknown',
       type,
-      parseFloat(r['Amount']) || 0
+      parseFloat(r['Amount']) || 0,
+      /^\d{4}-\d{2}-\d{2}$/.test(r['Last Paid'] || '') ? r['Last Paid'] : null
     );
   }
 }

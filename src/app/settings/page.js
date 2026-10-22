@@ -196,8 +196,8 @@ export default function Settings() {
         XLSX.utils.book_append_sheet(
           workbook,
           XLSX.utils.aoa_to_sheet([
-            ["Target", "Type", "Amount"],
-            ...accounts.recurring.map((item) => [item.target, item.type, item.amount]),
+            ["Target", "Type", "Amount", "Last Paid"],
+            ...accounts.recurring.map((item) => [item.target, item.type, item.amount, item.last_paid_date || ""]),
           ]),
           "Recurring Monthly"
         );
@@ -241,10 +241,17 @@ export default function Settings() {
           workbook,
           XLSX.utils.aoa_to_sheet([
             ["Account", "Amount"],
-            ["AUB Pension", metals.longTermSavings.aub_pension_amount || 0],
             ["Current cash savings", metals.longTermSavings.cash_savings_amount || 0],
             ["Metals", metals.values?.total || 0],
-            ["Total", metals.longTermSavings.total || 0],
+            ["Current savings (excluding pension)", metals.longTermSavings.total || 0],
+            ["Upcoming savings plan", savingsPlan.summary?.planned || 0],
+            [
+              "Planned savings (excluding pension)",
+              (metals.longTermSavings.total || 0) + (savingsPlan.summary?.planned || 0),
+            ],
+            [],
+            ["Pension — excluded from savings totals", ""],
+            ["AUB Pension", metals.longTermSavings.aub_pension_amount || 0],
           ]),
           "Savings"
         );
@@ -434,6 +441,7 @@ export default function Settings() {
       <AppHeader title="Settings" />
 
       <section className={styles.section}>
+        <h2 className={styles.groupTitle}>Data</h2>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Export Excel</h2>
@@ -462,10 +470,8 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Restore from Excel</h2>
-          </div>
+        <details className={styles.card}>
+          <summary className={styles.disclosure}>Restore from Excel</summary>
 
           <label className={styles.uploadField}>
             <input
@@ -488,12 +494,11 @@ export default function Settings() {
           </div>
 
           {importMessage ? <p className={styles.importMessage}>{importMessage}</p> : null}
-        </div>
+        </details>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Recent changes</h2>
-          </div>
+        <h2 className={styles.groupTitle}>History</h2>
+        <details className={styles.card}>
+          <summary className={styles.disclosure}>Recent changes</summary>
 
           <div className={styles.historyList}>
             {loadingHistory ? (
@@ -544,8 +549,9 @@ export default function Settings() {
               ))
             )}
           </div>
-        </div>
+        </details>
 
+        <h2 className={styles.groupTitle}>Account</h2>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Log out</h2>

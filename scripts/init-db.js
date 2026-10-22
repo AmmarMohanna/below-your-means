@@ -77,6 +77,7 @@ db.exec(`
     target TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('Family', 'Home', 'Personal', 'Subscription', 'Donations')),
     amount REAL NOT NULL,
+    last_paid_date TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 

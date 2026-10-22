@@ -18,7 +18,7 @@ test('month and scope totals reconcile with zero-filled bars', () => {
   assert.deepEqual(business.largest, []);
 });
 
-test('lists every expense strictly over $200 for the selected month and scope, highest first', () => {
+test('lists every expense of $200 or more for the selected month and scope, highest first', () => {
   const transactions = [
     expense(1, '2026-08-01', 199.99), expense(2, '2026-08-02', 200),
     expense(3, '2026-08-03', 200.01), expense(4, '2026-08-04', 250, 'business'),
@@ -28,8 +28,8 @@ test('lists every expense strictly over $200 for the selected month and scope, h
     { ...expense(11, '2026-08-07', 7777), type: 'income' }, expense(12, '2026-08-07', 450),
   ];
   const input = { transactions, today: '2026-09-05', month: '2026-08' };
-  assert.deepEqual(buildStatistics(input).largest.map((row) => row.id), [7, 12, 6, 5, 4, 3]);
-  assert.deepEqual(buildStatistics({ ...input, scope: 'personal' }).largest.map((row) => row.id), [7, 12, 5, 3]);
+  assert.deepEqual(buildStatistics(input).largest.map((row) => row.id), [7, 12, 6, 5, 4, 3, 2]);
+  assert.deepEqual(buildStatistics({ ...input, scope: 'personal' }).largest.map((row) => row.id), [7, 12, 5, 3, 2]);
   assert.deepEqual(buildStatistics({ ...input, scope: 'business' }).largest.map((row) => row.id), [6, 4]);
   assert.deepEqual(buildStatistics({ ...input, month: '2026-07' }).largest.map((row) => row.id), [8]);
   assert.deepEqual(buildStatistics({ ...input, month: '2026-09' }).largest, []);
@@ -75,13 +75,15 @@ test('default is the current month even with older records or no current entries
   assert.equal(isValidDate('2026-02-29'), false);
 });
 
-test('year-end savings uses all current assets and independent dated future plans once', () => {
+test('planned savings excludes pension and adds every registered plan regardless of date', () => {
   const input = { today: '2026-09-05', savings: { cash_savings_amount: 1000, aub_pension_amount: 2500 }, metals: { gold_24k_grams: 2, gold_24k_price_per_gram: 100, gold_21k_grams: 1, gold_21k_price_per_gram: 80, silver_kg: 1, silver_price_per_kg: 900 }, planItems: [{ amount: 300, planned_date: '2026-09-05', expected_money_id: 1 }, { amount: 700, planned_date: '2026-12-31', expected_money_id: null }, { amount: 900, planned_date: '2026-09-04' }, { amount: 900, planned_date: null }, { amount: 900, planned_date: '2027-01-01' }, { amount: 900, planned_date: '2026-11-31' }] };
   const projection = buildSavingsProjection(input);
-  assert.equal(projection.current, 4680);
-  assert.equal(projection.additions, 1000);
-  assert.equal(projection.expected, 5680);
-  assert.equal(projection.excludedPlans, true);
+  assert.equal(projection.current, 2180);
+  assert.equal(projection.additions, 4600);
+  assert.equal(projection.expected, 6780);
+  assert.equal(projection.pension, 2500);
+  assert.equal(buildSavingsProjection({ ...input, savings: { ...input.savings, aub_pension_amount: 999999 } }).expected, projection.expected);
+  assert.deepEqual(buildSavingsProjection({ ...input, today: '2027-01-01' }), projection);
   const all = buildStatistics({ ...input, month: '2026-08', scope: 'all' });
   const business = buildStatistics({ ...input, month: '2026-07', scope: 'business' });
   assert.deepEqual(all.savings, business.savings);
@@ -92,5 +94,15 @@ test('savings reproduces zero-price fallbacks in the metals API and an empty pla
   assert.equal(result.metals, 1109.4);
   assert.equal(result.expected, 1109.4);
   assert.equal(result.additions, 0);
-  assert.equal(result.yearEnd, '2026-12-31');
+});
+
+test('savings ignores invalid amounts while retaining valid undated registered plans', () => {
+  const result = buildSavingsProjection({
+    today: '2026-09-05',
+    savings: { cash_savings_amount: '12.50', aub_pension_amount: 10000 },
+    planItems: [{ amount: '20.25' }, { amount: 0 }, { amount: -10 }, { amount: 'invalid' }, { amount: Infinity }],
+  });
+  assert.equal(result.current, 12.5);
+  assert.equal(result.additions, 20.25);
+  assert.equal(result.expected, 32.75);
 });

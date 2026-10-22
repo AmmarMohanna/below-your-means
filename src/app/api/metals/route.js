@@ -61,7 +61,6 @@ export async function GET() {
         cash_savings_amount: longTermSavings.cash_savings_amount || 0,
         total:
           totalValue +
-          (longTermSavings.aub_pension_amount || 0) +
           (longTermSavings.cash_savings_amount || 0),
       }
     });

@@ -9,7 +9,7 @@
   min-height: 44px;
   max-width: 160px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 13px;
   background: var(--card-bg);
   padding: 8px 10px;
   color: var(--text-primary);
@@ -26,7 +26,7 @@
   min-height: 44px;
   padding: 8px 14px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 13px;
   background: transparent;
   color: var(--text-muted);
   font-size: 0.84rem;
@@ -71,7 +71,7 @@
 .panel {
   padding: 17px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--card-bg);
   min-width: 0;
 }
@@ -106,7 +106,7 @@
 .savingsNote {
   margin-top: 10px;
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -149,7 +149,7 @@
   max-width: 45px;
   flex-shrink: 0;
   display: block;
-  background: #9e83b3;
+  background: var(--border-strong);
   border-radius: 5px 5px 0 0;
 }
 
@@ -162,7 +162,7 @@
 .barValue {
   display: none;
   margin-bottom: 5px;
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -180,14 +180,14 @@
   display: block;
   text-align: center;
   width: 100%;
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   margin-top: 9px;
   padding-bottom: 5px;
 }
 
 .chartNote {
   margin-top: 9px;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .largest {
@@ -247,7 +247,7 @@
   color: var(--primary-strong);
   background: var(--primary-light);
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 13px;
   cursor: pointer;
 }
 
@@ -258,3 +258,11 @@
   outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
+
+.filters{padding:4px;border-radius:15px;background:var(--card-solid)}
+.filters button{flex:1}
+.outflow{padding:24px;border:0;border-radius:18px;background:var(--card-solid)}
+.panel{border:0;padding:22px}
+.chartScroll{overflow-x:auto;padding-inline:8px;padding-bottom:4px}
+.chart{min-width:calc(var(--month-count) * 48px)}
+.monthLabel{min-height:44px;padding-top:8px}
