@@ -2,6 +2,7 @@
 
 Both instances deploy from `main`. Select the configuration for the intended instance.
 Application code and migrations are shared. Workers, databases, secrets, and voice rate limits remain separate.
+Run both targets from the same checkout. The configuration files select the deployment resources.
 
 | Target | Configuration | Worker and database | URL |
 | --- | --- | --- | --- |

@@ -2,6 +2,7 @@
 
 Both Ammar's and Karim's instances use the `main` branch and the same application code.
 Each instance has its own Cloudflare Worker, D1 database, password, and voice rate limit.
+Run both deployment targets from this single repository checkout.
 
 | Target | Configuration | Deploy command |
 | --- | --- | --- |
