@@ -1753,7 +1753,7 @@ export default function Accounts() {
         {renderCurrentTab()}
       </section>}
 
-      <BottomNav active="accounts" />
+      <BottomNav active="accounts" onActiveNavigate={activeTab ? () => selectTab(null) : undefined} />
     </div>
   );
 }

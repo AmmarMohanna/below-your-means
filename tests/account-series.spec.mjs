@@ -269,6 +269,11 @@ test('double submission sends one schedule request and locks controls until comp
   await expect(page.getByRole('button', { name: /Adding/ })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: '← Money overview', exact: true })).toBeDisabled();
+  await page.getByRole('navigation', { name: 'Main navigation', exact: true })
+    .getByRole('link', { name: 'Money', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Payables', level: 2, exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Money areas', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Adding/ })).toBeDisabled();
   release();
   await expect(page.getByRole('button', { name: /Adding/ })).not.toBeVisible();
   expect(state.writes).toHaveLength(1);
@@ -352,4 +357,53 @@ test('Money overview stays light with dark device settings and uses a desktop si
   const nav = await page.getByRole('navigation', { name: 'Main navigation' }).boundingBox();
   expect(nav.x).toBe(0);
   expect(nav.width).toBe(216);
+});
+
+test('Money navigation returns from every area and still allows other page links', async ({ page }) => {
+  const state = await setupAccounts(page);
+  const navigation = page.getByRole('navigation', { name: 'Main navigation', exact: true });
+  const money = navigation.getByRole('link', { name: 'Money', exact: true });
+  for (const name of ['Current', 'Expected', 'Payables', 'Monthly', 'Savings']) {
+    await page.getByRole('button', { name, exact: true }).click();
+    await expect(page.getByRole('heading', { name, level: 2, exact: true })).toBeVisible();
+    await money.click();
+    await expect(page.getByRole('navigation', { name: 'Money areas', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name, exact: true })).toBeFocused();
+    await expect(page.getByRole('button', { name: '← Money overview', exact: true })).toHaveCount(0);
+    await expect(page).toHaveURL(/\/accounts$/);
+  }
+
+  await page.route('**/api/transactions', (route) => route.fulfill({ json: [] }));
+  await page.route('**/api/reminders', (route) => route.fulfill({ json: [] }));
+  await navigation.getByRole('link', { name: 'Today', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole('button', { name: 'Add entry', exact: true })).toBeVisible();
+  await money.click();
+  await expect(page.getByRole('navigation', { name: 'Money areas', exact: true })).toBeVisible();
+  expect(state.writes).toHaveLength(0);
+});
+
+test('Money navigation closes an unsaved form and resets its fields', async ({ page }) => {
+  const state = await setupAccounts(page);
+  const config = configurations[0];
+  await openAdd(page, config);
+  await fillEntry(page, config, { source: 'Unsaved draft', amount: '275' });
+  await advanced(page).locator('summary').click();
+  await page.getByLabel('Repeat monthly', { exact: true }).check();
+  const money = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+    .getByRole('link', { name: 'Money', exact: true });
+  await money.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('navigation', { name: 'Money areas', exact: true })).toBeVisible();
+  await expect(addButton(page)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: config.tab, exact: true })).toBeFocused();
+
+  await openAdd(page, config);
+  await expect(page.getByPlaceholder(config.sourcePlaceholder, { exact: true })).toHaveValue('');
+  await expect(page.getByPlaceholder(config.amountPlaceholder, { exact: true })).toHaveValue('');
+  await expect(page.getByPlaceholder('Notes', { exact: true })).toHaveValue('');
+  await expect(advanced(page)).not.toHaveAttribute('open');
+  await advanced(page).locator('summary').click();
+  await expect(page.getByLabel('Repeat monthly', { exact: true })).not.toBeChecked();
+  expect(state.writes).toHaveLength(0);
 });

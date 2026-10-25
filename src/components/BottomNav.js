@@ -13,7 +13,7 @@ const navItems = [
   { key: "analytics", label: "Dashboard", icon: "analytics", href: "/analytics" },
 ];
 
-export default function BottomNav({ active }) {
+export default function BottomNav({ active, onActiveNavigate }) {
   return (
     <nav className={styles.bottomNav} aria-label="Main navigation">
       <span className={styles.brand}>BelowYourMeans</span>
@@ -21,6 +21,10 @@ export default function BottomNav({ active }) {
         <Link
           key={item.key}
           href={item.href}
+          onNavigate={active === item.key && onActiveNavigate ? (event) => {
+            event.preventDefault();
+            onActiveNavigate();
+          } : undefined}
           aria-current={active === item.key ? "page" : undefined}
           className={`${styles.navItem} ${active === item.key ? styles.active : ""}`}
         >
