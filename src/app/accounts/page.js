@@ -17,7 +17,6 @@ const tabs = [
   { id: "payables", name: "Payables", icon: "outgoing", description: "What you owe" },
   { id: "recurring", name: "Monthly", icon: "repeat", description: "Regular payments" },
   { id: "metals", name: "Savings", icon: "savings", description: "Holdings and plans" },
-  { id: "projects", name: "Projects", icon: "projects", description: "Plans worth saving for" },
 ];
 
 const recurringTypes = ["Family", "Home", "Personal", "Subscription", "Donations"];
@@ -93,10 +92,6 @@ function getInitialForm(tab) {
     return { location: "", amount: "", notes: "" };
   }
 
-  if (tab === "projects") {
-    return { description: "", estimated_amount: "", target_date: "" };
-  }
-
   if (tab === "expected") {
     return {
       source: "",
@@ -133,7 +128,6 @@ export default function Accounts() {
   const [expandedMetaIds, setExpandedMetaIds] = useState([]);
   const [data, setData] = useState({
     currentMoney: [],
-    projects: [],
     expectedMoney: [],
     payables: [],
     recurring: [],
@@ -307,14 +301,8 @@ export default function Accounts() {
     [data.recurring]
   );
 
-  const projectTotal = useMemo(
-    () => data.projects.reduce((sum, item) => sum + (item.estimated_amount || 0), 0),
-    [data.projects]
-  );
-
   const getTableName = (tab) => {
     if (tab === "current") return "currentMoney";
-    if (tab === "projects") return "projects";
     if (tab === "expected") return "expectedMoney";
     if (tab === "payables") return "payables";
     if (tab === "recurring") return "recurring";
@@ -369,9 +357,6 @@ export default function Accounts() {
   };
 
   const getFormValidationError = () => {
-    if (activeTab === "projects" && (!formData.description?.trim() || formData.estimated_amount === "" || !Number.isFinite(Number(formData.estimated_amount)) || Number(formData.estimated_amount) < 0)) {
-      return "Enter a project description and a valid amount.";
-    }
     if (activeTab === "recurring" && formData.last_paid_date &&
       (!isValidDateOnly(formData.last_paid_date) || formData.last_paid_date > today)) {
       return "Last paid must be a valid date on or before today.";
@@ -718,43 +703,6 @@ export default function Accounts() {
             value={formData.notes || ""}
             onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
           />
-        </>
-      );
-    }
-
-    if (activeTab === "projects") {
-      return (
-        <>
-          <input
-            type="text"
-            className={styles.formInput}
-            placeholder="Project description"
-            value={formData.description || ""}
-            onChange={(event) => setFormData({ ...formData, description: event.target.value })}
-          />
-          <input
-            type="number"
-            className={styles.formInput}
-            min="0"
-            step="0.01"
-            placeholder="Estimated amount"
-            value={formData.estimated_amount ?? ""}
-            onChange={(event) =>
-              setFormData({
-                ...formData,
-                estimated_amount: event.target.value === "" ? "" : Number(event.target.value),
-              })
-            }
-          />
-          <label className={styles.formField}>
-            <span className={styles.formLabel}>Optional date</span>
-            <input
-              type="date"
-              className={styles.formInput}
-              value={formData.target_date || ""}
-              onChange={(event) => setFormData({ ...formData, target_date: event.target.value })}
-            />
-          </label>
         </>
       );
     }
@@ -1320,23 +1268,6 @@ export default function Accounts() {
       }));
     }
 
-    if (activeTab === "projects") {
-      return (
-        <div className={styles.projectList}>
-          <section className={styles.projectSummaryCard}>
-            <span className={styles.summaryLabel}>{formatItemCount(data.projects.length)}</span>
-            <strong>${formatMoney(projectTotal)} estimated</strong>
-          </section>
-          {renderStandardList(data.projects, (item) => ({
-            title: item.description,
-            amount: item.estimated_amount,
-            meta: item.target_date ? `Target ${formatDate(item.target_date)}` : "",
-            canShift: true,
-          }))}
-        </div>
-      );
-    }
-
     if (activeTab === "expected") {
       return renderMonthGroupedList(
         data.expectedMoney,
@@ -1754,7 +1685,7 @@ export default function Accounts() {
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab);
   const canAdd = activeTab !== "metals";
-  const overviewAmounts = { current: summary.cash, expected: summary.expected, payables: summary.owe, recurring: summary.monthly, metals: summary.longTermSavings, projects: projectTotal };
+  const overviewAmounts = { current: summary.cash, expected: summary.expected, payables: summary.owe, recurring: summary.monthly, metals: summary.longTermSavings };
 
   return (
     <div className={styles.container}>

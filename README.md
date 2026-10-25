@@ -25,7 +25,8 @@ A personal life management app designed for self-hosting. Track expenses, manage
 ### 📊 Today — Daily Expense Tracking
 - Quick-add income and expenses with automatic internal categories
 - Voice entry on Today: record, review/edit in a modal, then explicitly confirm
-- Date picker for past entries
+- Visible date picker, day controls, and a Today shortcut for past entries
+- History groups income and expenses by day, with a month filter and earlier entries on demand
 - Daily and monthly spending totals
 
 ### 💰 Accounts — Complete Financial Picture
@@ -33,7 +34,6 @@ A personal life management app designed for self-hosting. Track expenses, manage
 - **Expected Money** — Incoming payments with due dates
 - **Payables** — What you owe and when
 - **Recurring** — Monthly payments by type (Family, Home, Personal, Subscription, Donations). Check a payment to save today’s Beirut date and show its next due date one calendar month later (clamped for shorter months). Uncheck to undo a payment, or edit “Last paid” to correct its date; overdue payments are highlighted. This tracks payment status without creating an expense transaction.
-- **Projects** — Planned projects with estimates, optional dates, and ranking
 - **Savings** — Current cash savings, AUB Pension, gold (24K, 21K), and silver with live price fetching
 - **Savings** — Keep an independent list of planned savings alongside pension and metal holdings
 

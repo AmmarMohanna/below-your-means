@@ -324,10 +324,10 @@ test('Advanced remains usable at 320px without horizontal overflow', async ({ pa
 });
 
 
-test('Money overview opens all six areas and restores keyboard focus on return', async ({ page }) => {
+test('Money overview opens all five areas and restores keyboard focus on return', async ({ page }) => {
   const state = await setupAccounts(page, { items: { projects: [{ id: 1, description: 'Travel', estimated_amount: 2300, target_date: null, sort_order: 1 }] } });
-  await expect(page.getByRole('button', { name: 'Projects', exact: true })).toContainText('$2,300');
-  for (const name of ['Current', 'Expected', 'Payables', 'Monthly', 'Savings', 'Projects']) {
+  await expect(page.getByRole('button', { name: 'Projects', exact: true })).toHaveCount(0);
+  for (const name of ['Current', 'Expected', 'Payables', 'Monthly', 'Savings']) {
     const area = page.getByRole('button', { name, exact: true });
     await area.focus();
     await page.keyboard.press('Enter');
@@ -344,7 +344,7 @@ test('Money overview stays light with dark device settings and uses a desktop si
   await page.setViewportSize({ width: 320, height: 700 });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
   await setupAccounts(page);
-  await expect(page.getByRole('navigation', { name: 'Money areas' }).getByRole('button')).toHaveCount(6);
+  await expect(page.getByRole('navigation', { name: 'Money areas' }).getByRole('button')).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(242, 243, 245)');
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).not.toContain('dark');

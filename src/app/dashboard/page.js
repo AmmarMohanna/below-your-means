@@ -6,17 +6,40 @@ import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import AppHeader from "@/components/AppHeader";
 import VoiceEntry from "@/components/VoiceEntry";
-import { getTodayBeirut } from "@/lib/date";
+import { getTodayBeirut, isValidDateOnly } from "@/lib/date";
 import { buildTransactionPayload, capitalizeDescription, MAX_DESCRIPTION_LENGTH } from "@/lib/transaction-entry";
 
 import styles from "./dashboard.module.css";
 
-function formatDisplayDate(date) {
+function formatDisplayDate(date, includeYear = false) {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-GB", {
     timeZone: "Asia/Beirut",
     month: "short",
     day: "numeric",
+    ...(includeYear ? { year: "numeric" } : {}),
   });
+}
+
+function formatMonth(month) {
+  return new Date(`${month}-01T12:00:00Z`).toLocaleDateString("en-GB", {
+    timeZone: "Asia/Beirut", month: "long", year: "numeric",
+  });
+}
+
+function compareTransactions(left, right) {
+  if (left.created_at && right.created_at && left.created_at !== right.created_at) {
+    return right.created_at.localeCompare(left.created_at);
+  }
+  return right.id - left.id;
+}
+
+function summarizeTransactions(transactions) {
+  return transactions.reduce((summary, transaction) => {
+    if (transaction.type === "income" || transaction.type === "expense") {
+      summary[transaction.type] += Number(transaction.amount) || 0;
+    }
+    return summary;
+  }, { income: 0, expense: 0 });
 }
 
 function formatMoney(value, fractionDigits = 0) {
@@ -31,6 +54,9 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => getTodayBeirut());
+  const [entriesView, setEntriesView] = useState("day");
+  const [historyMonth, setHistoryMonth] = useState("");
+  const [visibleHistoryDays, setVisibleHistoryDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -93,37 +119,59 @@ export default function Dashboard() {
     setSelectedIds([]);
     setSelectionMode(false);
     setExpandedTransactionIds([]);
-  }, [selectedDate]);
+  }, [selectedDate, entriesView, historyMonth]);
+
+  useEffect(() => {
+    setVisibleHistoryDays(7);
+  }, [historyMonth]);
 
   const selectedDateValue = selectedDate;
   const todayDate = getTodayBeirut();
+  const summaryMonth = entriesView === "history" && historyMonth ? historyMonth : selectedDate.slice(0, 7);
   const monthlySummary = useMemo(() => transactions.reduce((summary, transaction) => {
-    if (transaction.date <= todayDate && transaction.date.slice(0, 7) === selectedDate.slice(0, 7) &&
+    if (transaction.date <= todayDate && transaction.date.slice(0, 7) === summaryMonth &&
         (transaction.type === "income" || transaction.type === "expense")) {
       summary[transaction.type] += Number(transaction.amount) || 0;
     }
     return summary;
-  }, { income: 0, expense: 0 }), [selectedDate, todayDate, transactions]);
+  }, { income: 0, expense: 0 }), [summaryMonth, todayDate, transactions]);
 
   const dailyTransactions = useMemo(
     () =>
       transactions
         .filter((transaction) => transaction.date === selectedDateValue)
-        .sort((left, right) => {
-          if (left.created_at && right.created_at && left.created_at !== right.created_at) {
-            return right.created_at.localeCompare(left.created_at);
-          }
-          return right.id - left.id;
-        }),
+        .sort(compareTransactions),
     [selectedDateValue, transactions]
   );
 
-  const dailySummary = useMemo(() => dailyTransactions.reduce((summary, transaction) => {
-    if (transaction.type === "income" || transaction.type === "expense") {
-      summary[transaction.type] += Number(transaction.amount) || 0;
+  const historyGroups = useMemo(() => {
+    const days = new Map();
+    for (const transaction of transactions) {
+      if (!isValidDateOnly(transaction.date) || transaction.date > todayDate) continue;
+      if (!days.has(transaction.date)) days.set(transaction.date, []);
+      days.get(transaction.date).push(transaction);
     }
-    return summary;
-  }, { income: 0, expense: 0 }), [dailyTransactions]);
+    return [...days.entries()]
+      .sort(([left], [right]) => right.localeCompare(left))
+      .map(([date, entries]) => ({ date, entries: entries.sort(compareTransactions), summary: summarizeTransactions(entries) }));
+  }, [transactions, todayDate]);
+
+  const historyMonths = [...new Set(historyGroups.map((group) => group.date.slice(0, 7)))];
+  const filteredHistory = historyGroups.filter((group) => !historyMonth || group.date.startsWith(historyMonth));
+  const visibleGroups = entriesView === "history"
+    ? filteredHistory.slice(0, visibleHistoryDays)
+    : [{ date: selectedDate, entries: dailyTransactions, summary: summarizeTransactions(dailyTransactions) }];
+  const hasVisibleEntries = visibleGroups.some((group) => group.entries.length > 0);
+
+  const changeSelectedDate = (value) => {
+    if (isValidDateOnly(value) && value <= getTodayBeirut()) setSelectedDate(value);
+  };
+
+  const moveDay = (offset) => {
+    const date = new Date(`${selectedDate}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + offset);
+    changeSelectedDate(date.toISOString().slice(0, 10));
+  };
 
   const dueReminders = useMemo(
     () =>
@@ -281,6 +329,7 @@ export default function Dashboard() {
       <AppHeader title="Today" />
       {error && <div className={styles.error} role="alert">{error}<button type="button" onClick={fetchTransactions}>Retry</button></div>}
       <div className={styles.summaryStrip}>
+        <span className={styles.summaryMonth}>{formatMonth(summaryMonth)}</span>
         <div><span className={styles.summaryLabel}>Month out</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.expense)}</strong></div>
         <div><span className={styles.summaryLabel}>Month in</span><strong className={styles.summaryValue}>${formatMoney(monthlySummary.income)}</strong></div>
       </div>
@@ -303,7 +352,7 @@ export default function Dashboard() {
             placeholder={type === "income" ? "Who paid you?" : "What was it for?"}
             value={description} autoCapitalize="sentences" maxLength={MAX_DESCRIPTION_LENGTH} onChange={(event) => setDescription(capitalizeDescription(event.target.value))} />
           <details className={styles.entryDetails}>
-            <summary>{scope === "business" ? "Business" : "Personal"} · {formatDisplayDate(selectedDate)}</summary>
+            <summary>{scope === "business" ? "Business" : "Personal"} · {formatDisplayDate(selectedDate, true)}</summary>
             <div className={styles.entryOptions}>
               <select aria-label="Entry scope" className={styles.scopeInput} value={scope} disabled={isSubmitting} onChange={(event) => setScope(event.target.value)}>
                 <option value="personal">Personal</option><option value="business">Business</option>
@@ -311,9 +360,8 @@ export default function Dashboard() {
               <label className={styles.dateInputWrap}>
                 <span>{formatDisplayDate(selectedDate)}</span>
                 <input aria-label="Entry date" type="date" className={styles.dateInput} value={selectedDate}
-                  max={getTodayBeirut()} required disabled={isSubmitting}
-                  onInput={(event) => { if (event.target.value) setSelectedDate(event.target.value); }}
-                  onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} />
+                  max={todayDate} required disabled={isSubmitting}
+                  onChange={(event) => changeSelectedDate(event.target.value)} />
               </label>
             </div>
           </details>
@@ -345,26 +393,54 @@ export default function Dashboard() {
           ))}
         </details>
       )}
-      <section className={styles.daySection} aria-label="Entries for selected date">
-        <div className={styles.dayHeader}>
-          <h2>{formatDisplayDate(selectedDate)}</h2>
-          {(dailySummary.expense > 0 || dailySummary.income > 0) && (
-            <div className={styles.dayTotals} aria-label="Daily totals">
-              {dailySummary.income > 0 && <span className={styles.amountIncome}>Received ${formatMoney(dailySummary.income, 2)}</span>}
-              {dailySummary.expense > 0 && <span>Paid ${formatMoney(dailySummary.expense, 2)}</span>}
-            </div>
-          )}
-          {dailyTransactions.length > 0 && <button type="button" className={styles.selectionToggle} onClick={() => { setSelectionMode((previous) => !previous); setSelectedIds([]); }}>
+      <section className={styles.daySection} aria-label={entriesView === "history" ? "Entry history" : "Entries for selected date"}>
+        <div className={styles.historyHeader}>
+          <div className={styles.viewSwitch} aria-label="Entry view">
+            <button type="button" aria-pressed={entriesView === "day"} onClick={() => setEntriesView("day")}>Day</button>
+            <button type="button" aria-pressed={entriesView === "history"} onClick={() => setEntriesView("history")}>History</button>
+          </div>
+          {hasVisibleEntries && <button type="button" className={styles.selectionToggle} onClick={() => { setSelectionMode((previous) => !previous); setSelectedIds([]); }}>
             {selectionMode ? "Cancel" : "Select"}
           </button>}
         </div>
+        {entriesView === "history" ? (
+          <label className={styles.historyFilter}>
+            <span>Browse entries</span>
+            <select aria-label="History month" value={historyMonth} onChange={(event) => setHistoryMonth(event.target.value)}>
+              <option value="">All months</option>
+              {historyMonths.map((month) => <option key={month} value={month}>{formatMonth(month)}</option>)}
+            </select>
+          </label>
+        ) : (
+          <div className={styles.dateNavigation}>
+            <button type="button" className={styles.dateArrow} aria-label="Previous day" disabled={isSubmitting} onClick={() => moveDay(-1)}>‹</button>
+            <label className={styles.browseDate}>
+              <span>{formatDisplayDate(selectedDate, true)}</span>
+              <input aria-label="Show entries for date" type="date" className={styles.dateInput} value={selectedDate}
+                max={todayDate} required disabled={isSubmitting} onChange={(event) => changeSelectedDate(event.target.value)} />
+            </label>
+            <button type="button" className={styles.dateArrow} aria-label="Next day" disabled={selectedDate >= todayDate || isSubmitting} onClick={() => moveDay(1)}>›</button>
+            <button type="button" className={styles.todayButton} disabled={selectedDate === todayDate || isSubmitting} onClick={() => changeSelectedDate(todayDate)}>Today</button>
+          </div>
+        )}
         {selectionMode && selectedIds.length > 0 && <div className={styles.bulkBar}>
           <span>{selectedIds.length} selected</span><button type="button" className={styles.bulkDeleteButton} onClick={handleBulkDelete} disabled={isBulkDeleting}>
             {isBulkDeleting ? "Deleting…" : "Delete selected"}
           </button>
         </div>}
-        <div className={styles.transactionList}>
-          {dailyTransactions.length === 0 ? <p className={styles.emptyState}>No entries for this day.</p> : dailyTransactions.map((transaction) => (
+        {visibleGroups.map((group) => (
+          <section key={group.date} className={styles.dayGroup} aria-label={`Entries for ${group.date}`}>
+            <div className={styles.dayHeader}>
+              <h2>{formatDisplayDate(group.date, true)}</h2>
+              {(group.summary.expense > 0 || group.summary.income > 0) && (
+                <div className={styles.dayTotals} aria-label="Daily totals">
+                  {group.summary.income > 0 && <span className={styles.amountIncome}>Received ${formatMoney(group.summary.income, 2)}</span>}
+                  {group.summary.expense > 0 && <span>Paid ${formatMoney(group.summary.expense, 2)}</span>}
+                </div>
+              )}
+            </div>
+            <div className={styles.transactionList}>
+          {group.entries.length === 0 ? <p className={styles.emptyState}>No entries for this day.</p> : group.entries.map((transaction) => (
             <article key={transaction.id} className={`${styles.transactionCard} ${selectionMode ? styles.selecting : ""}`}>
               {selectionMode && <button type="button" className={styles.selectCircle} aria-label={`Select ${transaction.notes || transaction.category}`}
                 aria-pressed={selectedIds.includes(transaction.id)} onClick={() => toggleSelected(transaction.id)}>{selectedIds.includes(transaction.id) ? "✓" : ""}</button>}
@@ -381,7 +457,13 @@ export default function Dashboard() {
               </div>}
             </article>
           ))}
-        </div>
+            </div>
+          </section>
+        ))}
+        {visibleGroups.length === 0 && <p className={styles.emptyState}>No entries yet.</p>}
+        {entriesView === "history" && filteredHistory.length > visibleHistoryDays && (
+          <button type="button" className={styles.loadEarlier} onClick={() => setVisibleHistoryDays((count) => count + 7)}>Show earlier entries</button>
+        )}
       </section>
       <BottomNav active="dashboard" />
     </main>

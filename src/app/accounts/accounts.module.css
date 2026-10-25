@@ -37,7 +37,7 @@
 .rowActions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .mobileIcon { display: none; }
 .buttonLabel { display: inline; }
-.cardList, .groupList, .longTermList, .projectList, .savingsPlanDashboard, .groupRows, .metalsRows { display: grid; gap: 12px; min-width: 0; }
+.cardList, .groupList, .longTermList, .savingsPlanDashboard, .groupRows, .metalsRows { display: grid; gap: 12px; min-width: 0; }
 .planMetrics { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .planMetricCard { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 22px; }
 .savingsMetricLabel { color: var(--primary-strong); font-size: .9rem; font-weight: 600; }
@@ -61,7 +61,6 @@
 .longTermList > * { width: 100%; }
 .savingsHoldingsHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 0 0; }
 .savingsAccountsGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-.projectSummaryCard { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--border); }
 .itemCard, .groupRow, .metalRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px; }
 .groupRow, .metalRow { border-top: 1px solid var(--border); padding-inline: 0; border-radius: 0; }
 .groupRow:first-child, .metalRow:first-child { border-top: 0; }
